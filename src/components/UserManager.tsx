@@ -29,15 +29,17 @@ const UserManager: React.FC = () => {
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case 'admin': return 'bg-red-100 text-red-700 border-red-200';
-      case 'editor': return 'bg-yellow-100 text-yellow-700 border-yellow-200';
-      case 'viewer': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'superadmin': return 'bg-red-100 text-red-700 border-red-200';
+      case 'admin': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'editor': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'viewer': return 'bg-gray-100 text-gray-700 border-gray-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getRoleText = (role: string) => {
     switch (role) {
+      case 'superadmin': return 'Super Admin';
       case 'admin': return 'Administrador';
       case 'editor': return 'Editor';
       case 'viewer': return 'Visualizador';
@@ -60,7 +62,7 @@ const UserManager: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <span className="ml-2">Carregando usuários...</span>
       </div>
     );
@@ -77,7 +79,7 @@ const UserManager: React.FC = () => {
           const userFranchisesList = getUserFranchises(user.id);
           
           return (
-            <Card key={user.id} className="hover:shadow-md transition-shadow border-l-4 border-l-red-600">
+            <Card key={user.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-600">
               <CardContent className="p-6">
                 <div className="flex flex-col lg:flex-row justify-between gap-4">
                   <div className="flex-1">
@@ -102,7 +104,7 @@ const UserManager: React.FC = () => {
                       <div className="flex flex-wrap gap-2 mt-1">
                         {userFranchisesList.length > 0 ? (
                           userFranchisesList.map((uf) => (
-                            <div key={uf.id} className="flex items-center bg-yellow-100 text-yellow-800 px-2 py-1 rounded-md text-xs">
+                            <div key={uf.id} className="flex items-center bg-red-100 text-red-800 px-2 py-1 rounded-md text-xs">
                               <Building size={12} className="mr-1" />
                               {uf.franchise_name}
                               <Button
@@ -131,6 +133,7 @@ const UserManager: React.FC = () => {
                         <SelectValue placeholder="Papel" />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="superadmin">Super Admin</SelectItem>
                         <SelectItem value="admin">Administrador</SelectItem>
                         <SelectItem value="editor">Editor</SelectItem>
                         <SelectItem value="viewer">Visualizador</SelectItem>
@@ -142,7 +145,7 @@ const UserManager: React.FC = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          className="border-red-600 text-red-600 hover:bg-red-50"
+                          className="border-blue-600 text-blue-600 hover:bg-blue-50"
                           onClick={() => setSelectedUser(user)}
                         >
                           <UserPlus size={16} className="mr-1" />
@@ -172,7 +175,7 @@ const UserManager: React.FC = () => {
                             <Button 
                               onClick={handleAssignFranchise}
                               disabled={!selectedFranchise}
-                              className="bg-red-600 hover:bg-red-700"
+                              className="bg-blue-600 hover:bg-blue-700"
                             >
                               Atrelar
                             </Button>
@@ -197,7 +200,7 @@ const UserManager: React.FC = () => {
         })}
         
         {users.length === 0 && (
-          <Card>
+          <Card className="border-l-4 border-l-blue-600">
             <CardContent className="text-center py-12">
               <Users size={48} className="mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum usuário encontrado</h3>

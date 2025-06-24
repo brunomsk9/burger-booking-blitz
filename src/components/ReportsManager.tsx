@@ -58,9 +58,6 @@ const ReportsManager: React.FC = () => {
     generateReport({});
   };
 
-  // Cores da paleta Herois Burguer
-  const colors = ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#FEE2E2'];
-
   // Dados para gráficos
   const franchiseData = Object.entries(reportData.reservationsByFranchise).map(([name, value]) => ({
     name: name.replace('Herois Burguer - ', ''),
@@ -68,15 +65,15 @@ const ReportsManager: React.FC = () => {
   }));
 
   const statusData = [
-    { name: 'Confirmadas', value: reportData.confirmedReservations, color: '#10B981' },
-    { name: 'Pendentes', value: reportData.pendingReservations, color: '#F59E0B' },
-    { name: 'Canceladas', value: reportData.cancelledReservations, color: '#EF4444' },
+    { name: 'Confirmadas', value: reportData.confirmedReservations, color: '#2563EB' },
+    { name: 'Pendentes', value: reportData.pendingReservations, color: '#DC2626' },
+    { name: 'Canceladas', value: reportData.cancelledReservations, color: '#6B7280' },
   ];
 
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <span className="ml-2">Gerando relatório...</span>
       </div>
     );
@@ -89,9 +86,9 @@ const ReportsManager: React.FC = () => {
       </div>
 
       {/* Filtros */}
-      <Card className="border-l-4 border-l-red-600">
+      <Card className="border-l-4 border-l-blue-600">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-700">
+          <CardTitle className="flex items-center gap-2 text-blue-700">
             <FileText size={20} />
             Filtros do Relatório
           </CardTitle>
@@ -154,7 +151,7 @@ const ReportsManager: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button onClick={handleGenerateReport} className="bg-red-600 hover:bg-red-700">
+            <Button onClick={handleGenerateReport} className="bg-blue-600 hover:bg-blue-700">
               Gerar Relatório
             </Button>
             <Button variant="outline" onClick={handleClearFilters}>
@@ -166,50 +163,50 @@ const ReportsManager: React.FC = () => {
 
       {/* Cards de Estatísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-red-600">
+        <Card className="border-l-4 border-l-blue-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total de Reservas</p>
-                <p className="text-2xl font-bold text-red-600">{reportData.totalReservations}</p>
+                <p className="text-2xl font-bold text-blue-600">{reportData.totalReservations}</p>
               </div>
-              <Calendar className="h-8 w-8 text-red-600" />
+              <Calendar className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-green-600">
+        <Card className="border-l-4 border-l-blue-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Confirmadas</p>
-                <p className="text-2xl font-bold text-green-600">{reportData.confirmedReservations}</p>
+                <p className="text-2xl font-bold text-blue-600">{reportData.confirmedReservations}</p>
               </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
+              <CheckCircle className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-yellow-600">
+        <Card className="border-l-4 border-l-red-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                <p className="text-2xl font-bold text-yellow-600">{reportData.pendingReservations}</p>
+                <p className="text-2xl font-bold text-red-600">{reportData.pendingReservations}</p>
               </div>
-              <Clock className="h-8 w-8 text-yellow-600" />
+              <Clock className="h-8 w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-pink-600">
+        <Card className="border-l-4 border-l-red-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Aniversários</p>
-                <p className="text-2xl font-bold text-pink-600">{reportData.birthdayReservations}</p>
+                <p className="text-2xl font-bold text-red-600">{reportData.birthdayReservations}</p>
               </div>
-              <Gift className="h-8 w-8 text-pink-600" />
+              <Gift className="h-8 w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
@@ -217,9 +214,9 @@ const ReportsManager: React.FC = () => {
 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-l-4 border-l-red-600">
+        <Card className="border-l-4 border-l-blue-600">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-blue-700">
               <Building size={20} />
               Reservas por Franquia
             </CardTitle>
@@ -237,15 +234,15 @@ const ReportsManager: React.FC = () => {
                 />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="value" fill="#DC2626" />
+                <Bar dataKey="value" fill="#2563EB" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-red-600">
+        <Card className="border-l-4 border-l-blue-600">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-700">
+            <CardTitle className="flex items-center gap-2 text-blue-700">
               <Users size={20} />
               Status das Reservas
             </CardTitle>
@@ -275,9 +272,9 @@ const ReportsManager: React.FC = () => {
       </div>
 
       {/* Lista de Reservas */}
-      <Card className="border-l-4 border-l-red-600">
+      <Card className="border-l-4 border-l-blue-600">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-red-700">
+          <CardTitle className="flex items-center gap-2 text-blue-700">
             <Calendar size={20} />
             Reservas Detalhadas ({reportData.reservations.length})
           </CardTitle>
@@ -291,16 +288,16 @@ const ReportsManager: React.FC = () => {
                     <h4 className="font-semibold">{reservation.customer_name}</h4>
                     <Badge 
                       className={
-                        reservation.status === 'confirmed' ? 'bg-green-100 text-green-700' :
-                        reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-red-100 text-red-700'
+                        reservation.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
+                        reservation.status === 'pending' ? 'bg-red-100 text-red-700' :
+                        'bg-gray-100 text-gray-700'
                       }
                     >
                       {reservation.status === 'confirmed' ? 'Confirmada' :
                        reservation.status === 'pending' ? 'Pendente' : 'Cancelada'}
                     </Badge>
                     {reservation.birthday && (
-                      <Badge className="bg-pink-100 text-pink-700">🎂 Aniversário</Badge>
+                      <Badge className="bg-red-100 text-red-700">🎂 Aniversário</Badge>
                     )}
                   </div>
                   <p className="text-sm text-gray-600">

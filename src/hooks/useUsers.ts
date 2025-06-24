@@ -7,7 +7,7 @@ export interface UserProfile {
   id: string;
   name: string;
   email: string;
-  role: 'admin' | 'editor' | 'viewer';
+  role: 'superadmin' | 'admin' | 'editor' | 'viewer';
   created_at: string;
   updated_at: string;
 }
@@ -26,12 +26,18 @@ export const useUsers = () => {
 
   const fetchUsers = async () => {
     try {
+      console.log('Buscando usuários...');
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar usuários:', error);
+        throw error;
+      }
+      
+      console.log('Usuários carregados:', data?.length || 0);
       setUsers((data || []) as UserProfile[]);
     } catch (error) {
       console.error('Erro ao buscar usuários:', error);
@@ -45,11 +51,17 @@ export const useUsers = () => {
 
   const fetchUserFranchises = async () => {
     try {
+      console.log('Buscando franquias dos usuários...');
       const { data, error } = await supabase
         .from('user_franchises')
         .select('*');
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar franquias dos usuários:', error);
+        throw error;
+      }
+      
+      console.log('Franquias de usuários carregadas:', data?.length || 0);
       setUserFranchises((data || []) as UserFranchise[]);
     } catch (error) {
       console.error('Erro ao buscar franquias dos usuários:', error);

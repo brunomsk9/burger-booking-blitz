@@ -25,12 +25,18 @@ export const useReservations = () => {
 
   const fetchReservations = async () => {
     try {
+      console.log('Buscando reservas...');
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
         .order('date_time', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao buscar reservas:', error);
+        throw error;
+      }
+      
+      console.log('Reservas carregadas:', data?.length || 0);
       setReservations((data || []) as DatabaseReservation[]);
     } catch (error) {
       console.error('Erro ao buscar reservas:', error);
@@ -46,11 +52,13 @@ export const useReservations = () => {
 
   const createReservation = async (reservation: Omit<DatabaseReservation, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('reservations')
         .insert([{
           ...reservation,
-          created_by: (await supabase.auth.getUser()).data.user?.id,
+          created_by: userData.user?.id,
         }])
         .select()
         .single();
@@ -77,11 +85,13 @@ export const useReservations = () => {
 
   const updateReservation = async (id: string, updates: Partial<DatabaseReservation>) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      
       const { data, error } = await supabase
         .from('reservations')
         .update({
           ...updates,
-          updated_by: (await supabase.auth.getUser()).data.user?.id,
+          updated_by: userData.user?.id,
         })
         .eq('id', id)
         .select()

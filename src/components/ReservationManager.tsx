@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -110,9 +109,9 @@ const ReservationManager: React.FC = () => {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-700';
-      case 'pending': return 'bg-yellow-100 text-yellow-700';
-      case 'cancelled': return 'bg-red-100 text-red-700';
+      case 'confirmed': return 'bg-blue-100 text-blue-700';
+      case 'pending': return 'bg-red-100 text-red-700';
+      case 'cancelled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
     }
   };
@@ -129,7 +128,7 @@ const ReservationManager: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin" />
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
         <span className="ml-2">Carregando reservas...</span>
       </div>
     );
@@ -144,7 +143,7 @@ const ReservationManager: React.FC = () => {
           if (!open) resetForm();
         }}>
           <DialogTrigger asChild>
-            <Button className="bg-red-600 hover:bg-red-700">
+            <Button className="bg-blue-600 hover:bg-blue-700">
               <Plus size={16} className="mr-2" />
               Nova Reserva
             </Button>
@@ -249,7 +248,7 @@ const ReservationManager: React.FC = () => {
               </div>
 
               <div className="flex gap-2 pt-4">
-                <Button type="submit" className="bg-red-600 hover:bg-red-700">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
                   {editingReservation ? 'Atualizar' : 'Criar'} Reserva
                 </Button>
                 <Button
@@ -267,7 +266,7 @@ const ReservationManager: React.FC = () => {
 
       <div className="grid gap-4">
         {reservations.map((reservation) => (
-          <Card key={reservation.id} className="hover:shadow-md transition-shadow">
+          <Card key={reservation.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-600">
             <CardContent className="p-6">
               <div className="flex flex-col md:flex-row justify-between gap-4">
                 <div className="flex-1">
@@ -277,7 +276,7 @@ const ReservationManager: React.FC = () => {
                       {getStatusText(reservation.status)}
                     </Badge>
                     {reservation.birthday && (
-                      <Badge variant="outline" className="bg-pink-100 text-pink-700">
+                      <Badge variant="outline" className="bg-red-100 text-red-700">
                         🎂 {reservation.birthday_person_name ? `Aniversário: ${reservation.birthday_person_name}` : 'Aniversário'}
                       </Badge>
                     )}
@@ -320,7 +319,7 @@ const ReservationManager: React.FC = () => {
                       <Button
                         size="sm"
                         onClick={() => handleStatusChange(reservation.id, 'confirmed')}
-                        className="bg-green-600 hover:bg-green-700"
+                        className="bg-blue-600 hover:bg-blue-700"
                       >
                         Confirmar
                       </Button>
@@ -328,6 +327,7 @@ const ReservationManager: React.FC = () => {
                         size="sm"
                         variant="destructive"
                         onClick={() => handleStatusChange(reservation.id, 'cancelled')}
+                        className="bg-red-600 hover:bg-red-700"
                       >
                         Cancelar
                       </Button>
@@ -347,6 +347,7 @@ const ReservationManager: React.FC = () => {
                     size="sm"
                     variant="destructive"
                     onClick={() => handleDelete(reservation.id)}
+                    className="bg-red-600 hover:bg-red-700"
                   >
                     <Trash2 size={16} />
                   </Button>
@@ -357,7 +358,7 @@ const ReservationManager: React.FC = () => {
         ))}
         
         {reservations.length === 0 && (
-          <Card>
+          <Card className="border-l-4 border-l-blue-600">
             <CardContent className="text-center py-12">
               <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma reserva encontrada</h3>
