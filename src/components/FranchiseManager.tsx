@@ -8,22 +8,29 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Building2, Search, Edit, Trash2 } from 'lucide-react';
+import { Building2, Search, Edit, ImageIcon } from 'lucide-react';
+import { usePermissions } from '@/hooks/usePermissions';
+import FranchiseEditor from './FranchiseEditor';
 
 interface Franchise {
   id: string;
   name: string;
+  company_name: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
   manager_name: string | null;
   active: boolean;
+  logo_url: string | null;
   created_at: string;
 }
 
 const FranchiseManager: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [editingFranchise, setEditingFranchise] = useState<Franchise | null>(null);
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
   const queryClient = useQueryClient();
+  const { isSuperAdmin } = usePermissions();
 
   const { data: franchises, isLoading, error } = useQuery({
     queryKey: ['franchises'],
@@ -77,8 +84,23 @@ const FranchiseManager: React.FC = () => {
     }
   };
 
+  const handleEdit = (franchise: Franchise) => {
+    setEditingFranchise(franchise);
+    setIsEditorOpen(true);
+  };
+
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setEditingFranchise(null);
+  };
+
+  const handleUpdateComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ['franchises'] });
+  };
+
   const filteredFranchises = franchises?.filter(franchise =>
     franchise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    franchise.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     franchise.manager_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     franchise.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -112,7 +134,7 @@ const FranchiseManager: React.FC = () => {
           <div className="flex items-center space-x-2">
             <Search className="h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Buscar por nome, gerente ou email..."
+              placeholder="Buscar por nome, empresa, gerente ou email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
@@ -128,7 +150,9 @@ const FranchiseManager: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Nome</TableHead>
+                  <TableHead>Logo</TableHead>
+                  <TableHead>Nome da Empresa</TableHead>
+                  <TableHead>ID</TableHead>
                   <TableHead>Gerente</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Telefone</TableHead>
@@ -139,7 +163,25 @@ const FranchiseManager: React.FC = () => {
               <TableBody>
                 {filteredFranchises?.map((franchise) => (
                   <TableRow key={franchise.id}>
-                    <TableCell className="font-medium">{franchise.name}</TableCell>
+                    <TableCell>
+                      {franchise.logo_url ? (
+                        <img 
+                          src={franchise.logo_url} 
+                          alt="Logo" 
+                          className="w-8 h-8 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center">
+                          <ImageIcon className="w-4 h-4 text-gray-400" />
+                        </div>
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {franchise.company_name || franchise.name}
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {franchise.name}
+                    </TableCell>
                     <TableCell>{franchise.manager_name || '-'}</TableCell>
                     <TableCell>{franchise.email || '-'}</TableCell>
                     <TableCell>{franchise.phone || '-'}</TableCell>
@@ -153,17 +195,27 @@ const FranchiseManager: React.FC = () => {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleToggleActive(franchise)}
+                          onClick={() => handleEdit(franchise)}
                         >
-                          {franchise.active ? 'Desativar' : 'Ativar'}
+                          <Edit className="h-4 w-4 mr-1" />
+                          Editar
                         </Button>
+                        {isSuperAdmin() && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleActive(franchise)}
+                          >
+                            {franchise.active ? 'Desativar' : 'Ativar'}
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>
                 ))}
                 {filteredFranchises?.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
+                    <TableCell colSpan={8} className="text-center py-4">
                       Nenhuma franquia encontrada.
                     </TableCell>
                   </TableRow>
@@ -173,6 +225,13 @@ const FranchiseManager: React.FC = () => {
           )}
         </CardContent>
       </Card>
+
+      <FranchiseEditor
+        franchise={editingFranchise}
+        isOpen={isEditorOpen}
+        onClose={handleCloseEditor}
+        onUpdate={handleUpdateComplete}
+      />
     </div>
   );
 };

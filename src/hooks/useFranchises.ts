@@ -7,11 +7,13 @@ import { toast } from '@/hooks/use-toast';
 export interface Franchise {
   id: string;
   name: string;
+  company_name: string | null;
   address: string | null;
   phone: string | null;
   email: string | null;
   manager_name: string | null;
   active: boolean;
+  logo_url: string | null;
   created_at: string;
 }
 
