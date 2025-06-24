@@ -12,7 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { UserPlus, Loader2, ShieldAlert } from 'lucide-react';
 
 const UserRegistration: React.FC = () => {
-  const { canCreateUsers } = usePermissions();
+  const { canCreateUsers, isSuperAdmin } = usePermissions();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -33,6 +33,17 @@ const UserRegistration: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validar se admin está tentando criar superadmin
+    if (!isSuperAdmin() && formData.role === 'superadmin') {
+      toast({
+        title: 'Erro',
+        description: 'Apenas Super Administradores podem criar outros Super Administradores.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -118,6 +129,23 @@ const UserRegistration: React.FC = () => {
     }
   };
 
+  // Função para filtrar as opções de papel baseado no usuário atual
+  const getAvailableRoles = () => {
+    const allRoles = [
+      { value: 'viewer', label: 'Visualizador' },
+      { value: 'editor', label: 'Editor' },
+      { value: 'admin', label: 'Administrador' },
+      { value: 'superadmin', label: 'Super Administrador' }
+    ];
+
+    // Se não é super admin, remove a opção de super admin
+    if (!isSuperAdmin()) {
+      return allRoles.filter(role => role.value !== 'superadmin');
+    }
+
+    return allRoles;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-2">
@@ -175,10 +203,11 @@ const UserRegistration: React.FC = () => {
                     <SelectValue placeholder="Selecione o papel" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="viewer">Visualizador</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                    <SelectItem value="admin">Administrador</SelectItem>
-                    <SelectItem value="superadmin">Super Administrador</SelectItem>
+                    {getAvailableRoles().map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -188,6 +217,10 @@ const UserRegistration: React.FC = () => {
               <p className="text-sm text-blue-800">
                 <strong>Nota:</strong> O usuário receberá um email para confirmar a conta. 
                 A senha fornecida será a senha inicial que eles poderão alterar após o primeiro login.
+                {!isSuperAdmin() && (
+                  <br />
+                  <strong>Restrição:</strong> Como administrador, você não pode criar Super Administradores.
+                )}
               </p>
             </div>
 
