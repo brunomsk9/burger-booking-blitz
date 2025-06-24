@@ -24,7 +24,7 @@ export const useFranchises = () => {
       console.log('Buscando franquias...');
       const { data, error } = await supabase
         .from('franchises')
-        .select('*')
+        .select('id, name, company_name, address, phone, email, manager_name, active, logo_url, created_at')
         .eq('active', true)
         .order('name', { ascending: true });
 

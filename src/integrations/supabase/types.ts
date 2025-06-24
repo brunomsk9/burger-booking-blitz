@@ -13,10 +13,12 @@ export type Database = {
         Row: {
           active: boolean
           address: string | null
+          company_name: string | null
           created_at: string
           created_by: string | null
           email: string | null
           id: string
+          logo_url: string | null
           manager_name: string | null
           name: string
           phone: string | null
@@ -25,10 +27,12 @@ export type Database = {
         Insert: {
           active?: boolean
           address?: string | null
+          company_name?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
           id?: string
+          logo_url?: string | null
           manager_name?: string | null
           name: string
           phone?: string | null
@@ -37,10 +41,12 @@ export type Database = {
         Update: {
           active?: boolean
           address?: string | null
+          company_name?: string | null
           created_at?: string
           created_by?: string | null
           email?: string | null
           id?: string
+          logo_url?: string | null
           manager_name?: string | null
           name?: string
           phone?: string | null
