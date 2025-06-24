@@ -1,31 +1,15 @@
+
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Phone, Edit, Trash2, Plus, MessageCircle, Loader2 } from 'lucide-react';
-import { FRANCHISES } from '@/types';
+import { DialogTrigger } from '@/components/ui/dialog';
+import { Calendar, Plus, Loader2 } from 'lucide-react';
 import { useReservations } from '@/hooks/useReservations';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Reservation } from '@/types/reservation';
 import TestConnection from './TestConnection';
+import ReservationForm from './ReservationForm';
+import ReservationCard from './ReservationCard';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
@@ -118,22 +102,9 @@ const ReservationManager: React.FC = () => {
     window.open(whatsappUrl, '_blank');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'bg-blue-100 text-blue-700';
-      case 'pending': return 'bg-red-100 text-red-700';
-      case 'cancelled': return 'bg-gray-100 text-gray-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'Confirmada';
-      case 'pending': return 'Pendente';
-      case 'cancelled': return 'Cancelada';
-      default: return status;
-    }
+  const handleCloseDialog = () => {
+    setIsDialogOpen(false);
+    resetForm();
   };
 
   if (loading) {
@@ -157,130 +128,13 @@ const ReservationManager: React.FC = () => {
             {showDebug ? 'Ocultar' : 'Debug'}
           </Button>
           {canCreateReservations() && (
-            <Dialog open={isDialogOpen} onOpenChange={(open) => {
-              setIsDialogOpen(open);
-              if (!open) resetForm();
-            }}>
-              <DialogTrigger asChild>
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <Plus size={16} className="mr-2" />
-                  Nova Reserva
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingReservation ? 'Editar Reserva' : 'Nova Reserva'}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="franchise_name">Franquia</Label>
-                      <Select 
-                        value={formData.franchise_name} 
-                        onValueChange={(value) => setFormData({...formData, franchise_name: value})}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a franquia" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {FRANCHISES.map(franchise => (
-                            <SelectItem key={franchise} value={franchise}>
-                              {franchise}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="customer_name">Nome do Cliente</Label>
-                      <Input
-                        id="customer_name"
-                        value={formData.customer_name}
-                        onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Telefone</Label>
-                      <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                        placeholder="11999888777"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="date_time">Data e Hora</Label>
-                      <Input
-                        id="date_time"
-                        type="datetime-local"
-                        value={formData.date_time}
-                        onChange={(e) => setFormData({...formData, date_time: e.target.value})}
-                        required
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="people">Número de Pessoas</Label>
-                      <Input
-                        id="people"
-                        type="number"
-                        min="1"
-                        value={formData.people}
-                        onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
-                        required
-                      />
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Checkbox
-                        id="birthday"
-                        checked={formData.birthday}
-                        onCheckedChange={(checked) => setFormData({...formData, birthday: Boolean(checked)})}
-                      />
-                      <Label htmlFor="birthday">É aniversário?</Label>
-                    </div>
-                  </div>
-                  
-                  {formData.birthday && (
-                    <div>
-                      <Label htmlFor="birthday_person_name">Nome do Aniversariante</Label>
-                      <Input
-                        id="birthday_person_name"
-                        value={formData.birthday_person_name}
-                        onChange={(e) => setFormData({...formData, birthday_person_name: e.target.value})}
-                        placeholder="Nome de quem está fazendo aniversário"
-                      />
-                    </div>
-                  )}
-                  
-                  <div>
-                    <Label htmlFor="characters">Personagens Solicitados</Label>
-                    <Textarea
-                      id="characters"
-                      value={formData.characters}
-                      onChange={(e) => setFormData({...formData, characters: e.target.value})}
-                      placeholder="Ex: Super-Homem, Batman, Mulher Maravilha..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="flex gap-2 pt-4">
-                    <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                      {editingReservation ? 'Atualizar' : 'Criar'} Reserva
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setIsDialogOpen(false)}
-                    >
-                      Cancelar
-                    </Button>
-                  </div>
-                </form>
-              </DialogContent>
-            </Dialog>
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700"
+              onClick={() => setIsDialogOpen(true)}
+            >
+              <Plus size={16} className="mr-2" />
+              Nova Reserva
+            </Button>
           )}
         </div>
       </div>
@@ -297,103 +151,28 @@ const ReservationManager: React.FC = () => {
         <TestConnection />
       )}
 
+      <ReservationForm
+        isOpen={isDialogOpen}
+        onClose={handleCloseDialog}
+        onSubmit={handleSubmit}
+        formData={formData}
+        setFormData={setFormData}
+        editingReservation={editingReservation}
+      />
+
       <div className="grid gap-4">
         {reservations.map((reservation) => (
-          <Card key={reservation.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-600">
-            <CardContent className="p-6">
-              <div className="flex flex-col md:flex-row justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold">{reservation.customer_name}</h3>
-                    <Badge className={getStatusColor(reservation.status)}>
-                      {getStatusText(reservation.status)}
-                    </Badge>
-                    {reservation.birthday && (
-                      <Badge variant="outline" className="bg-red-100 text-red-700">
-                        🎂 {reservation.birthday_person_name ? `Aniversário: ${reservation.birthday_person_name}` : 'Aniversário'}
-                      </Badge>
-                    )}
-                  </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
-                    <div>
-                      <strong>Franquia:</strong> {reservation.franchise_name}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Phone size={14} />
-                      <strong>Telefone:</strong> {reservation.phone}
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Calendar size={14} />
-                      <strong>Data/Hora:</strong> {new Date(reservation.date_time).toLocaleDateString('pt-BR')} às {new Date(reservation.date_time).toTimeString().slice(0, 5)}
-                    </div>
-                    <div>
-                      <strong>Pessoas:</strong> {reservation.people}
-                    </div>
-                    <div className="md:col-span-2">
-                      <strong>Personagens:</strong> {reservation.characters || 'Nenhum'}
-                    </div>
-                  </div>
-                </div>
-                
-                {!isViewer() && (
-                  <div className="flex flex-col md:flex-row gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleWhatsApp(reservation.phone, reservation.customer_name)}
-                      className="text-green-600 border-green-600 hover:bg-green-50"
-                    >
-                      <MessageCircle size={16} className="mr-1" />
-                      WhatsApp
-                    </Button>
-                    
-                    {reservation.status === 'pending' && canUpdateReservations() && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => handleStatusChange(reservation.id, 'confirmed')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
-                          Confirmar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => handleStatusChange(reservation.id, 'cancelled')}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
-                          Cancelar
-                        </Button>
-                      </>
-                    )}
-                    
-                    {canUpdateReservations() && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleEdit(reservation)}
-                      >
-                        <Edit size={16} className="mr-1" />
-                        Editar
-                      </Button>
-                    )}
-                    
-                    {canDeleteReservations() && (
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        onClick={() => handleDelete(reservation.id)}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        <Trash2 size={16} />
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <ReservationCard
+            key={reservation.id}
+            reservation={reservation}
+            onEdit={handleEdit}
+            onStatusChange={handleStatusChange}
+            onDelete={handleDelete}
+            onWhatsApp={handleWhatsApp}
+            canUpdateReservations={canUpdateReservations()}
+            canDeleteReservations={canDeleteReservations()}
+            isViewer={isViewer()}
+          />
         ))}
         
         {reservations.length === 0 && (
