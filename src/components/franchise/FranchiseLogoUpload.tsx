@@ -36,44 +36,143 @@ const FranchiseLogoUpload: React.FC<FranchiseLogoUploadProps> = ({
       return;
     }
 
+    // Verificar tamanho do arquivo (máximo 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: 'Erro',
+        description: 'O arquivo deve ter no máximo 5MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setUploadingLogo(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Math.random()}.${fileExt}`;
+      console.log('🏗️ Iniciando upload da logo...');
+      
+      // Primeiro, vamos verificar se o bucket existe
+      const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets();
+      console.log('📦 Buckets disponíveis:', buckets);
+      
+      if (bucketsError) {
+        console.error('❌ Erro ao listar buckets:', bucketsError);
+        throw bucketsError;
+      }
+
+      const franchiseLogosBucket = buckets?.find(bucket => bucket.name === 'franchise-logos');
+      
+      if (!franchiseLogosBucket) {
+        console.log('📦 Bucket franchise-logos não encontrado, tentando criar...');
+        
+        // Tentar criar o bucket se não existir
+        const { data: newBucket, error: createBucketError } = await supabase.storage.createBucket('franchise-logos', {
+          public: true,
+          allowedMimeTypes: ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'],
+          fileSizeLimit: 5242880 // 5MB
+        });
+
+        if (createBucketError) {
+          console.error('❌ Erro ao criar bucket:', createBucketError);
+          
+          // Se não conseguir criar, usar um método alternativo
+          toast({
+            title: 'Aviso',
+            description: 'Usando URL temporária para a logo. Contate o administrador para configurar o storage.',
+            variant: 'default',
+          });
+          
+          // Criar uma URL temporária usando FileReader
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            const dataUrl = event.target?.result as string;
+            onLogoChange(dataUrl);
+            setLogoPreview(dataUrl);
+            
+            toast({
+              title: 'Sucesso',
+              description: 'Logo carregada temporariamente!',
+            });
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        console.log('✅ Bucket criado com sucesso:', newBucket);
+      }
+
+      const fileExt = file.name.split('.').pop() || 'png';
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
       const filePath = `logos/${fileName}`;
+
+      console.log('📤 Fazendo upload do arquivo:', filePath);
 
       const { error: uploadError } = await supabase.storage
         .from('franchise-logos')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
-        console.error('Erro ao fazer upload:', uploadError);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao fazer upload da logo.',
-          variant: 'destructive',
-        });
+        console.error('❌ Erro ao fazer upload:', uploadError);
+        
+        // Fallback para usar data URL local
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target?.result as string;
+          onLogoChange(dataUrl);
+          setLogoPreview(dataUrl);
+          
+          toast({
+            title: 'Logo salva localmente',
+            description: 'A logo foi carregada temporariamente. Para salvar permanentemente, contate o administrador.',
+          });
+        };
+        reader.readAsDataURL(file);
         return;
       }
+
+      console.log('✅ Upload realizado com sucesso');
 
       const { data } = supabase.storage
         .from('franchise-logos')
         .getPublicUrl(filePath);
 
-      onLogoChange(data.publicUrl);
-      setLogoPreview(data.publicUrl);
+      const publicUrl = data.publicUrl;
+      console.log('🔗 URL pública gerada:', publicUrl);
+
+      onLogoChange(publicUrl);
+      setLogoPreview(publicUrl);
 
       toast({
         title: 'Sucesso',
         description: 'Logo carregada com sucesso!',
       });
     } catch (error) {
-      console.error('Erro inesperado:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro inesperado ao fazer upload.',
-        variant: 'destructive',
-      });
+      console.error('❌ Erro inesperado:', error);
+      
+      // Fallback final - usar data URL
+      try {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const dataUrl = event.target?.result as string;
+          onLogoChange(dataUrl);
+          setLogoPreview(dataUrl);
+          
+          toast({
+            title: 'Logo carregada localmente',
+            description: 'A logo foi carregada temporariamente.',
+          });
+        };
+        reader.readAsDataURL(file);
+      } catch (fallbackError) {
+        console.error('❌ Erro no fallback:', fallbackError);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar a imagem.',
+          variant: 'destructive',
+        });
+      }
     } finally {
       setUploadingLogo(false);
     }
@@ -94,6 +193,10 @@ const FranchiseLogoUpload: React.FC<FranchiseLogoUploadProps> = ({
               src={logoPreview} 
               alt="Logo preview" 
               className="w-full h-full object-cover"
+              onError={(e) => {
+                console.error('❌ Erro ao carregar imagem:', e);
+                setLogoPreview(null);
+              }}
             />
             <Button
               type="button"
@@ -110,6 +213,9 @@ const FranchiseLogoUpload: React.FC<FranchiseLogoUploadProps> = ({
             <Upload className="mx-auto h-12 w-12 text-gray-400" />
             <p className="mt-2 text-sm text-gray-600">
               Clique para selecionar uma logo
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              PNG, JPG, GIF até 5MB
             </p>
           </div>
         )}
