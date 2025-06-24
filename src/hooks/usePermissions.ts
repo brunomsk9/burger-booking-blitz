@@ -5,48 +5,73 @@ import { UserProfile } from '@/types/user';
 export const usePermissions = () => {
   const { userProfile } = useAuth();
 
+  // Log para debug
+  console.log('🔐 usePermissions - userProfile:', userProfile);
+
   const isSuperAdmin = () => {
-    return userProfile?.role === 'superadmin';
+    const result = userProfile?.role === 'superadmin';
+    console.log('🔐 isSuperAdmin:', result, 'role:', userProfile?.role);
+    return result;
   };
 
   const isAdmin = () => {
-    return userProfile?.role === 'admin';
+    const result = userProfile?.role === 'admin';
+    console.log('🔐 isAdmin:', result, 'role:', userProfile?.role);
+    return result;
   };
 
   const isViewer = () => {
-    return userProfile?.role === 'viewer';
+    const result = userProfile?.role === 'viewer';
+    console.log('🔐 isViewer:', result, 'role:', userProfile?.role);
+    return result;
   };
 
   const isEditor = () => {
-    return userProfile?.role === 'editor';
+    const result = userProfile?.role === 'editor';
+    console.log('🔐 isEditor:', result, 'role:', userProfile?.role);
+    return result;
   };
 
   const canManageUsers = () => {
-    return isSuperAdmin();
+    const result = isSuperAdmin();
+    console.log('🔐 canManageUsers:', result);
+    return result;
   };
 
   const canManageReservations = () => {
-    return isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin();
+    console.log('🔐 canManageReservations:', result);
+    return result;
   };
 
   const canViewReservations = () => {
-    return isSuperAdmin() || isAdmin() || isViewer();
+    const result = isSuperAdmin() || isAdmin() || isViewer();
+    console.log('🔐 canViewReservations:', result);
+    return result;
   };
 
   const canCreateReservations = () => {
-    return isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin();
+    console.log('🔐 canCreateReservations:', result);
+    return result;
   };
 
   const canUpdateReservations = () => {
-    return isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin();
+    console.log('🔐 canUpdateReservations:', result);
+    return result;
   };
 
   const canDeleteReservations = () => {
-    return isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin();
+    console.log('🔐 canDeleteReservations:', result);
+    return result;
   };
 
   const canManageUserFranchises = () => {
-    return isSuperAdmin();
+    const result = isSuperAdmin();
+    console.log('🔐 canManageUserFranchises:', result);
+    return result;
   };
 
   const getUserRole = (): UserProfile['role'] | null => {

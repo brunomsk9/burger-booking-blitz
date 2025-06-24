@@ -23,6 +23,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   const { signOut, userProfile } = useAuth();
   const { canManageUsers, canViewReservations, getRoleText } = usePermissions();
 
+  console.log('📋 Layout - userProfile:', userProfile);
+  console.log('🔐 Layout - canManageUsers:', canManageUsers());
+  console.log('🔐 Layout - canViewReservations:', canViewReservations());
+
   const navigationItems = [
     {
       id: 'dashboard',
@@ -55,6 +59,8 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
       show: canViewReservations()
     }
   ];
+
+  console.log('📋 Layout - navigationItems:', navigationItems);
 
   const handleSignOut = async () => {
     await signOut();
@@ -105,7 +111,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
           <div className="p-6">
             <div className="space-y-2">
               {navigationItems
-                .filter(item => item.show)
+                .filter(item => {
+                  console.log(`🔍 Item ${item.label} - show: ${item.show}`);
+                  return item.show;
+                })
                 .map((item) => {
                   const Icon = item.icon;
                   return (
