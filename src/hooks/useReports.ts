@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { DatabaseReservation } from '@/hooks/useReservations';
+import { Reservation } from '@/types/reservation';
 
 export interface ReportFilters {
   startDate?: string;
@@ -20,7 +20,7 @@ export interface ReportData {
   birthdayReservations: number;
   reservationsByFranchise: { [key: string]: number };
   reservationsByDay: { [key: string]: number };
-  reservations: DatabaseReservation[];
+  reservations: Reservation[];
 }
 
 export const useReports = () => {

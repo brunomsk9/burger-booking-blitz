@@ -2,25 +2,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-
-export interface DatabaseReservation {
-  id: string;
-  franchise_name: string;
-  customer_name: string;
-  phone: string;
-  date_time: string;
-  people: number;
-  birthday: boolean;
-  birthday_person_name?: string;
-  characters?: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  created_at: string;
-  updated_at: string;
-  created_by?: string;
-}
+import { Reservation, CreateReservationData, UpdateReservationData } from '@/types/reservation';
 
 export const useReservations = () => {
-  const [reservations, setReservations] = useState<DatabaseReservation[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchReservations = async () => {
@@ -62,22 +47,22 @@ export const useReservations = () => {
     }
   };
 
-  const createReservation = async (reservation: Omit<DatabaseReservation, 'id' | 'created_at' | 'updated_at' | 'created_by'>) => {
+  const createReservation = async (reservationData: CreateReservationData) => {
     try {
-      console.log('Criando reserva:', reservation);
+      console.log('Criando reserva:', reservationData);
       
       const { data: userData } = await supabase.auth.getUser();
       
-      const reservationData = {
-        ...reservation,
+      const dataToInsert = {
+        ...reservationData,
         created_by: userData.user?.id,
       };
       
-      console.log('Dados da reserva para inserir:', reservationData);
+      console.log('Dados da reserva para inserir:', dataToInsert);
       
       const { data, error } = await supabase
         .from('reservations')
-        .insert([reservationData])
+        .insert([dataToInsert])
         .select()
         .single();
 
@@ -116,7 +101,7 @@ export const useReservations = () => {
     }
   };
 
-  const updateReservation = async (id: string, updates: Partial<DatabaseReservation>) => {
+  const updateReservation = async (id: string, updates: UpdateReservationData) => {
     try {
       console.log('Atualizando reserva:', id, updates);
       

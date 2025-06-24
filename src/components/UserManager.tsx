@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -19,7 +19,8 @@ import {
 } from '@/components/ui/select';
 import { Users, UserPlus, Building, Trash2, Loader2 } from 'lucide-react';
 import { FRANCHISES } from '@/types';
-import { useUsers, UserProfile } from '@/hooks/useUsers';
+import { useUsers } from '@/hooks/useUsers';
+import { UserProfile } from '@/types/user';
 
 const UserManager: React.FC = () => {
   const { users, userFranchises, loading, updateUserRole, assignUserToFranchise, removeUserFromFranchise } = useUsers();

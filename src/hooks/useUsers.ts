@@ -2,22 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-
-export interface UserProfile {
-  id: string;
-  name: string;
-  email: string;
-  role: 'superadmin' | 'admin' | 'editor' | 'viewer';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface UserFranchise {
-  id: string;
-  user_id: string;
-  franchise_name: string;
-  created_at: string;
-}
+import { UserProfile, UserFranchise } from '@/types/user';
 
 export const useUsers = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -27,7 +12,6 @@ export const useUsers = () => {
   const fetchUsers = async () => {
     try {
       console.log('Buscando usuários...');
-      setLoading(true);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -214,6 +198,7 @@ export const useUsers = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      setLoading(true);
       await fetchUsers();
       await fetchUserFranchises();
     };
@@ -229,6 +214,7 @@ export const useUsers = () => {
     assignUserToFranchise,
     removeUserFromFranchise,
     refetch: () => {
+      setLoading(true);
       fetchUsers();
       fetchUserFranchises();
     },
