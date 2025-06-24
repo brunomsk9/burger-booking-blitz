@@ -11,15 +11,32 @@ export const useUserData = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Buscando usuários...');
+      console.log('🔍 Iniciando busca de usuários...');
+      console.log('🔍 Cliente Supabase configurado:', !!supabase);
+      
+      // Primeiro, vamos verificar a conexão
+      const { data: testData, error: testError } = await supabase
+        .from('profiles')
+        .select('count', { count: 'exact', head: true });
+      
+      console.log('🔍 Teste de conexão - Count:', testData, 'Error:', testError);
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .order('created_at', { ascending: false });
 
+      console.log('🔍 Query executada');
+      console.log('🔍 Erro retornado:', error);
+      console.log('🔍 Dados retornados:', data);
+      console.log('🔍 Tipo de dados:', typeof data);
+      console.log('🔍 É array?', Array.isArray(data));
+
       if (error) {
-        console.error('Erro ao buscar usuários:', error);
+        console.error('❌ Erro ao buscar usuários:', error);
+        console.error('❌ Código do erro:', error.code);
+        console.error('❌ Mensagem do erro:', error.message);
+        console.error('❌ Detalhes do erro:', error.details);
         toast({
           title: 'Erro',
           description: 'Não foi possível carregar os usuários.',
@@ -28,21 +45,21 @@ export const useUserData = () => {
         return;
       }
       
-      console.log('Dados brutos dos usuários:', data);
-      console.log('Usuários carregados:', data?.length || 0);
+      console.log('✅ Dados brutos dos usuários:', data);
+      console.log('✅ Usuários carregados:', data?.length || 0);
       
       const typedUsers = (data || []).map(user => {
-        console.log('Processando usuário:', user);
+        console.log('🔄 Processando usuário:', user);
         return {
           ...user,
           role: user.role as 'superadmin' | 'admin' | 'editor' | 'viewer'
         };
       });
       
-      console.log('Usuários processados:', typedUsers);
+      console.log('✅ Usuários processados:', typedUsers);
       setUsers(typedUsers);
     } catch (error) {
-      console.error('Erro inesperado ao buscar usuários:', error);
+      console.error('💥 Erro inesperado ao buscar usuários:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar os usuários.',
@@ -53,7 +70,7 @@ export const useUserData = () => {
 
   const fetchUserFranchises = async () => {
     try {
-      console.log('Buscando franquias dos usuários...');
+      console.log('🔍 Buscando franquias dos usuários...');
       
       const { data, error } = await supabase
         .from('user_franchises')
@@ -71,7 +88,7 @@ export const useUserData = () => {
         `);
 
       if (error) {
-        console.error('Erro ao buscar franquias dos usuários:', error);
+        console.error('❌ Erro ao buscar franquias dos usuários:', error);
         toast({
           title: 'Erro',
           description: 'Não foi possível carregar as franquias dos usuários.',
@@ -80,10 +97,10 @@ export const useUserData = () => {
         return;
       }
       
-      console.log('Franquias de usuários carregadas:', data?.length || 0);
+      console.log('✅ Franquias de usuários carregadas:', data?.length || 0);
       setUserFranchises((data || []) as UserFranchise[]);
     } catch (error) {
-      console.error('Erro ao buscar franquias dos usuários:', error);
+      console.error('💥 Erro ao buscar franquias dos usuários:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar as franquias dos usuários.',
