@@ -90,9 +90,9 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                 variant="outline"
                 onClick={() => onWhatsApp(reservation.phone, reservation.customer_name)}
                 className="text-green-600 border-green-600 hover:bg-green-50"
-                title="WhatsApp"
               >
-                <MessageCircle size={16} />
+                <MessageCircle size={16} className="mr-1" />
+                WhatsApp
               </Button>
               
               {reservation.status === 'pending' && canUpdateReservations && (
@@ -101,18 +101,18 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                     size="sm"
                     onClick={() => onStatusChange(reservation.id, 'confirmed')}
                     className="bg-blue-600 hover:bg-blue-700"
-                    title="Confirmar"
                   >
-                    <Check size={16} />
+                    <Check size={16} className="mr-1" />
+                    Confirmar
                   </Button>
                   <Button
                     size="sm"
                     variant="destructive"
                     onClick={() => onStatusChange(reservation.id, 'cancelled')}
                     className="bg-red-600 hover:bg-red-700"
-                    title="Cancelar"
                   >
-                    <X size={16} />
+                    <X size={16} className="mr-1" />
+                    Cancelar
                   </Button>
                 </>
               )}
@@ -122,9 +122,9 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                   size="sm"
                   variant="outline"
                   onClick={() => onEdit(reservation)}
-                  title="Editar"
                 >
-                  <Edit size={16} />
+                  <Edit size={16} className="mr-1" />
+                  Editar
                 </Button>
               )}
               
@@ -134,7 +134,6 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                   variant="destructive"
                   onClick={() => onDelete(reservation.id)}
                   className="bg-red-600 hover:bg-red-700"
-                  title="Excluir"
                 >
                   <Trash2 size={16} />
                 </Button>
