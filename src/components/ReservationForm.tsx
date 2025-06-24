@@ -19,7 +19,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFranchises } from '@/hooks/useFranchises';
 import { Reservation } from '@/types/reservation';
-import { User, Phone, MapPin, Loader2, Calendar } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface ReservationFormProps {
   isOpen: boolean;
