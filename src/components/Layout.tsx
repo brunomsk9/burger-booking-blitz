@@ -25,7 +25,7 @@ type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | '
 
 const Layout: React.FC = () => {
   const { user, userProfile, loading, signOut } = useAuth();
-  const { canViewUsers, canViewReports } = usePermissions();
+  const { canManageUsers, canViewReports } = usePermissions();
   const [selectedMenu, setSelectedMenu] = useState<MenuOption>('dashboard');
 
   if (loading) {
@@ -48,9 +48,9 @@ const Layout: React.FC = () => {
   const menuItems = [
     { key: 'dashboard' as MenuOption, label: 'Dashboard', icon: LayoutDashboard, show: true },
     { key: 'reservas' as MenuOption, label: 'Reservas', icon: Calendar, show: true },
-    { key: 'usuarios' as MenuOption, label: 'Usuários', icon: Users, show: canViewUsers },
-    { key: 'cadastro-usuario' as MenuOption, label: 'Cadastrar Usuário', icon: UserPlus, show: canViewUsers },
-    { key: 'relatorios' as MenuOption, label: 'Relatórios', icon: BarChart3, show: canViewReports },
+    { key: 'usuarios' as MenuOption, label: 'Usuários', icon: Users, show: canManageUsers() },
+    { key: 'cadastro-usuario' as MenuOption, label: 'Cadastrar Usuário', icon: UserPlus, show: canManageUsers() },
+    { key: 'relatorios' as MenuOption, label: 'Relatórios', icon: BarChart3, show: canViewReports() },
     { key: 'calendario' as MenuOption, label: 'Calendário', icon: CalendarDays, show: true },
   ].filter(item => item.show);
 

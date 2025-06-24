@@ -73,6 +73,12 @@ export const usePermissions = () => {
     return result;
   };
 
+  const canViewReports = () => {
+    const result = isSuperAdmin() || isAdmin();
+    console.log('🔐 canViewReports:', result);
+    return result;
+  };
+
   const getUserRole = (): UserProfile['role'] | null => {
     return userProfile?.role || null;
   };
@@ -100,6 +106,7 @@ export const usePermissions = () => {
     canUpdateReservations,
     canDeleteReservations,
     canManageUserFranchises,
+    canViewReports,
     getUserRole,
     getRoleText,
   };

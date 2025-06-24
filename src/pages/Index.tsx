@@ -1,17 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import AuthPage from '@/components/AuthPage';
 import Layout from '@/components/Layout';
-import Dashboard from '@/components/Dashboard';
-import ReservationManager from '@/components/ReservationManager';
-import ReportsManager from '@/components/ReportsManager';
-import UserManager from '@/components/UserManager';
-import GoogleCalendar from '@/components/GoogleCalendar';
 
 const Index = () => {
   const { user, loading } = useAuth();
-  const [currentPage, setCurrentPage] = useState('dashboard');
 
   console.log('Index - Loading:', loading, 'User:', user?.email);
 
@@ -38,28 +32,7 @@ const Index = () => {
 
   console.log('Usuário autenticado, mostrando aplicação');
 
-  const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
-        return <Dashboard />;
-      case 'reservations':
-        return <ReservationManager />;
-      case 'users':
-        return <UserManager />;
-      case 'reports':
-        return <ReportsManager />;
-      case 'calendar':
-        return <GoogleCalendar />;
-      default:
-        return <Dashboard />;
-    }
-  };
-
-  return (
-    <Layout currentPage={currentPage} onPageChange={setCurrentPage}>
-      {renderPage()}
-    </Layout>
-  );
+  return <Layout />;
 };
 
 export default Index;
