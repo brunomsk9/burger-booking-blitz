@@ -37,7 +37,7 @@ const UserRegistration: React.FC = () => {
     // Validar se admin está tentando criar superadmin
     if (!isSuperAdmin() && formData.role === 'superadmin') {
       toast({
-        title: 'Erro',
+        title: 'Erro de Permissão',
         description: 'Apenas Super Administradores podem criar outros Super Administradores.',
         variant: 'destructive',
       });
@@ -64,8 +64,8 @@ const UserRegistration: React.FC = () => {
       if (authError) {
         console.error('Erro ao criar usuário:', authError);
         toast({
-          title: 'Erro',
-          description: `Erro ao criar usuário: ${authError.message}`,
+          title: 'Erro no Cadastro',
+          description: `Não foi possível criar o usuário: ${authError.message}`,
           variant: 'destructive',
         });
         return;
@@ -84,14 +84,14 @@ const UserRegistration: React.FC = () => {
         if (profileError) {
           console.error('Erro ao atualizar perfil:', profileError);
           toast({
-            title: 'Parcialmente criado',
-            description: 'Usuário criado, mas não foi possível definir o papel. Ajuste manualmente na tela de usuários.',
+            title: 'Usuário Criado Parcialmente',
+            description: 'O usuário foi criado, mas não foi possível definir o papel. Por favor, ajuste manualmente na gestão de usuários.',
             variant: 'destructive',
           });
         } else {
           toast({
-            title: 'Sucesso!',
-            description: `Usuário ${formData.name} foi convidado com sucesso! Eles receberão um email para confirmar a conta.`,
+            title: 'Usuário Convidado com Sucesso!',
+            description: `${formData.name} foi convidado para a plataforma. Eles receberão um email de boas-vindas com instruções para ativar a conta.`,
           });
         }
 
@@ -105,8 +105,8 @@ const UserRegistration: React.FC = () => {
       } else {
         // Usuário pode já existir
         toast({
-          title: 'Usuário convidado',
-          description: 'Se o usuário não existir, receberá um email de confirmação.',
+          title: 'Convite Enviado',
+          description: 'Se o usuário não existir no sistema, receberá um email de confirmação.',
         });
         
         // Limpar formulário mesmo assim
@@ -120,8 +120,8 @@ const UserRegistration: React.FC = () => {
     } catch (error) {
       console.error('Erro inesperado:', error);
       toast({
-        title: 'Erro',
-        description: 'Erro inesperado ao criar usuário.',
+        title: 'Erro Inesperado',
+        description: 'Ocorreu um erro inesperado ao criar o usuário. Tente novamente.',
         variant: 'destructive',
       });
     } finally {
@@ -155,7 +155,7 @@ const UserRegistration: React.FC = () => {
 
       <Card className="max-w-2xl">
         <CardHeader>
-          <CardTitle>Criar Novo Usuário</CardTitle>
+          <CardTitle>Convidar Novo Usuário</CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -167,7 +167,7 @@ const UserRegistration: React.FC = () => {
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   required
-                  placeholder="Nome do usuário"
+                  placeholder="Nome completo do usuário"
                 />
               </div>
               
@@ -179,28 +179,28 @@ const UserRegistration: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                   required
-                  placeholder="email@exemplo.com"
+                  placeholder="usuario@empresa.com"
                 />
               </div>
               
               <div>
-                <Label htmlFor="password">Senha Temporária</Label>
+                <Label htmlFor="password">Senha Inicial</Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   required
-                  placeholder="Senha temporária"
+                  placeholder="Senha inicial (mínimo 6 caracteres)"
                   minLength={6}
                 />
               </div>
               
               <div>
-                <Label htmlFor="role">Papel do Usuário</Label>
+                <Label htmlFor="role">Nível de Acesso</Label>
                 <Select value={formData.role} onValueChange={(value: any) => setFormData({...formData, role: value})}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o papel" />
+                    <SelectValue placeholder="Selecione o nível de acesso" />
                   </SelectTrigger>
                   <SelectContent>
                     {getAvailableRoles().map((role) => (
@@ -213,14 +213,15 @@ const UserRegistration: React.FC = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50 p-4 rounded-md">
+            <div className="bg-blue-50 border border-blue-200 p-4 rounded-md">
               <p className="text-sm text-blue-800">
-                <strong>Nota:</strong> O usuário receberá um email para confirmar a conta. 
-                A senha fornecida será a senha inicial que eles poderão alterar após o primeiro login.
+                <strong>📧 Processo de Convite:</strong> O usuário receberá um email de boas-vindas com instruções para ativar sua conta. 
+                A senha fornecida será temporária e poderá ser alterada no primeiro acesso.
                 {!isSuperAdmin() && (
                   <>
                     <br />
-                    <strong>Restrição:</strong> Como administrador, você não pode criar Super Administradores.
+                    <br />
+                    <strong>⚠️ Limitação de Acesso:</strong> Como administrador, você não pode criar Super Administradores. Esta função é restrita aos Super Administradores existentes.
                   </>
                 )}
               </p>
@@ -235,12 +236,12 @@ const UserRegistration: React.FC = () => {
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Criando...
+                    Enviando convite...
                   </>
                 ) : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Convidar Usuário
+                    Enviar Convite
                   </>
                 )}
               </Button>
