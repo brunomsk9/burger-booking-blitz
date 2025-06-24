@@ -2,25 +2,17 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { FRANCHISES } from '@/types';
-import { Calendar, Clock, Phone, User, MapPin, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-
-interface TimeSlot {
-  time: string;
-  available: boolean;
-}
+import { Calendar, Loader2 } from 'lucide-react';
+import { useAvailabilityCheck } from '@/hooks/useAvailabilityCheck';
+import TimeSlotSelector from './TimeSlotSelector';
+import ReservationFormFields from './ReservationFormFields';
 
 const PublicReservation: React.FC = () => {
   const [loading, setLoading] = useState(false);
-  const [checkingAvailability, setCheckingAvailability] = useState(false);
-  const [availableSlots, setAvailableSlots] = useState<TimeSlot[]>([]);
+  const { availableSlots, checkingAvailability, checkAvailability, clearAvailableSlots } = useAvailabilityCheck();
+  
   const [formData, setFormData] = useState({
     franchise_name: '',
     customer_name: '',
@@ -33,63 +25,13 @@ const PublicReservation: React.FC = () => {
     characters: ''
   });
 
-  // Horários padrão de funcionamento
-  const standardSlots = [
-    '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-    '13:00', '13:30', '14:00', '14:30', '15:00', '15:30',
-    '16:00', '16:30', '17:00', '17:30', '18:00', '18:30',
-    '19:00', '19:30', '20:00', '20:30', '21:00', '21:30'
-  ];
-
-  const checkAvailability = async (franchise: string, date: string) => {
-    if (!franchise || !date) return;
-
-    setCheckingAvailability(true);
-    try {
-      console.log('Verificando disponibilidade para:', franchise, date);
-
-      // Buscar reservas existentes para a franquia e data selecionada
-      const { data: existingReservations, error } = await supabase
-        .from('reservations')
-        .select('date_time')
-        .eq('franchise_name', franchise)
-        .gte('date_time', `${date}T00:00:00`)
-        .lt('date_time', `${date}T23:59:59`)
-        .neq('status', 'cancelled');
-
-      if (error) {
-        console.error('Erro ao verificar disponibilidade:', error);
-        toast({
-          title: 'Erro',
-          description: 'Erro ao verificar disponibilidade. Tente novamente.',
-          variant: 'destructive',
-        });
-        return;
-      }
-
-      // Extrair horários ocupados
-      const occupiedTimes = (existingReservations || []).map(reservation => 
-        new Date(reservation.date_time).toTimeString().slice(0, 5)
-      );
-
-      // Criar lista de horários com disponibilidade
-      const slots: TimeSlot[] = standardSlots.map(time => ({
-        time,
-        available: !occupiedTimes.includes(time)
-      }));
-
-      setAvailableSlots(slots);
-      console.log('Horários disponíveis:', slots);
-
-    } catch (error) {
-      console.error('Erro inesperado:', error);
-      toast({
-        title: 'Erro',
-        description: 'Erro inesperado ao verificar disponibilidade.',
-        variant: 'destructive',
-      });
-    } finally {
-      setCheckingAvailability(false);
+  const handleFormDataChange = (updates: Partial<typeof formData>) => {
+    setFormData(prev => ({ ...prev, ...updates }));
+    
+    // Clear time selection and slots when franchise or date changes
+    if (updates.franchise_name !== undefined || updates.date !== undefined) {
+      setFormData(prev => ({ ...prev, time: '', ...updates }));
+      clearAvailableSlots();
     }
   };
 
@@ -163,7 +105,7 @@ const PublicReservation: React.FC = () => {
         birthday_person_name: '',
         characters: ''
       });
-      setAvailableSlots([]);
+      clearAvailableSlots();
 
     } catch (error) {
       console.error('Erro inesperado:', error);
@@ -201,166 +143,19 @@ const PublicReservation: React.FC = () => {
           </CardHeader>
           <CardContent className="p-6">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="franchise_name" className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    Franquia
-                  </Label>
-                  <Select 
-                    value={formData.franchise_name} 
-                    onValueChange={(value) => {
-                      setFormData({...formData, franchise_name: value, time: ''});
-                      setAvailableSlots([]);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a franquia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FRANCHISES.map(franchise => (
-                        <SelectItem key={franchise} value={franchise}>
-                          {franchise}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <ReservationFormFields 
+                formData={formData}
+                onFormDataChange={handleFormDataChange}
+              />
 
-                <div>
-                  <Label htmlFor="customer_name" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Seu Nome
-                  </Label>
-                  <Input
-                    id="customer_name"
-                    value={formData.customer_name}
-                    onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                    required
-                    placeholder="Seu nome completo"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="phone" className="flex items-center gap-2">
-                    <Phone className="h-4 w-4" />
-                    WhatsApp
-                  </Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="11999888777"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="people">Número de Pessoas</Label>
-                  <Input
-                    id="people"
-                    type="number"
-                    min="1"
-                    max="20"
-                    value={formData.people}
-                    onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="date">Data da Reserva</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={formData.date}
-                    onChange={(e) => {
-                      setFormData({...formData, date: e.target.value, time: ''});
-                      setAvailableSlots([]);
-                    }}
-                    min={new Date().toISOString().split('T')[0]}
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="time" className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Horário
-                    {checkingAvailability && <Loader2 className="h-4 w-4 animate-spin" />}
-                  </Label>
-                  <Select 
-                    value={formData.time} 
-                    onValueChange={(value) => setFormData({...formData, time: value})}
-                    disabled={!formData.franchise_name || !formData.date || checkingAvailability}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={
-                        !formData.franchise_name || !formData.date 
-                          ? "Selecione franquia e data primeiro" 
-                          : "Selecione o horário"
-                      } />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableSlots.map(slot => (
-                        <SelectItem 
-                          key={slot.time} 
-                          value={slot.time}
-                          disabled={!slot.available}
-                          className={!slot.available ? 'opacity-50' : ''}
-                        >
-                          <div className="flex items-center gap-2">
-                            {slot.available ? (
-                              <CheckCircle className="h-4 w-4 text-green-500" />
-                            ) : (
-                              <AlertCircle className="h-4 w-4 text-red-500" />
-                            )}
-                            {slot.time} {!slot.available && '(Ocupado)'}
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {selectedSlot && selectedSlot.available && (
-                    <p className="text-sm text-green-600 mt-1 flex items-center gap-1">
-                      <CheckCircle className="h-4 w-4" />
-                      Horário disponível!
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="birthday"
-                  checked={formData.birthday}
-                  onCheckedChange={(checked) => setFormData({...formData, birthday: Boolean(checked)})}
-                />
-                <Label htmlFor="birthday" className="text-lg">🎂 É uma festa de aniversário?</Label>
-              </div>
-
-              {formData.birthday && (
-                <div>
-                  <Label htmlFor="birthday_person_name">Nome do Aniversariante</Label>
-                  <Input
-                    id="birthday_person_name"
-                    value={formData.birthday_person_name}
-                    onChange={(e) => setFormData({...formData, birthday_person_name: e.target.value})}
-                    placeholder="Nome de quem está fazendo aniversário"
-                  />
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="characters">Personagens que gostaria de ver (opcional)</Label>
-                <Textarea
-                  id="characters"
-                  value={formData.characters}
-                  onChange={(e) => setFormData({...formData, characters: e.target.value})}
-                  placeholder="Ex: Super-Homem, Batman, Mulher Maravilha..."
-                  rows={3}
-                />
-              </div>
+              <TimeSlotSelector
+                selectedTime={formData.time}
+                availableSlots={availableSlots}
+                checkingAvailability={checkingAvailability}
+                franchiseName={formData.franchise_name}
+                date={formData.date}
+                onTimeChange={(time) => setFormData(prev => ({ ...prev, time }))}
+              />
 
               <Button 
                 type="submit" 
