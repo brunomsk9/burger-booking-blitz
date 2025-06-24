@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -29,7 +28,7 @@ type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | '
 
 const Layout: React.FC = () => {
   const { user, userProfile, loading, signOut } = useAuth();
-  const { canManageUsers, canViewReports } = usePermissions();
+  const { canManageUsers, canViewReports, canCreateUsers } = usePermissions();
   const [selectedMenu, setSelectedMenu] = useState<MenuOption>('dashboard');
 
   if (loading) {
@@ -53,7 +52,7 @@ const Layout: React.FC = () => {
     { key: 'dashboard' as MenuOption, label: 'Dashboard', icon: LayoutDashboard, show: true },
     { key: 'reservas' as MenuOption, label: 'Reservas', icon: Calendar, show: true },
     { key: 'usuarios' as MenuOption, label: 'Usuários', icon: Users, show: canManageUsers() },
-    { key: 'cadastro-usuario' as MenuOption, label: 'Cadastrar Usuário', icon: UserPlus, show: canManageUsers() },
+    { key: 'cadastro-usuario' as MenuOption, label: 'Cadastrar Usuário', icon: UserPlus, show: canCreateUsers() },
     { key: 'franquias' as MenuOption, label: 'Franquias', icon: Building2, show: canManageUsers() },
     { key: 'cadastro-franquia' as MenuOption, label: 'Cadastrar Franquia', icon: Plus, show: canManageUsers() },
     { key: 'relatorios' as MenuOption, label: 'Relatórios', icon: BarChart3, show: canViewReports() },

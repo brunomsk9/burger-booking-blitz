@@ -7,10 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 import { supabase } from '@/integrations/supabase/client';
-import { UserPlus, Loader2 } from 'lucide-react';
+import { UserPlus, Loader2, ShieldAlert } from 'lucide-react';
 
 const UserRegistration: React.FC = () => {
+  const { canCreateUsers } = usePermissions();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -18,6 +20,16 @@ const UserRegistration: React.FC = () => {
     password: '',
     role: 'viewer' as 'superadmin' | 'admin' | 'editor' | 'viewer'
   });
+
+  if (!canCreateUsers()) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <ShieldAlert size={48} className="text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Acesso Negado</h3>
+        <p className="text-gray-600">Você não tem permissão para cadastrar usuários.</p>
+      </div>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

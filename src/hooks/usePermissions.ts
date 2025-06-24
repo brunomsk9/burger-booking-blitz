@@ -44,7 +44,7 @@ export const usePermissions = () => {
   };
 
   const canViewReservations = () => {
-    const result = isSuperAdmin() || isAdmin() || isViewer();
+    const result = isSuperAdmin() || isAdmin() || isViewer() || isEditor();
     console.log('🔐 canViewReservations:', result);
     return result;
   };
@@ -79,6 +79,12 @@ export const usePermissions = () => {
     return result;
   };
 
+  const canCreateUsers = () => {
+    const result = isSuperAdmin() || isAdmin();
+    console.log('🔐 canCreateUsers:', result);
+    return result;
+  };
+
   const getUserRole = (): UserProfile['role'] | null => {
     return userProfile?.role || null;
   };
@@ -107,6 +113,7 @@ export const usePermissions = () => {
     canDeleteReservations,
     canManageUserFranchises,
     canViewReports,
+    canCreateUsers,
     getUserRole,
     getRoleText,
   };
