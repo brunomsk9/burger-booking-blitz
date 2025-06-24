@@ -17,34 +17,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, UserPlus, Building, Trash2, Loader2 } from 'lucide-react';
+import { Users, UserPlus, Building, Trash2, Loader2, ShieldAlert } from 'lucide-react';
 import { FRANCHISES } from '@/types';
 import { useUsers } from '@/hooks/useUsers';
+import { usePermissions } from '@/hooks/usePermissions';
 import { UserProfile } from '@/types/user';
 
 const UserManager: React.FC = () => {
   const { users, userFranchises, loading, updateUserRole, assignUserToFranchise, removeUserFromFranchise } = useUsers();
+  const { canManageUsers, getRoleText } = usePermissions();
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedFranchise, setSelectedFranchise] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  if (!canManageUsers()) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <ShieldAlert size={48} className="text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">Acesso Negado</h3>
+        <p className="text-gray-600">Você não tem permissão para gerenciar usuários.</p>
+      </div>
+    );
+  }
 
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'superadmin': return 'bg-red-100 text-red-700 border-red-200';
       case 'admin': return 'bg-blue-100 text-blue-700 border-blue-200';
-      case 'editor': return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'editor': return 'bg-green-100 text-green-700 border-green-200';
       case 'viewer': return 'bg-gray-100 text-gray-700 border-gray-200';
       default: return 'bg-gray-100 text-gray-700 border-gray-200';
-    }
-  };
-
-  const getRoleText = (role: string) => {
-    switch (role) {
-      case 'superadmin': return 'Super Admin';
-      case 'admin': return 'Administrador';
-      case 'editor': return 'Editor';
-      case 'viewer': return 'Visualizador';
-      default: return role;
     }
   };
 

@@ -1,15 +1,17 @@
 
-import React, { useState } from 'react';
-import { Calendar, Users, BarChart3, Settings, Menu, User, LogOut, FileText } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { 
+  LayoutDashboard, 
+  Calendar, 
+  Users, 
+  BarChart3, 
+  CalendarDays,
+  LogOut,
+  User
+} from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,15 +20,40 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { user, signOut } = useAuth();
+  const { signOut, userProfile } = useAuth();
+  const { canManageUsers, canViewReservations, getRoleText } = usePermissions();
 
-  const menuItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
-    { id: 'reservations', label: 'Reservas', icon: Calendar },
-    { id: 'users', label: 'Usuários', icon: Users },
-    { id: 'reports', label: 'Relatórios', icon: FileText },
-    { id: 'calendar', label: 'Google Calendar', icon: Calendar },
+  const navigationItems = [
+    {
+      id: 'dashboard',
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      show: true
+    },
+    {
+      id: 'reservations',
+      label: 'Reservas',
+      icon: Calendar,
+      show: canViewReservations()
+    },
+    {
+      id: 'users',
+      label: 'Usuários',
+      icon: Users,
+      show: canManageUsers()
+    },
+    {
+      id: 'reports',
+      label: 'Relatórios',
+      icon: BarChart3,
+      show: canViewReservations()
+    },
+    {
+      id: 'calendar',
+      label: 'Calendário',
+      icon: CalendarDays,
+      show: canViewReservations()
+    }
   ];
 
   const handleSignOut = async () => {
@@ -34,87 +61,78 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className={`bg-red-600 text-white transition-all duration-300 ${isSidebarOpen ? 'w-64' : 'w-16'}`}>
-        <div className="p-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-red-600 font-bold">
-              🦸
+    <div className="min-h-screen bg-gradient-to-br from-red-50 to-yellow-50">
+      {/* Header */}
+      <header className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <div className="flex items-center space-x-4">
+              <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center text-white text-xl font-bold shadow-lg">
+                🦸
+              </div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Heróis Burger - Sistema de Reservas
+              </h1>
             </div>
-            {isSidebarOpen && <h1 className="text-xl font-bold">Herois Burguer</h1>}
+            
+            <div className="flex items-center space-x-4">
+              {userProfile && (
+                <div className="flex items-center space-x-2 text-sm text-gray-600">
+                  <User size={16} />
+                  <span>{userProfile.name}</span>
+                  <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs">
+                    {getRoleText(userProfile.role)}
+                  </span>
+                </div>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSignOut}
+                className="text-red-600 border-red-600 hover:bg-red-50"
+              >
+                <LogOut size={16} className="mr-1" />
+                Sair
+              </Button>
+            </div>
           </div>
         </div>
-        
-        <nav className="mt-8">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => onPageChange(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-red-700 transition-colors ${
-                  currentPage === item.id ? 'bg-red-700 border-r-4 border-yellow-400' : ''
-                }`}
-              >
-                <Icon size={20} />
-                {isSidebarOpen && <span>{item.label}</span>}
-              </button>
-            );
-          })}
-        </nav>
-      </div>
+      </header>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Header */}
-        <header className="bg-white shadow-sm border-b px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-              >
-                <Menu size={20} />
-              </Button>
-              <h2 className="text-xl font-semibold text-gray-800">
-                {menuItems.find(item => item.id === currentPage)?.label || 'Dashboard'}
-              </h2>
+      <div className="flex">
+        {/* Sidebar */}
+        <nav className="w-64 bg-white shadow-lg min-h-screen">
+          <div className="p-6">
+            <div className="space-y-2">
+              {navigationItems
+                .filter(item => item.show)
+                .map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Button
+                      key={item.id}
+                      variant={currentPage === item.id ? "default" : "ghost"}
+                      className={`w-full justify-start ${
+                        currentPage === item.id 
+                          ? 'bg-red-600 hover:bg-red-700 text-white' 
+                          : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                      onClick={() => onPageChange(item.id)}
+                    >
+                      <Icon size={20} className="mr-3" />
+                      {item.label}
+                    </Button>
+                  );
+                })}
             </div>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center gap-2">
-                  <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-red-100 text-red-600">
-                      {user?.email?.[0]?.toUpperCase() || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="hidden md:block">{user?.email}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem>
-                  <User size={16} className="mr-2" />
-                  Perfil
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Settings size={16} className="mr-2" />
-                  Configurações
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
-                  <LogOut size={16} className="mr-2" />
-                  Sair
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
-        </header>
+        </nav>
 
-        {/* Page Content */}
-        <main className="flex-1 p-6 overflow-auto">
-          {children}
+        {/* Main Content */}
+        <main className="flex-1 p-8">
+          <div className="max-w-7xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

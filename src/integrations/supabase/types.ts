@@ -125,6 +125,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_franchises: {
+        Args: { user_uuid: string }
+        Returns: {
+          franchise_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
