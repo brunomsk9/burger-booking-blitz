@@ -5,7 +5,6 @@ import { UserProfile } from '@/types/user';
 export const usePermissions = () => {
   const { userProfile } = useAuth();
 
-  // Log para debug
   console.log('🔐 usePermissions - userProfile:', userProfile);
 
   const isSuperAdmin = () => {

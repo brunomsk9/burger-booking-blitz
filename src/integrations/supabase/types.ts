@@ -121,15 +121,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_user_franchises: {
+      get_user_franchise_names: {
         Args: { user_uuid: string }
         Returns: {
           franchise_name: string
         }[]
+      }
+      get_user_role_direct: {
+        Args: { user_uuid: string }
+        Returns: string
       }
     }
     Enums: {
