@@ -21,129 +21,89 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Calendar, Phone, Edit, Trash2, Plus, MessageCircle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { Reservation, FRANCHISES } from '@/types';
+import { Calendar, Phone, Edit, Trash2, Plus, MessageCircle, Loader2 } from 'lucide-react';
+import { FRANCHISES } from '@/types';
+import { useReservations, DatabaseReservation } from '@/hooks/useReservations';
 
 const ReservationManager: React.FC = () => {
-  const [reservations, setReservations] = useState<Reservation[]>([
-    {
-      id: '1',
-      franchiseName: 'Herois Burguer - Shopping',
-      customerName: 'João Silva',
-      phone: '11999888777',
-      dateTime: new Date('2024-06-25T19:00:00'),
-      people: 4,
-      birthday: true,
-      birthdayPersonName: 'Lucas Silva',
-      characters: 'Super-Homem, Batman',
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      franchiseName: 'Herois Burguer - Centro',
-      customerName: 'Maria Santos',
-      phone: '11888777666',
-      dateTime: new Date('2024-06-25T20:30:00'),
-      people: 2,
-      birthday: false,
-      characters: 'Mulher Maravilha',
-      status: 'confirmed',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ]);
-
+  const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
+  const [editingReservation, setEditingReservation] = useState<DatabaseReservation | null>(null);
   const [formData, setFormData] = useState({
-    franchiseName: '',
-    customerName: '',
+    franchise_name: '',
+    customer_name: '',
     phone: '',
-    dateTime: '',
+    date_time: '',
     people: 1,
     birthday: false,
-    birthdayPersonName: '',
+    birthday_person_name: '',
     characters: ''
   });
 
   const resetForm = () => {
     setFormData({
-      franchiseName: '',
-      customerName: '',
+      franchise_name: '',
+      customer_name: '',
       phone: '',
-      dateTime: '',
+      date_time: '',
       people: 1,
       birthday: false,
-      birthdayPersonName: '',
+      birthday_person_name: '',
       characters: ''
     });
     setEditingReservation(null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const reservation: Reservation = {
-      id: editingReservation?.id || Date.now().toString(),
-      franchiseName: formData.franchiseName,
-      customerName: formData.customerName,
+    const reservationData = {
+      franchise_name: formData.franchise_name,
+      customer_name: formData.customer_name,
       phone: formData.phone,
-      dateTime: new Date(formData.dateTime),
+      date_time: formData.date_time,
       people: formData.people,
       birthday: formData.birthday,
-      birthdayPersonName: formData.birthdayPersonName,
+      birthday_person_name: formData.birthday_person_name,
       characters: formData.characters,
-      status: editingReservation?.status || 'pending',
-      createdAt: editingReservation?.createdAt || new Date(),
-      updatedAt: new Date()
+      status: editingReservation?.status || 'pending' as const,
     };
 
     if (editingReservation) {
-      setReservations(prev => prev.map(r => r.id === editingReservation.id ? reservation : r));
-      toast({ title: 'Reserva atualizada com sucesso!' });
+      await updateReservation(editingReservation.id, reservationData);
     } else {
-      setReservations(prev => [...prev, reservation]);
-      toast({ title: 'Reserva criada com sucesso!' });
+      await createReservation(reservationData);
     }
 
     setIsDialogOpen(false);
     resetForm();
   };
 
-  const handleEdit = (reservation: Reservation) => {
+  const handleEdit = (reservation: DatabaseReservation) => {
     setEditingReservation(reservation);
     setFormData({
-      franchiseName: reservation.franchiseName,
-      customerName: reservation.customerName,
+      franchise_name: reservation.franchise_name,
+      customer_name: reservation.customer_name,
       phone: reservation.phone,
-      dateTime: reservation.dateTime.toISOString().slice(0, 16),
+      date_time: new Date(reservation.date_time).toISOString().slice(0, 16),
       people: reservation.people,
       birthday: reservation.birthday,
-      birthdayPersonName: reservation.birthdayPersonName || '',
-      characters: reservation.characters
+      birthday_person_name: reservation.birthday_person_name || '',
+      characters: reservation.characters || ''
     });
     setIsDialogOpen(true);
   };
 
-  const handleStatusChange = (id: string, status: Reservation['status']) => {
-    setReservations(prev => prev.map(r => 
-      r.id === id ? { ...r, status, updatedAt: new Date() } : r
-    ));
-    toast({ 
-      title: `Reserva ${status === 'confirmed' ? 'confirmada' : 'cancelada'}!` 
-    });
+  const handleStatusChange = async (id: string, status: DatabaseReservation['status']) => {
+    await updateReservation(id, { status });
   };
 
-  const handleDelete = (id: string) => {
-    setReservations(prev => prev.filter(r => r.id !== id));
-    toast({ title: 'Reserva excluída com sucesso!' });
+  const handleDelete = async (id: string) => {
+    await deleteReservation(id);
   };
 
   const handleWhatsApp = (phone: string, customerName: string) => {
-    const message = `Olá ${customerName}! Este é um contato sobre sua reserva na Burger Central.`;
+    const message = `Olá ${customerName}! Este é um contato sobre sua reserva na Herois Burguer.`;
     const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
@@ -165,6 +125,15 @@ const ReservationManager: React.FC = () => {
       default: return status;
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Carregando reservas...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -189,10 +158,10 @@ const ReservationManager: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="franchiseName">Franquia</Label>
+                  <Label htmlFor="franchise_name">Franquia</Label>
                   <Select 
-                    value={formData.franchiseName} 
-                    onValueChange={(value) => setFormData({...formData, franchiseName: value})}
+                    value={formData.franchise_name} 
+                    onValueChange={(value) => setFormData({...formData, franchise_name: value})}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione a franquia" />
@@ -207,11 +176,11 @@ const ReservationManager: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="customerName">Nome do Cliente</Label>
+                  <Label htmlFor="customer_name">Nome do Cliente</Label>
                   <Input
-                    id="customerName"
-                    value={formData.customerName}
-                    onChange={(e) => setFormData({...formData, customerName: e.target.value})}
+                    id="customer_name"
+                    value={formData.customer_name}
+                    onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
                     required
                   />
                 </div>
@@ -226,12 +195,12 @@ const ReservationManager: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="dateTime">Data e Hora</Label>
+                  <Label htmlFor="date_time">Data e Hora</Label>
                   <Input
-                    id="dateTime"
+                    id="date_time"
                     type="datetime-local"
-                    value={formData.dateTime}
-                    onChange={(e) => setFormData({...formData, dateTime: e.target.value})}
+                    value={formData.date_time}
+                    onChange={(e) => setFormData({...formData, date_time: e.target.value})}
                     required
                   />
                 </div>
@@ -258,11 +227,11 @@ const ReservationManager: React.FC = () => {
               
               {formData.birthday && (
                 <div>
-                  <Label htmlFor="birthdayPersonName">Nome do Aniversariante</Label>
+                  <Label htmlFor="birthday_person_name">Nome do Aniversariante</Label>
                   <Input
-                    id="birthdayPersonName"
-                    value={formData.birthdayPersonName}
-                    onChange={(e) => setFormData({...formData, birthdayPersonName: e.target.value})}
+                    id="birthday_person_name"
+                    value={formData.birthday_person_name}
+                    onChange={(e) => setFormData({...formData, birthday_person_name: e.target.value})}
                     placeholder="Nome de quem está fazendo aniversário"
                   />
                 </div>
@@ -303,20 +272,20 @@ const ReservationManager: React.FC = () => {
               <div className="flex flex-col md:flex-row justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h3 className="text-lg font-semibold">{reservation.customerName}</h3>
+                    <h3 className="text-lg font-semibold">{reservation.customer_name}</h3>
                     <Badge className={getStatusColor(reservation.status)}>
                       {getStatusText(reservation.status)}
                     </Badge>
                     {reservation.birthday && (
                       <Badge variant="outline" className="bg-pink-100 text-pink-700">
-                        🎂 {reservation.birthdayPersonName ? `Aniversário: ${reservation.birthdayPersonName}` : 'Aniversário'}
+                        🎂 {reservation.birthday_person_name ? `Aniversário: ${reservation.birthday_person_name}` : 'Aniversário'}
                       </Badge>
                     )}
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-sm text-gray-600">
                     <div>
-                      <strong>Franquia:</strong> {reservation.franchiseName}
+                      <strong>Franquia:</strong> {reservation.franchise_name}
                     </div>
                     <div className="flex items-center gap-1">
                       <Phone size={14} />
@@ -324,7 +293,7 @@ const ReservationManager: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-1">
                       <Calendar size={14} />
-                      <strong>Data/Hora:</strong> {reservation.dateTime.toLocaleDateString('pt-BR')} às {reservation.dateTime.toTimeString().slice(0, 5)}
+                      <strong>Data/Hora:</strong> {new Date(reservation.date_time).toLocaleDateString('pt-BR')} às {new Date(reservation.date_time).toTimeString().slice(0, 5)}
                     </div>
                     <div>
                       <strong>Pessoas:</strong> {reservation.people}
@@ -339,7 +308,7 @@ const ReservationManager: React.FC = () => {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleWhatsApp(reservation.phone, reservation.customerName)}
+                    onClick={() => handleWhatsApp(reservation.phone, reservation.customer_name)}
                     className="text-green-600 border-green-600 hover:bg-green-50"
                   >
                     <MessageCircle size={16} className="mr-1" />
@@ -386,6 +355,16 @@ const ReservationManager: React.FC = () => {
             </CardContent>
           </Card>
         ))}
+        
+        {reservations.length === 0 && (
+          <Card>
+            <CardContent className="text-center py-12">
+              <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma reserva encontrada</h3>
+              <p className="text-gray-600">Crie sua primeira reserva clicando no botão "Nova Reserva".</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );

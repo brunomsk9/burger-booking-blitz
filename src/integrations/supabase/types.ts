@@ -9,7 +9,84 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string | null
+          email: string
+          id: string
+          name: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          id: string
+          name: string
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      reservations: {
+        Row: {
+          birthday: boolean | null
+          birthday_person_name: string | null
+          characters: string | null
+          created_at: string | null
+          created_by: string | null
+          customer_name: string
+          date_time: string
+          franchise_name: string
+          id: string
+          people: number
+          phone: string
+          status: string
+          updated_at: string | null
+          updated_by: string | null
+        }
+        Insert: {
+          birthday?: boolean | null
+          birthday_person_name?: string | null
+          characters?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_name: string
+          date_time: string
+          franchise_name: string
+          id?: string
+          people: number
+          phone: string
+          status?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Update: {
+          birthday?: boolean | null
+          birthday_person_name?: string | null
+          characters?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          customer_name?: string
+          date_time?: string
+          franchise_name?: string
+          id?: string
+          people?: number
+          phone?: string
+          status?: string
+          updated_at?: string | null
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

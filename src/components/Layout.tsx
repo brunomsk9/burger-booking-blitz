@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,6 +19,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { user, signOut } = useAuth();
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
@@ -26,6 +28,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     { id: 'reports', label: 'Relatórios', icon: FileText },
     { id: 'calendar', label: 'Google Calendar', icon: Calendar },
   ];
+
+  const handleSignOut = async () => {
+    await signOut();
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -82,10 +88,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                 <Button variant="ghost" className="flex items-center gap-2">
                   <Avatar className="w-8 h-8">
                     <AvatarFallback className="bg-red-100 text-red-600">
-                      AD
+                      {user?.email?.[0]?.toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
-                  <span className="hidden md:block">Admin</span>
+                  <span className="hidden md:block">{user?.email}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
@@ -97,7 +103,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
                   <Settings size={16} className="mr-2" />
                   Configurações
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-red-600">
+                <DropdownMenuItem onClick={handleSignOut} className="text-red-600">
                   <LogOut size={16} className="mr-2" />
                   Sair
                 </DropdownMenuItem>
