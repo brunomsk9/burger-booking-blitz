@@ -43,7 +43,9 @@ const ReportsManager: React.FC = () => {
   const [filters, setFilters] = useState<ReportFilters>({});
 
   const handleFilterChange = (key: keyof ReportFilters, value: string) => {
-    const newFilters = { ...filters, [key]: value || undefined };
+    // Convert special "all" values back to undefined
+    const actualValue = value === 'all-franchises' || value === 'all-status' ? undefined : value;
+    const newFilters = { ...filters, [key]: actualValue };
     setFilters(newFilters);
   };
 
@@ -117,14 +119,14 @@ const ReportsManager: React.FC = () => {
             <div>
               <Label htmlFor="franchise">Franquia</Label>
               <Select 
-                value={filters.franchiseName || ''} 
+                value={filters.franchiseName || 'all-franchises'} 
                 onValueChange={(value) => handleFilterChange('franchiseName', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as franquias" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as franquias</SelectItem>
+                  <SelectItem value="all-franchises">Todas as franquias</SelectItem>
                   {FRANCHISES.map(franchise => (
                     <SelectItem key={franchise} value={franchise}>
                       {franchise}
@@ -136,14 +138,14 @@ const ReportsManager: React.FC = () => {
             <div>
               <Label htmlFor="status">Status</Label>
               <Select 
-                value={filters.status || ''} 
+                value={filters.status || 'all-status'} 
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="all-status">Todos os status</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
                   <SelectItem value="confirmed">Confirmada</SelectItem>
                   <SelectItem value="cancelled">Cancelada</SelectItem>
