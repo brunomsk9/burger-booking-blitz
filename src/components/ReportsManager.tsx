@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
   Select,
   SelectContent,
@@ -12,174 +11,114 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Calendar, Download, Filter, FileText, File } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { Reservation, FRANCHISES, ReportFilters } from '@/types';
+import { Badge } from '@/components/ui/badge';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell
+} from 'recharts';
+import { 
+  Calendar, 
+  Users, 
+  CheckCircle, 
+  Clock, 
+  XCircle, 
+  Gift,
+  FileText,
+  Loader2,
+  Building
+} from 'lucide-react';
+import { FRANCHISES } from '@/types';
+import { useReports, ReportFilters } from '@/hooks/useReports';
 
 const ReportsManager: React.FC = () => {
-  const [filters, setFilters] = useState<ReportFilters>({
-    startDate: undefined,
-    endDate: undefined,
-    franchiseName: '',
-    status: ''
-  });
+  const { reportData, loading, generateReport } = useReports();
+  const [filters, setFilters] = useState<ReportFilters>({});
 
-  // Mock data - mesmos dados do ReservationManager
-  const mockReservations: Reservation[] = [
-    {
-      id: '1',
-      franchiseName: 'Herois Burguer - Shopping',
-      customerName: 'João Silva',
-      phone: '11999888777',
-      dateTime: new Date('2024-06-25T19:00:00'),
-      people: 4,
-      birthday: true,
-      birthdayPersonName: 'Lucas Silva',
-      characters: 'Super-Homem, Batman',
-      status: 'pending',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      franchiseName: 'Herois Burguer - Centro',
-      customerName: 'Maria Santos',
-      phone: '11888777666',
-      dateTime: new Date('2024-06-25T20:30:00'),
-      people: 2,
-      birthday: false,
-      characters: 'Mulher Maravilha',
-      status: 'confirmed',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '3',
-      franchiseName: 'Herois Burguer - Zona Norte',
-      customerName: 'Pedro Costa',
-      phone: '11777666555',
-      dateTime: new Date('2024-06-26T18:00:00'),
-      people: 6,
-      birthday: true,
-      birthdayPersonName: 'Ana Costa',
-      characters: 'Flash, Aquaman',
-      status: 'cancelled',
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
+  const handleFilterChange = (key: keyof ReportFilters, value: string) => {
+    const newFilters = { ...filters, [key]: value || undefined };
+    setFilters(newFilters);
+  };
+
+  const handleGenerateReport = () => {
+    generateReport(filters);
+  };
+
+  const handleClearFilters = () => {
+    setFilters({});
+    generateReport({});
+  };
+
+  // Cores da paleta Herois Burguer
+  const colors = ['#DC2626', '#EF4444', '#F87171', '#FCA5A5', '#FEE2E2'];
+
+  // Dados para gráficos
+  const franchiseData = Object.entries(reportData.reservationsByFranchise).map(([name, value]) => ({
+    name: name.replace('Herois Burguer - ', ''),
+    value,
+  }));
+
+  const statusData = [
+    { name: 'Confirmadas', value: reportData.confirmedReservations, color: '#10B981' },
+    { name: 'Pendentes', value: reportData.pendingReservations, color: '#F59E0B' },
+    { name: 'Canceladas', value: reportData.cancelledReservations, color: '#EF4444' },
   ];
 
-  const filteredReservations = mockReservations.filter(reservation => {
-    const matchesDateRange = (!filters.startDate || reservation.dateTime >= filters.startDate) &&
-                            (!filters.endDate || reservation.dateTime <= filters.endDate);
-    const matchesFranchise = !filters.franchiseName || reservation.franchiseName === filters.franchiseName;
-    const matchesStatus = !filters.status || reservation.status === filters.status;
-
-    return matchesDateRange && matchesFranchise && matchesStatus;
-  });
-
-  const handleExportPDF = () => {
-    toast({ 
-      title: 'Exportando PDF...', 
-      description: 'O relatório em PDF será baixado em breve.' 
-    });
-    // Aqui seria implementada a lógica de exportação para PDF
-  };
-
-  const handleExportExcel = () => {
-    toast({ 
-      title: 'Exportando Excel...', 
-      description: 'O relatório em Excel será baixado em breve.' 
-    });
-    // Aqui seria implementada a lógica de exportação para Excel
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'bg-green-100 text-green-700';
-      case 'pending': return 'bg-yellow-100 text-yellow-700';
-      case 'cancelled': return 'bg-red-100 text-red-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'confirmed': return 'Confirmada';
-      case 'pending': return 'Pendente';
-      case 'cancelled': return 'Cancelada';
-      default: return status;
-    }
-  };
-
-  const totalReservations = filteredReservations.length;
-  const confirmedReservations = filteredReservations.filter(r => r.status === 'confirmed').length;
-  const pendingReservations = filteredReservations.filter(r => r.status === 'pending').length;
-  const cancelledReservations = filteredReservations.filter(r => r.status === 'cancelled').length;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-red-600" />
+        <span className="ml-2">Gerando relatório...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Relatórios</h2>
-        <div className="flex gap-2">
-          <Button onClick={handleExportPDF} variant="outline" className="flex items-center gap-2">
-            <FileText size={16} />
-            Exportar PDF
-          </Button>
-          <Button onClick={handleExportExcel} variant="outline" className="flex items-center gap-2">
-            <File size={16} />
-            Exportar Excel
-          </Button>
-        </div>
       </div>
 
       {/* Filtros */}
-      <Card>
+      <Card className="border-l-4 border-l-red-600">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter size={20} />
-            Filtros
+          <CardTitle className="flex items-center gap-2 text-red-700">
+            <FileText size={20} />
+            Filtros do Relatório
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
-              <Label htmlFor="startDate">Data Inicial</Label>
+              <Label htmlFor="startDate">Data Início</Label>
               <Input
                 id="startDate"
                 type="date"
-                value={filters.startDate?.toISOString().split('T')[0] || ''}
-                onChange={(e) => setFilters({
-                  ...filters, 
-                  startDate: e.target.value ? new Date(e.target.value) : undefined
-                })}
+                value={filters.startDate || ''}
+                onChange={(e) => handleFilterChange('startDate', e.target.value)}
               />
             </div>
             <div>
-              <Label htmlFor="endDate">Data Final</Label>
+              <Label htmlFor="endDate">Data Fim</Label>
               <Input
                 id="endDate"
                 type="date"
-                value={filters.endDate?.toISOString().split('T')[0] || ''}
-                onChange={(e) => setFilters({
-                  ...filters, 
-                  endDate: e.target.value ? new Date(e.target.value) : undefined
-                })}
+                value={filters.endDate || ''}
+                onChange={(e) => handleFilterChange('endDate', e.target.value)}
               />
             </div>
             <div>
               <Label htmlFor="franchise">Franquia</Label>
               <Select 
-                value={filters.franchiseName} 
-                onValueChange={(value) => setFilters({...filters, franchiseName: value})}
+                value={filters.franchiseName || ''} 
+                onValueChange={(value) => handleFilterChange('franchiseName', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todas as franquias" />
@@ -197,8 +136,8 @@ const ReportsManager: React.FC = () => {
             <div>
               <Label htmlFor="status">Status</Label>
               <Select 
-                value={filters.status} 
-                onValueChange={(value) => setFilters({...filters, status: value as ReportFilters['status']})}
+                value={filters.status || ''} 
+                onValueChange={(value) => handleFilterChange('status', value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Todos os status" />
@@ -212,91 +151,170 @@ const ReportsManager: React.FC = () => {
               </Select>
             </div>
           </div>
+          <div className="flex gap-2 mt-4">
+            <Button onClick={handleGenerateReport} className="bg-red-600 hover:bg-red-700">
+              Gerar Relatório
+            </Button>
+            <Button variant="outline" onClick={handleClearFilters}>
+              Limpar Filtros
+            </Button>
+          </div>
         </CardContent>
       </Card>
 
-      {/* Resumo */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">{totalReservations}</p>
-              <p className="text-sm text-gray-600">Total</p>
+      {/* Cards de Estatísticas */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-red-600">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total de Reservas</p>
+                <p className="text-2xl font-bold text-red-600">{reportData.totalReservations}</p>
+              </div>
+              <Calendar className="h-8 w-8 text-red-600" />
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-green-600">{confirmedReservations}</p>
-              <p className="text-sm text-gray-600">Confirmadas</p>
+
+        <Card className="border-l-4 border-l-green-600">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Confirmadas</p>
+                <p className="text-2xl font-bold text-green-600">{reportData.confirmedReservations}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-yellow-600">{pendingReservations}</p>
-              <p className="text-sm text-gray-600">Pendentes</p>
+
+        <Card className="border-l-4 border-l-yellow-600">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Pendentes</p>
+                <p className="text-2xl font-bold text-yellow-600">{reportData.pendingReservations}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-center">
-              <p className="text-2xl font-bold text-red-600">{cancelledReservations}</p>
-              <p className="text-sm text-gray-600">Canceladas</p>
+
+        <Card className="border-l-4 border-l-pink-600">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Aniversários</p>
+                <p className="text-2xl font-bold text-pink-600">{reportData.birthdayReservations}</p>
+              </div>
+              <Gift className="h-8 w-8 text-pink-600" />
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Tabela de Resultados */}
-      <Card>
+      {/* Gráficos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="border-l-4 border-l-red-600">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <Building size={20} />
+              Reservas por Franquia
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={franchiseData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="name" 
+                  angle={-45}
+                  textAnchor="end"
+                  height={80}
+                  fontSize={12}
+                />
+                <YAxis />
+                <Tooltip />
+                <Bar dataKey="value" fill="#DC2626" />
+              </BarChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-red-600">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-red-700">
+              <Users size={20} />
+              Status das Reservas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={statusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, value }) => `${name}: ${value}`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Pie>
+                <Tooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Lista de Reservas */}
+      <Card className="border-l-4 border-l-red-600">
         <CardHeader>
-          <CardTitle>Reservas ({filteredReservations.length} resultados)</CardTitle>
+          <CardTitle className="flex items-center gap-2 text-red-700">
+            <Calendar size={20} />
+            Reservas Detalhadas ({reportData.reservations.length})
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Franquia</TableHead>
-                <TableHead>Data/Hora</TableHead>
-                <TableHead>Pessoas</TableHead>
-                <TableHead>Aniversário</TableHead>
-                <TableHead>Personagens</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredReservations.map((reservation) => (
-                <TableRow key={reservation.id}>
-                  <TableCell className="font-medium">{reservation.customerName}</TableCell>
-                  <TableCell>{reservation.franchiseName}</TableCell>
-                  <TableCell>
-                    {reservation.dateTime.toLocaleDateString('pt-BR')} às {reservation.dateTime.toTimeString().slice(0, 5)}
-                  </TableCell>
-                  <TableCell>{reservation.people}</TableCell>
-                  <TableCell>
-                    {reservation.birthday ? (
-                      <span className="text-pink-600">
-                        🎂 {reservation.birthdayPersonName || 'Sim'}
-                      </span>
-                    ) : (
-                      'Não'
-                    )}
-                  </TableCell>
-                  <TableCell>{reservation.characters || 'Nenhum'}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(reservation.status)}>
-                      {getStatusText(reservation.status)}
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            {reportData.reservations.map((reservation) => (
+              <div key={reservation.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold">{reservation.customer_name}</h4>
+                    <Badge 
+                      className={
+                        reservation.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                        reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-red-100 text-red-700'
+                      }
+                    >
+                      {reservation.status === 'confirmed' ? 'Confirmada' :
+                       reservation.status === 'pending' ? 'Pendente' : 'Cancelada'}
                     </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+                    {reservation.birthday && (
+                      <Badge className="bg-pink-100 text-pink-700">🎂 Aniversário</Badge>
+                    )}
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    {reservation.franchise_name} • {new Date(reservation.date_time).toLocaleDateString('pt-BR')} às {new Date(reservation.date_time).toTimeString().slice(0, 5)} • {reservation.people} pessoas
+                  </p>
+                </div>
+              </div>
+            ))}
+            
+            {reportData.reservations.length === 0 && (
+              <div className="text-center py-8">
+                <Calendar size={48} className="mx-auto mb-4 text-gray-400" />
+                <p className="text-gray-600">Nenhuma reserva encontrada com os filtros aplicados.</p>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>

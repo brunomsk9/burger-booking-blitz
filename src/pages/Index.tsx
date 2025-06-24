@@ -6,6 +6,7 @@ import Layout from '@/components/Layout';
 import Dashboard from '@/components/Dashboard';
 import ReservationManager from '@/components/ReservationManager';
 import ReportsManager from '@/components/ReportsManager';
+import UserManager from '@/components/UserManager';
 import GoogleCalendar from '@/components/GoogleCalendar';
 
 const Index = () => {
@@ -15,9 +16,9 @@ const Index = () => {
   // Show loading while checking auth state
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-yellow-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4">
+          <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg">
             🦸
           </div>
           <p className="text-lg text-gray-600">Carregando...</p>
@@ -38,7 +39,7 @@ const Index = () => {
       case 'reservations':
         return <ReservationManager />;
       case 'users':
-        return <div className="p-6"><h2 className="text-2xl font-bold">Usuários - Em desenvolvimento</h2></div>;
+        return <UserManager />;
       case 'reports':
         return <ReportsManager />;
       case 'calendar':
