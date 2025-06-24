@@ -28,15 +28,21 @@ export const useUserData = () => {
         return;
       }
       
+      console.log('Dados brutos dos usuários:', data);
       console.log('Usuários carregados:', data?.length || 0);
-      const typedUsers = (data || []).map(user => ({
-        ...user,
-        role: user.role as 'superadmin' | 'admin' | 'editor' | 'viewer'
-      }));
       
+      const typedUsers = (data || []).map(user => {
+        console.log('Processando usuário:', user);
+        return {
+          ...user,
+          role: user.role as 'superadmin' | 'admin' | 'editor' | 'viewer'
+        };
+      });
+      
+      console.log('Usuários processados:', typedUsers);
       setUsers(typedUsers);
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error);
+      console.error('Erro inesperado ao buscar usuários:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível carregar os usuários.',
