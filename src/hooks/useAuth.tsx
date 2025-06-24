@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      console.log('🔍 Buscando perfil do usuário:', userId);
+      console.log('🔍 Iniciando busca do perfil para usuário:', userId);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -33,13 +33,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .maybeSingle();
 
+      console.log('📊 Resposta da query profiles:', { data, error });
+
       if (error) {
-        console.error('❌ Erro ao buscar perfil do usuário:', error);
+        console.error('❌ Erro na query do perfil:', error);
+        console.error('❌ Detalhes do erro:', error.message, error.details, error.hint);
         return null;
       }
 
       if (data) {
-        console.log('✅ Perfil encontrado:', data);
+        console.log('✅ Dados brutos do perfil encontrados:', data);
         const profile: UserProfile = {
           id: data.id,
           name: data.name,
@@ -48,23 +51,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: data.created_at,
           updated_at: data.updated_at
         };
-        console.log('📋 Perfil processado:', profile);
+        console.log('📋 Perfil processado e validado:', profile);
         return profile;
       }
 
-      console.log('⚠️ Nenhum perfil encontrado para o usuário');
+      console.log('⚠️ Nenhum dado retornado da query profiles');
       return null;
     } catch (error) {
-      console.error('💥 Erro inesperado ao buscar perfil:', error);
+      console.error('💥 Erro inesperado na busca do perfil:', error);
       return null;
     }
   };
 
   const refetchProfile = async () => {
     if (user) {
-      console.log('🔄 Refazendo busca do perfil...');
+      console.log('🔄 Refazendo busca do perfil para usuário:', user.id);
       const profile = await fetchUserProfile(user.id);
       setUserProfile(profile);
+      console.log('🔄 Perfil atualizado:', profile);
     }
   };
 
@@ -76,24 +80,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       async (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email);
         
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('🚫 Componente desmontado, ignorando evento auth');
+          return;
+        }
         
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('👤 Usuário logado, buscando perfil...');
-          const profile = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setUserProfile(profile);
-            console.log('✅ Perfil carregado:', profile);
+          console.log('👤 Usuário logado, iniciando busca do perfil...');
+          try {
+            const profile = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              console.log('✅ Definindo perfil no estado:', profile);
+              setUserProfile(profile);
+            }
+          } catch (error) {
+            console.error('💥 Erro ao buscar perfil no auth state change:', error);
+            if (mounted) {
+              setUserProfile(null);
+            }
           }
         } else {
-          console.log('🚪 Usuário deslogado');
+          console.log('🚪 Usuário deslogado, limpando perfil');
           setUserProfile(null);
         }
         
         if (mounted) {
+          console.log('⏰ Finalizando loading...');
           setLoading(false);
         }
       }
@@ -112,20 +127,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
         
-        console.log('📋 Sessão inicial:', session?.user?.email || 'Nenhuma sessão');
+        console.log('📋 Sessão inicial encontrada:', session?.user?.email || 'Nenhuma sessão');
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          console.log('👤 Sessão encontrada, buscando perfil...');
-          const profile = await fetchUserProfile(session.user.id);
-          if (mounted) {
-            setUserProfile(profile);
-            console.log('✅ Perfil carregado na inicialização:', profile);
+          console.log('👤 Sessão ativa encontrada, buscando perfil...');
+          try {
+            const profile = await fetchUserProfile(session.user.id);
+            if (mounted) {
+              console.log('✅ Perfil carregado na inicialização:', profile);
+              setUserProfile(profile);
+            }
+          } catch (error) {
+            console.error('💥 Erro ao buscar perfil na inicialização:', error);
+            if (mounted) {
+              setUserProfile(null);
+            }
           }
         }
         
         if (mounted) {
+          console.log('⏰ Finalizando loading da inicialização...');
           setLoading(false);
         }
       } catch (error) {
