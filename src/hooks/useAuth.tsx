@@ -25,7 +25,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
-      console.log('🔍 Iniciando busca do perfil para usuário:', userId);
+      console.log('🔍 Buscando perfil para usuário:', userId);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -33,16 +33,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', userId)
         .maybeSingle();
 
-      console.log('📊 Resposta da query profiles:', { data, error });
+      console.log('📊 Resultado da query:', { data, error });
 
       if (error) {
         console.error('❌ Erro na query do perfil:', error);
-        console.error('❌ Detalhes do erro:', error.message, error.details, error.hint);
         return null;
       }
 
       if (data) {
-        console.log('✅ Dados brutos do perfil encontrados:', data);
+        console.log('✅ Perfil encontrado:', data);
         const profile: UserProfile = {
           id: data.id,
           name: data.name,
@@ -51,69 +50,73 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           created_at: data.created_at,
           updated_at: data.updated_at
         };
-        console.log('📋 Perfil processado e validado:', profile);
+        console.log('📋 Perfil processado:', profile);
         return profile;
       }
 
-      console.log('⚠️ Nenhum dado retornado da query profiles');
+      console.log('⚠️ Nenhum perfil encontrado');
       return null;
     } catch (error) {
-      console.error('💥 Erro inesperado na busca do perfil:', error);
+      console.error('💥 Erro inesperado:', error);
       return null;
     }
   };
 
   const refetchProfile = async () => {
     if (user) {
-      console.log('🔄 Refazendo busca do perfil para usuário:', user.id);
+      console.log('🔄 Refazendo busca do perfil...');
       const profile = await fetchUserProfile(user.id);
       setUserProfile(profile);
-      console.log('🔄 Perfil atualizado:', profile);
     }
   };
+
+  // Efeito separado para buscar perfil quando o usuário muda
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProfile = async () => {
+      if (user && isMounted) {
+        console.log('👤 Carregando perfil para usuário:', user.id);
+        const profile = await fetchUserProfile(user.id);
+        if (isMounted) {
+          setUserProfile(profile);
+          setLoading(false);
+        }
+      } else if (!user && isMounted) {
+        console.log('🚪 Usuário deslogado, limpando estado');
+        setUserProfile(null);
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
 
   useEffect(() => {
     let mounted = true;
     console.log('🚀 Iniciando useAuth...');
 
+    // Auth state listener - apenas atualiza user e session, SEM buscar perfil aqui
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email);
         
         if (!mounted) {
-          console.log('🚫 Componente desmontado, ignorando evento auth');
+          console.log('🚫 Componente desmontado, ignorando evento');
           return;
         }
         
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('👤 Usuário logado, iniciando busca do perfil...');
-          try {
-            const profile = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              console.log('✅ Definindo perfil no estado:', profile);
-              setUserProfile(profile);
-            }
-          } catch (error) {
-            console.error('💥 Erro ao buscar perfil no auth state change:', error);
-            if (mounted) {
-              setUserProfile(null);
-            }
-          }
-        } else {
-          console.log('🚪 Usuário deslogado, limpando perfil');
-          setUserProfile(null);
-        }
-        
-        if (mounted) {
-          console.log('⏰ Finalizando loading...');
-          setLoading(false);
-        }
+        // NÃO buscar perfil aqui - será feito no useEffect separado
       }
     );
 
+    // Buscar sessão inicial
     const getInitialSession = async () => {
       try {
         console.log('🔍 Buscando sessão inicial...');
@@ -127,32 +130,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (!mounted) return;
         
-        console.log('📋 Sessão inicial encontrada:', session?.user?.email || 'Nenhuma sessão');
+        console.log('📋 Sessão inicial:', session?.user?.email || 'Nenhuma sessão');
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          console.log('👤 Sessão ativa encontrada, buscando perfil...');
-          try {
-            const profile = await fetchUserProfile(session.user.id);
-            if (mounted) {
-              console.log('✅ Perfil carregado na inicialização:', profile);
-              setUserProfile(profile);
-            }
-          } catch (error) {
-            console.error('💥 Erro ao buscar perfil na inicialização:', error);
-            if (mounted) {
-              setUserProfile(null);
-            }
-          }
-        }
-        
-        if (mounted) {
-          console.log('⏰ Finalizando loading da inicialização...');
-          setLoading(false);
-        }
+        // O perfil será buscado pelo useEffect separado
       } catch (error) {
-        console.error('💥 Erro inesperado ao obter sessão inicial:', error);
+        console.error('💥 Erro inesperado:', error);
         if (mounted) setLoading(false);
       }
     };
