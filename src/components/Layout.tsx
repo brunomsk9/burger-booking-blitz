@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useFranchises } from '@/hooks/useFranchises';
@@ -49,15 +50,16 @@ const Layout: React.FC = () => {
 
   // Buscar o nome da franquia do usuário
   const getUserFranchiseName = () => {
-    if (userProfile.role === 'super_admin') {
+    if (userProfile.role === 'superadmin') {
       return 'Herois Burguer';
     }
     
-    if (userProfile.franchise_id && franchises.length > 0) {
-      const userFranchise = franchises.find(f => f.id === userProfile.franchise_id);
-      if (userFranchise) {
-        return userFranchise.displayName || userFranchise.company_name || userFranchise.name;
-      }
+    // Como não temos franchise_id no UserProfile, por enquanto retornamos o nome padrão
+    // TODO: Implementar relacionamento entre usuário e franquia quando necessário
+    if (franchises.length > 0) {
+      // Por enquanto, pega a primeira franquia disponível para usuários não-superadmin
+      const firstFranchise = franchises[0];
+      return firstFranchise.displayName || firstFranchise.company_name || firstFranchise.name;
     }
     
     return 'Herois Burguer';
