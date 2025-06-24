@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useFranchises } from '@/hooks/useFranchises';
 import { Button } from '@/components/ui/button';
 import AuthPage from './AuthPage';
 import Dashboard from './Dashboard';
@@ -27,6 +27,7 @@ type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | '
 
 const Layout: React.FC = () => {
   const { user, userProfile, loading, signOut } = useAuth();
+  const { franchises } = useFranchises();
   const [selectedMenu, setSelectedMenu] = useState<MenuOption>('dashboard');
 
   if (loading) {
@@ -45,6 +46,24 @@ const Layout: React.FC = () => {
   if (!user || !userProfile) {
     return <AuthPage />;
   }
+
+  // Buscar o nome da franquia do usuário
+  const getUserFranchiseName = () => {
+    if (userProfile.role === 'super_admin') {
+      return 'Herois Burguer';
+    }
+    
+    if (userProfile.franchise_id && franchises.length > 0) {
+      const userFranchise = franchises.find(f => f.id === userProfile.franchise_id);
+      if (userFranchise) {
+        return userFranchise.displayName || userFranchise.company_name || userFranchise.name;
+      }
+    }
+    
+    return 'Herois Burguer';
+  };
+
+  const franchiseName = getUserFranchiseName();
 
   const renderContent = () => {
     switch (selectedMenu) {
@@ -84,7 +103,7 @@ const Layout: React.FC = () => {
                 <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-sm font-semibold mr-3">
                   H
                 </div>
-                <h1 className="text-lg font-semibold text-foreground">Herois Burguer</h1>
+                <h1 className="text-lg font-semibold text-foreground">{franchiseName}</h1>
               </div>
               <div className="flex items-center space-x-3">
                 <span className="text-sm text-muted-foreground hidden sm:block">
