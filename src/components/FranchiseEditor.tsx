@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
 
   React.useEffect(() => {
     if (franchise) {
+      console.log('🏢 Setting form data for franchise:', franchise);
       setFormData({
         name: franchise.name,
         company_name: franchise.company_name || '',
@@ -129,41 +131,41 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
 
   const updateFranchiseNameInReservations = async (oldName: string, newName: string) => {
     try {
+      console.log('🔄 Updating reservations from', oldName, 'to', newName);
       const { error } = await supabase
         .from('reservations')
         .update({ franchise_name: newName })
         .eq('franchise_name', oldName);
 
       if (error) {
-        console.error('Erro ao atualizar reservas:', error);
-        toast({
-          title: 'Aviso',
-          description: 'Franquia atualizada, mas houve erro ao sincronizar algumas reservas.',
-          variant: 'destructive',
-        });
+        console.error('❌ Error updating reservations:', error);
+        return false;
       }
+      console.log('✅ Reservations updated successfully');
+      return true;
     } catch (error) {
-      console.error('Erro ao atualizar reservas:', error);
+      console.error('❌ Unexpected error updating reservations:', error);
+      return false;
     }
   };
 
   const updateFranchiseNameInUserFranchises = async (oldName: string, newName: string) => {
     try {
+      console.log('🔄 Updating user_franchises from', oldName, 'to', newName);
       const { error } = await supabase
         .from('user_franchises')
         .update({ franchise_name: newName })
         .eq('franchise_name', oldName);
 
       if (error) {
-        console.error('Erro ao atualizar user_franchises:', error);
-        toast({
-          title: 'Aviso',
-          description: 'Franquia atualizada, mas houve erro ao sincronizar alguns vínculos de usuário.',
-          variant: 'destructive',
-        });
+        console.error('❌ Error updating user_franchises:', error);
+        return false;
       }
+      console.log('✅ User franchises updated successfully');
+      return true;
     } catch (error) {
-      console.error('Erro ao atualizar user_franchises:', error);
+      console.error('❌ Unexpected error updating user_franchises:', error);
+      return false;
     }
   };
 
@@ -174,13 +176,21 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
     setLoading(true);
 
     try {
-      console.log('Atualizando franquia:', formData);
+      console.log('🏢 Updating franchise with data:', formData);
+      console.log('🏢 Original franchise:', franchise);
 
-      // Se o nome da empresa mudou, precisamos atualizar em todo o sistema
-      const companyNameChanged = franchise.company_name !== formData.company_name;
+      // Determinar o nome antigo e novo para comparação
       const oldCompanyName = franchise.company_name || franchise.name;
       const newCompanyName = formData.company_name || formData.name;
+      const companyNameChanged = oldCompanyName !== newCompanyName;
 
+      console.log('🏢 Company name change check:', {
+        oldCompanyName,
+        newCompanyName,
+        companyNameChanged
+      });
+
+      // Atualizar a franquia
       const { error } = await supabase
         .from('franchises')
         .update({
@@ -195,7 +205,7 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         .eq('id', franchise.id);
 
       if (error) {
-        console.error('Erro ao atualizar franquia:', error);
+        console.error('❌ Error updating franchise:', error);
         toast({
           title: 'Erro',
           description: `Erro ao atualizar franquia: ${error.message}`,
@@ -204,23 +214,38 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         return;
       }
 
-      // Se o nome da empresa mudou, atualizar em reservas e user_franchises
+      console.log('✅ Franchise updated successfully');
+
+      // Se o nome da empresa mudou, atualizar em todo o sistema
       if (companyNameChanged) {
-        await Promise.all([
+        console.log('🔄 Company name changed, updating related records...');
+        
+        const [reservationsUpdated, userFranchisesUpdated] = await Promise.all([
           updateFranchiseNameInReservations(oldCompanyName, newCompanyName),
           updateFranchiseNameInUserFranchises(oldCompanyName, newCompanyName)
         ]);
+
+        if (!reservationsUpdated || !userFranchisesUpdated) {
+          toast({
+            title: 'Aviso',
+            description: 'Franquia atualizada, mas houve problemas ao sincronizar alguns dados relacionados.',
+            variant: 'destructive',
+          });
+        } else {
+          console.log('✅ All related records updated successfully');
+        }
       }
 
       toast({
         title: 'Sucesso!',
-        description: `Franquia ${formData.company_name || formData.name} atualizada com sucesso!`,
+        description: `Franquia ${newCompanyName} atualizada com sucesso!`,
       });
 
+      // Invalidar cache e fechar modal
       onUpdate();
       onClose();
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error('❌ Unexpected error:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao atualizar franquia.',

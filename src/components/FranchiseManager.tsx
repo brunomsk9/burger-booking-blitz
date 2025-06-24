@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,18 +34,18 @@ const FranchiseManager: React.FC = () => {
   const { data: franchises, isLoading, error } = useQuery({
     queryKey: ['franchises'],
     queryFn: async () => {
-      console.log('Buscando franquias...');
+      console.log('🔍 Fetching franchises...');
       const { data, error } = await supabase
         .from('franchises')
         .select('id, name, company_name, address, phone, email, manager_name, active, logo_url, created_at')
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Erro ao buscar franquias:', error);
+        console.error('❌ Error fetching franchises:', error);
         throw error;
       }
 
-      console.log('Franquias encontradas:', data);
+      console.log('✅ Franchises found:', data);
       return data as Franchise[];
     },
   });
@@ -59,7 +58,7 @@ const FranchiseManager: React.FC = () => {
         .eq('id', franchise.id);
 
       if (error) {
-        console.error('Erro ao atualizar franquia:', error);
+        console.error('❌ Error updating franchise:', error);
         toast({
           title: 'Erro',
           description: 'Erro ao atualizar status da franquia.',
@@ -75,7 +74,7 @@ const FranchiseManager: React.FC = () => {
 
       queryClient.invalidateQueries({ queryKey: ['franchises'] });
     } catch (error) {
-      console.error('Erro inesperado:', error);
+      console.error('❌ Unexpected error:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao atualizar franquia.',
@@ -85,17 +84,22 @@ const FranchiseManager: React.FC = () => {
   };
 
   const handleEdit = (franchise: Franchise) => {
+    console.log('✏️ Editing franchise:', franchise);
     setEditingFranchise(franchise);
     setIsEditorOpen(true);
   };
 
   const handleCloseEditor = () => {
+    console.log('❌ Closing franchise editor');
     setIsEditorOpen(false);
     setEditingFranchise(null);
   };
 
   const handleUpdateComplete = () => {
+    console.log('🔄 Franchise update completed, invalidating cache...');
     queryClient.invalidateQueries({ queryKey: ['franchises'] });
+    queryClient.invalidateQueries({ queryKey: ['reservations'] });
+    queryClient.invalidateQueries({ queryKey: ['user-franchises'] });
   };
 
   const filteredFranchises = franchises?.filter(franchise =>

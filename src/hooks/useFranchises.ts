@@ -21,21 +21,23 @@ export const useFranchises = () => {
   const { data: franchises, isLoading, error, refetch } = useQuery({
     queryKey: ['franchises'],
     queryFn: async () => {
-      console.log('Buscando franquias...');
+      console.log('🔍 Fetching active franchises...');
       const { data, error } = await supabase
         .from('franchises')
         .select('id, name, company_name, address, phone, email, manager_name, active, logo_url, created_at')
         .eq('active', true)
-        .order('name', { ascending: true });
+        .order('company_name', { ascending: true });
 
       if (error) {
-        console.error('Erro ao buscar franquias:', error);
+        console.error('❌ Error fetching franchises:', error);
         throw error;
       }
 
-      console.log('Franquias encontradas:', data);
+      console.log('✅ Active franchises found:', data);
       return data as Franchise[];
     },
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: true,
   });
 
   return {
