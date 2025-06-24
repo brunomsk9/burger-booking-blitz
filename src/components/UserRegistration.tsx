@@ -218,8 +218,10 @@ const UserRegistration: React.FC = () => {
                 <strong>Nota:</strong> O usuário receberá um email para confirmar a conta. 
                 A senha fornecida será a senha inicial que eles poderão alterar após o primeiro login.
                 {!isSuperAdmin() && (
-                  <br />
-                  <strong>Restrição:</strong> Como administrador, você não pode criar Super Administradores.
+                  <>
+                    <br />
+                    <strong>Restrição:</strong> Como administrador, você não pode criar Super Administradores.
+                  </>
                 )}
               </p>
             </div>
