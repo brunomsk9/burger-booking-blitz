@@ -2,7 +2,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
@@ -70,11 +69,6 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="franchise_name" className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                Franquia
-                {franchisesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
-              </Label>
               <Select 
                 value={formData.franchise_name} 
                 onValueChange={(value) => setFormData({...formData, franchise_name: value})}
@@ -93,12 +87,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
               </Select>
             </div>
             <div>
-              <Label htmlFor="customer_name" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Nome do Cliente
-              </Label>
               <Input
-                id="customer_name"
                 value={formData.customer_name}
                 onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
                 required
@@ -106,25 +95,15 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="phone" className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                Telefone
-              </Label>
               <Input
-                id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                placeholder="11999888777"
+                placeholder="Telefone (11999888777)"
                 required
               />
             </div>
             <div>
-              <Label htmlFor="date_time" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Data e Hora
-              </Label>
               <Input
-                id="date_time"
                 type="datetime-local"
                 value={formData.date_time}
                 onChange={(e) => setFormData({...formData, date_time: e.target.value})}
@@ -132,14 +111,13 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="people">Número de Pessoas</Label>
               <Input
-                id="people"
                 type="number"
                 min="1"
                 max="20"
                 value={formData.people}
                 onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
+                placeholder="Número de pessoas"
                 required
               />
             </div>
@@ -149,29 +127,25 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                 checked={formData.birthday}
                 onCheckedChange={(checked) => setFormData({...formData, birthday: Boolean(checked)})}
               />
-              <Label htmlFor="birthday" className="text-lg">🎂 É aniversário?</Label>
+              <label htmlFor="birthday" className="text-sm">🎂 É aniversário?</label>
             </div>
           </div>
           
           {formData.birthday && (
             <div>
-              <Label htmlFor="birthday_person_name">Nome do Aniversariante</Label>
               <Input
-                id="birthday_person_name"
                 value={formData.birthday_person_name}
                 onChange={(e) => setFormData({...formData, birthday_person_name: e.target.value})}
-                placeholder="Nome de quem está fazendo aniversário"
+                placeholder="Nome do aniversariante"
               />
             </div>
           )}
           
           <div>
-            <Label htmlFor="characters">Personagens Solicitados</Label>
             <Textarea
-              id="characters"
               value={formData.characters}
               onChange={(e) => setFormData({...formData, characters: e.target.value})}
-              placeholder="Ex: Super-Homem, Batman, Mulher Maravilha..."
+              placeholder="Personagens solicitados (Ex: Super-Homem, Batman, Mulher Maravilha...)"
               rows={3}
             />
           </div>
