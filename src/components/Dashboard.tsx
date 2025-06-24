@@ -56,14 +56,14 @@ const Dashboard: React.FC = () => {
         cancelledReservations,
       });
 
-      // Últimas 5 reservas
+      // Últimas 5 reservas - properly type the status field
       const recent = reservations?.slice(0, 5).map(r => ({
         id: r.id,
         customer_name: r.customer_name,
         franchise_name: r.franchise_name,
         date_time: r.date_time,
         people: r.people,
-        status: r.status,
+        status: r.status as 'pending' | 'confirmed' | 'cancelled',
       })) || [];
 
       setRecentReservations(recent);
