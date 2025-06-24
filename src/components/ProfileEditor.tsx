@@ -19,7 +19,6 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ onCancel }) => {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: userProfile?.name || '',
-    email: userProfile?.email || '',
   });
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
@@ -38,7 +37,6 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ onCancel }) => {
         .from('profiles')
         .update({
           name: formData.name,
-          email: formData.email,
           updated_at: new Date().toISOString(),
         })
         .eq('id', userProfile.id);
@@ -167,12 +165,14 @@ const ProfileEditor: React.FC<ProfileEditorProps> = ({ onCancel }) => {
               <Input
                 id="email"
                 type="email"
-                value={formData.email}
-                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                required
-                className="mt-1"
+                value={userProfile?.email || ''}
+                disabled
+                className="mt-1 bg-gray-100 cursor-not-allowed"
                 placeholder="seu@email.com"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                O e-mail não pode ser alterado por questões de segurança
+              </p>
             </div>
 
             <div className="flex gap-2 pt-4">
