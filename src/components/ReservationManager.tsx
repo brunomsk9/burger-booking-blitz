@@ -22,12 +22,13 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Phone, Edit, Trash2, Plus, MessageCircle, Loader2 } from 'lucide-react';
 import { FRANCHISES } from '@/types';
-import { useReservations, DatabaseReservation } from '@/hooks/useReservations';
+import { useReservations } from '@/hooks/useReservations';
+import { Reservation } from '@/types/reservation';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingReservation, setEditingReservation] = useState<DatabaseReservation | null>(null);
+  const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
   const [formData, setFormData] = useState({
     franchise_name: '',
     customer_name: '',
@@ -78,7 +79,7 @@ const ReservationManager: React.FC = () => {
     resetForm();
   };
 
-  const handleEdit = (reservation: DatabaseReservation) => {
+  const handleEdit = (reservation: Reservation) => {
     setEditingReservation(reservation);
     setFormData({
       franchise_name: reservation.franchise_name,
@@ -93,7 +94,7 @@ const ReservationManager: React.FC = () => {
     setIsDialogOpen(true);
   };
 
-  const handleStatusChange = async (id: string, status: DatabaseReservation['status']) => {
+  const handleStatusChange = async (id: string, status: Reservation['status']) => {
     await updateReservation(id, { status });
   };
 
