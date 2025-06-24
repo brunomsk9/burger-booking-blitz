@@ -9,6 +9,8 @@ import Dashboard from './Dashboard';
 import ReservationManager from './ReservationManager';
 import UserManager from './UserManager';
 import UserRegistration from './UserRegistration';
+import FranchiseManager from './FranchiseManager';
+import FranchiseRegistration from './FranchiseRegistration';
 import ReportsManager from './ReportsManager';
 import GoogleCalendar from './GoogleCalendar';
 import { 
@@ -18,10 +20,12 @@ import {
   BarChart3, 
   CalendarDays, 
   LogOut,
-  UserPlus
+  UserPlus,
+  Building2,
+  Plus
 } from 'lucide-react';
 
-type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'relatorios' | 'calendario';
+type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario';
 
 const Layout: React.FC = () => {
   const { user, userProfile, loading, signOut } = useAuth();
@@ -50,6 +54,8 @@ const Layout: React.FC = () => {
     { key: 'reservas' as MenuOption, label: 'Reservas', icon: Calendar, show: true },
     { key: 'usuarios' as MenuOption, label: 'Usuários', icon: Users, show: canManageUsers() },
     { key: 'cadastro-usuario' as MenuOption, label: 'Cadastrar Usuário', icon: UserPlus, show: canManageUsers() },
+    { key: 'franquias' as MenuOption, label: 'Franquias', icon: Building2, show: canManageUsers() },
+    { key: 'cadastro-franquia' as MenuOption, label: 'Cadastrar Franquia', icon: Plus, show: canManageUsers() },
     { key: 'relatorios' as MenuOption, label: 'Relatórios', icon: BarChart3, show: canViewReports() },
     { key: 'calendario' as MenuOption, label: 'Calendário', icon: CalendarDays, show: true },
   ].filter(item => item.show);
@@ -64,6 +70,10 @@ const Layout: React.FC = () => {
         return <UserManager />;
       case 'cadastro-usuario':
         return <UserRegistration />;
+      case 'franquias':
+        return <FranchiseManager />;
+      case 'cadastro-franquia':
+        return <FranchiseRegistration />;
       case 'relatorios':
         return <ReportsManager />;
       case 'calendario':
