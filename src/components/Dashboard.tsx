@@ -29,6 +29,7 @@ const Dashboard: React.FC = () => {
     cancelledReservations: 0,
   });
   const [recentReservations, setRecentReservations] = useState<RecentReservation[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchDashboardData();
@@ -36,13 +37,21 @@ const Dashboard: React.FC = () => {
 
   const fetchDashboardData = async () => {
     try {
+      console.log('Carregando dados do dashboard...');
+      setLoading(true);
+      
       // Buscar estatísticas
       const { data: reservations, error } = await supabase
         .from('reservations')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao carregar dados do dashboard:', error);
+        return;
+      }
+
+      console.log('Dados carregados:', reservations?.length || 0, 'reservas');
 
       const totalReservations = reservations?.length || 0;
       const confirmedReservations = reservations?.filter(r => r.status === 'confirmed').length || 0;
@@ -69,6 +78,8 @@ const Dashboard: React.FC = () => {
       setRecentReservations(recent);
     } catch (error) {
       console.error('Erro ao carregar dados do dashboard:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,7 +119,7 @@ const Dashboard: React.FC = () => {
                 <p className="text-3xl font-bold text-blue-600">{stats.totalReservations}</p>
                 <div className="flex items-center mt-2">
                   <TrendingUp size={16} className="text-blue-500 mr-1" />
-                  <span className="text-sm text-blue-600">Hoje</span>
+                  <span className="text-sm text-blue-600">Total</span>
                 </div>
               </div>
               <div className="bg-blue-500 p-3 rounded-full">
@@ -183,7 +194,12 @@ const Dashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentReservations.length > 0 ? (
+            {loading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-600 mt-2">Carregando...</p>
+              </div>
+            ) : recentReservations.length > 0 ? (
               recentReservations.map((reservation) => (
                 <div
                   key={reservation.id}

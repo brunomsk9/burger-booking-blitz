@@ -39,6 +39,7 @@ export const useReports = () => {
 
   const generateReport = async (filters: ReportFilters = {}) => {
     try {
+      console.log('Gerando relatório com filtros:', filters);
       setLoading(true);
       
       let query = supabase
@@ -64,9 +65,20 @@ export const useReports = () => {
 
       const { data, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Erro ao gerar relatório:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível gerar o relatório.',
+          variant: 'destructive',
+        });
+        return;
+      }
       
-      const reservations = (data || []) as DatabaseReservation[];
+      const reservations = (data || []).map(reservation => ({
+        ...reservation,
+        status: reservation.status as 'pending' | 'confirmed' | 'cancelled'
+      }));
       
       // Calcular estatísticas
       const totalReservations = reservations.length;
@@ -99,6 +111,13 @@ export const useReports = () => {
         reservationsByFranchise,
         reservationsByDay,
         reservations,
+      });
+      
+      console.log('Relatório gerado com sucesso:', {
+        totalReservations,
+        confirmedReservations,
+        pendingReservations,
+        cancelledReservations
       });
       
     } catch (error) {
