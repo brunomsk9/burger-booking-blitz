@@ -17,7 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Users, UserPlus, Building, Trash2, Loader2, ShieldAlert } from 'lucide-react';
+import { Users, UserPlus, Building, Trash2, Loader2, ShieldAlert, Info } from 'lucide-react';
 import { useUsers } from '@/hooks/useUsers';
 import { useFranchises } from '@/hooks/useFranchises';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -26,7 +26,7 @@ import { UserProfile } from '@/types/user';
 const UserManager: React.FC = () => {
   const { users, userFranchises, loading, updateUserRole, assignUserToFranchise, removeUserFromFranchise } = useUsers();
   const { franchises, loading: franchisesLoading } = useFranchises();
-  const { canManageUsers, getRoleText } = usePermissions();
+  const { canManageUsers, getRoleText, isSuperAdmin, isAdmin } = usePermissions();
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedFranchise, setSelectedFranchise] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -63,6 +63,25 @@ const UserManager: React.FC = () => {
     setIsDialogOpen(false);
   };
 
+  // Filtrar opções de papel baseado no usuário atual
+  const getRoleOptions = () => {
+    if (isSuperAdmin()) {
+      return [
+        { value: 'superadmin', label: 'Super Admin' },
+        { value: 'admin', label: 'Administrador' },
+        { value: 'editor', label: 'Editor' },
+        { value: 'viewer', label: 'Visualizador' }
+      ];
+    } else if (isAdmin()) {
+      return [
+        { value: 'admin', label: 'Administrador' },
+        { value: 'editor', label: 'Editor' },
+        { value: 'viewer', label: 'Visualizador' }
+      ];
+    }
+    return [];
+  };
+
   if (loading || franchisesLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -78,9 +97,23 @@ const UserManager: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-900">Gerenciar Usuários</h2>
       </div>
 
+      {isAdmin() && !isSuperAdmin() && (
+        <Card className="border-l-4 border-l-blue-600">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-2 text-blue-700">
+              <Info size={16} />
+              <span className="text-sm font-medium">
+                Como administrador, você pode ver e gerenciar apenas os usuários das suas franquias.
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid gap-4">
         {users.map((user) => {
           const userFranchisesList = getUserFranchises(user.id);
+          const roleOptions = getRoleOptions();
           
           return (
             <Card key={user.id} className="hover:shadow-md transition-shadow border-l-4 border-l-blue-600">
@@ -137,10 +170,11 @@ const UserManager: React.FC = () => {
                         <SelectValue placeholder="Papel" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="superadmin">Super Admin</SelectItem>
-                        <SelectItem value="admin">Administrador</SelectItem>
-                        <SelectItem value="editor">Editor</SelectItem>
-                        <SelectItem value="viewer">Visualizador</SelectItem>
+                        {roleOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     
@@ -210,7 +244,12 @@ const UserManager: React.FC = () => {
             <CardContent className="text-center py-12">
               <Users size={48} className="mx-auto mb-4 text-gray-400" />
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhum usuário encontrado</h3>
-              <p className="text-gray-600">Os usuários aparecerão aqui conforme se cadastrarem no sistema.</p>
+              <p className="text-gray-600">
+                {isAdmin() && !isSuperAdmin() 
+                  ? "Nenhum usuário encontrado nas suas franquias." 
+                  : "Os usuários aparecerão aqui conforme se cadastrarem no sistema."
+                }
+              </p>
             </CardContent>
           </Card>
         )}
