@@ -24,16 +24,18 @@ const UserRegistration: React.FC = () => {
     setLoading(true);
 
     try {
-      console.log('Criando usuário:', formData);
+      console.log('Criando convite para usuário:', formData);
 
-      // Primeiro, criar o usuário na tabela auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      // Usar signUp normal que criará o usuário
+      const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
-        user_metadata: {
-          name: formData.name
-        },
-        email_confirm: true // Auto-confirma o email
+        options: {
+          data: {
+            name: formData.name
+          },
+          emailRedirectTo: `${window.location.origin}/`
+        }
       });
 
       if (authError) {
@@ -46,29 +48,45 @@ const UserRegistration: React.FC = () => {
         return;
       }
 
-      // Aguardar um pouco para o trigger criar o perfil
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (authData.user) {
+        // Aguardar um pouco para o trigger criar o perfil
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-      // Atualizar o role do usuário criado
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ role: formData.role })
-        .eq('id', authData.user.id);
+        // Atualizar o role do usuário criado usando update diretamente
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ role: formData.role })
+          .eq('email', formData.email);
 
-      if (profileError) {
-        console.error('Erro ao atualizar perfil:', profileError);
-        toast({
-          title: 'Aviso',
-          description: 'Usuário criado, mas houve erro ao definir o papel. Você pode ajustar posteriormente.',
-          variant: 'destructive',
-        });
-      } else {
-        toast({
-          title: 'Sucesso!',
-          description: `Usuário ${formData.name} criado com sucesso!`,
-        });
+        if (profileError) {
+          console.error('Erro ao atualizar perfil:', profileError);
+          toast({
+            title: 'Parcialmente criado',
+            description: 'Usuário criado, mas não foi possível definir o papel. Ajuste manualmente na tela de usuários.',
+            variant: 'destructive',
+          });
+        } else {
+          toast({
+            title: 'Sucesso!',
+            description: `Usuário ${formData.name} foi convidado com sucesso! Eles receberão um email para confirmar a conta.`,
+          });
+        }
 
         // Limpar formulário
+        setFormData({
+          name: '',
+          email: '',
+          password: '',
+          role: 'viewer'
+        });
+      } else {
+        // Usuário pode já existir
+        toast({
+          title: 'Usuário convidado',
+          description: 'Se o usuário não existir, receberá um email de confirmação.',
+        });
+        
+        // Limpar formulário mesmo assim
         setFormData({
           name: '',
           email: '',
@@ -126,14 +144,14 @@ const UserRegistration: React.FC = () => {
               </div>
               
               <div>
-                <Label htmlFor="password">Senha</Label>
+                <Label htmlFor="password">Senha Temporária</Label>
                 <Input
                   id="password"
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({...formData, password: e.target.value})}
                   required
-                  placeholder="Senha do usuário"
+                  placeholder="Senha temporária"
                   minLength={6}
                 />
               </div>
@@ -154,6 +172,13 @@ const UserRegistration: React.FC = () => {
               </div>
             </div>
 
+            <div className="bg-blue-50 p-4 rounded-md">
+              <p className="text-sm text-blue-800">
+                <strong>Nota:</strong> O usuário receberá um email para confirmar a conta. 
+                A senha fornecida será a senha inicial que eles poderão alterar após o primeiro login.
+              </p>
+            </div>
+
             <div className="flex gap-2 pt-4">
               <Button 
                 type="submit" 
@@ -168,7 +193,7 @@ const UserRegistration: React.FC = () => {
                 ) : (
                   <>
                     <UserPlus className="mr-2 h-4 w-4" />
-                    Criar Usuário
+                    Convidar Usuário
                   </>
                 )}
               </Button>
