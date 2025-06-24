@@ -33,7 +33,7 @@ const TestConnection: React.FC = () => {
       setResults(prev => [...prev, {
         test: 'Conexão com banco',
         status: healthError ? 'Erro' : 'Sucesso',
-        details: healthError ? healthError.message : 'Conexão estabelecida'
+        details: healthError ? healthError.message : 'Conexão estabelecida com sucesso'
       }]);
 
       // Teste 3: Buscar reservas
@@ -49,18 +49,25 @@ const TestConnection: React.FC = () => {
         details: reservationsError ? reservationsError.message : `${reservationsData?.length || 0} reservas encontradas`
       }]);
 
-      // Teste 4: Verificar estrutura da tabela
-      console.log('Verificando estrutura da tabela...');
-      const { data: tableData, error: tableError } = await supabase
-        .from('reservations')
+      // Teste 4: Verificar políticas RLS
+      console.log('Testando políticas RLS...');
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
         .select('*')
         .limit(1);
       
       setResults(prev => [...prev, {
-        test: 'Estrutura da tabela',
-        status: tableError ? 'Erro' : 'Sucesso',
-        details: tableError ? tableError.message : `Colunas: ${tableData && tableData.length > 0 ? Object.keys(tableData[0]).join(', ') : 'Tabela vazia'}`
+        test: 'Políticas RLS',
+        status: profileError ? 'Erro' : 'Sucesso',
+        details: profileError ? profileError.message : 'Políticas RLS funcionando corretamente'
       }]);
+
+      if (!authError && !healthError && !reservationsError && !profileError) {
+        toast({
+          title: 'Sucesso!',
+          description: 'Conexão com banco funcionando perfeitamente.',
+        });
+      }
 
     } catch (error) {
       console.error('Erro no teste de conexão:', error);

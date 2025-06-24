@@ -10,17 +10,16 @@ export const useReservations = () => {
 
   const fetchReservations = async () => {
     try {
-      console.log('Iniciando busca de reservas...');
+      console.log('Buscando reservas...');
       setLoading(true);
       
-      // Buscar reservas sem referências a outras tabelas para evitar problemas de RLS
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
         .order('date_time', { ascending: true });
 
       if (error) {
-        console.error('Erro detalhado ao buscar reservas:', error);
+        console.error('Erro ao buscar reservas:', error);
         toast({
           title: 'Erro',
           description: `Erro ao carregar reservas: ${error.message}`,
@@ -29,10 +28,8 @@ export const useReservations = () => {
         return;
       }
       
-      console.log('Reservas encontradas:', data?.length || 0);
-      console.log('Dados das reservas:', data);
+      console.log('Reservas carregadas:', data?.length || 0);
       
-      // Garantir que os dados estão no formato correto
       const typedReservations = (data || []).map(reservation => ({
         ...reservation,
         status: reservation.status as 'pending' | 'confirmed' | 'cancelled',
@@ -42,7 +39,7 @@ export const useReservations = () => {
       
       setReservations(typedReservations);
     } catch (error) {
-      console.error('Erro na função fetchReservations:', error);
+      console.error('Erro inesperado:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao carregar reservas.',
@@ -55,12 +52,10 @@ export const useReservations = () => {
 
   const createReservation = async (reservationData: CreateReservationData) => {
     try {
-      console.log('Criando nova reserva:', reservationData);
+      console.log('Criando reserva:', reservationData);
       
-      // Obter dados do usuário atual
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) {
-        console.error('Erro ao obter usuário:', userError);
         toast({
           title: 'Erro',
           description: 'Erro de autenticação.',
@@ -75,8 +70,6 @@ export const useReservations = () => {
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
-      
-      console.log('Dados para inserção:', dataToInsert);
       
       const { data, error } = await supabase
         .from('reservations')
@@ -93,8 +86,6 @@ export const useReservations = () => {
         });
         return { data: null, error };
       }
-      
-      console.log('Reserva criada com sucesso:', data);
       
       const typedReservation = {
         ...data,
@@ -212,7 +203,6 @@ export const useReservations = () => {
     }
   };
 
-  // Executar busca inicial
   useEffect(() => {
     fetchReservations();
   }, []);
