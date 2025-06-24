@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Calendar, Loader2 } from 'lucide-react';
+import { Calendar, Loader2, Utensils } from 'lucide-react';
 import { useAvailabilityCheck } from '@/hooks/useAvailabilityCheck';
 import TimeSlotSelector from './TimeSlotSelector';
 import ReservationFormFields from './ReservationFormFields';
@@ -122,26 +122,28 @@ const PublicReservation: React.FC = () => {
   const selectedSlot = availableSlots.find(slot => slot.time === formData.time);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-500 to-red-600 p-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="flex justify-center mb-4">
-            <div className="w-20 h-20 bg-yellow-400 rounded-full flex items-center justify-center text-red-600 text-4xl font-bold">
-              🦸
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8 pt-8">
+          <div className="flex justify-center mb-6">
+            <div className="w-16 h-16 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+              <Utensils className="h-8 w-8" />
             </div>
           </div>
-          <h1 className="text-4xl font-bold text-white mb-2">Herois Burguer</h1>
-          <p className="text-red-100 text-lg">Solicite sua reserva para uma experiência inesquecível!</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Herois Burguer</h1>
+          <p className="text-gray-600 text-lg">Solicite sua reserva para uma experiência inesquecível!</p>
         </div>
 
-        <Card className="shadow-2xl">
-          <CardHeader className="bg-red-600 text-white">
-            <CardTitle className="text-2xl flex items-center gap-2">
-              <Calendar className="h-6 w-6" />
+        {/* Main Card */}
+        <Card className="shadow-xl border-0 bg-white">
+          <CardHeader className="bg-white border-b border-gray-100 pb-6">
+            <CardTitle className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-blue-600" />
               Solicitar Reserva
             </CardTitle>
           </CardHeader>
-          <CardContent className="p-6">
+          <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <ReservationFormFields 
                 formData={formData}
@@ -157,28 +159,32 @@ const PublicReservation: React.FC = () => {
                 onTimeChange={(time) => setFormData(prev => ({ ...prev, time }))}
               />
 
-              <Button 
-                type="submit" 
-                className="w-full bg-red-600 hover:bg-red-700 text-lg py-6"
-                disabled={loading || !selectedSlot?.available}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                    Enviando Solicitação...
-                  </>
-                ) : (
-                  <>
-                    <Calendar className="mr-2 h-5 w-5" />
-                    Solicitar Reserva
-                  </>
-                )}
-              </Button>
+              <div className="pt-4">
+                <Button 
+                  type="submit" 
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-lg py-6 rounded-xl shadow-lg transition-all duration-200"
+                  disabled={loading || !selectedSlot?.available}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Enviando Solicitação...
+                    </>
+                  ) : (
+                    <>
+                      <Calendar className="mr-2 h-5 w-5" />
+                      Solicitar Reserva
+                    </>
+                  )}
+                </Button>
+              </div>
 
-              <p className="text-sm text-gray-600 text-center">
-                Sua reserva ficará pendente até a confirmação da nossa equipe. 
-                Entraremos em contato via WhatsApp em breve!
-              </p>
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <p className="text-sm text-blue-700 text-center">
+                  Sua reserva ficará pendente até a confirmação da nossa equipe. 
+                  Entraremos em contato via WhatsApp em breve!
+                </p>
+              </div>
             </form>
           </CardContent>
         </Card>
