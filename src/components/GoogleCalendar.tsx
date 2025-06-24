@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Settings, Link, CheckCircle, AlertCircle, Sync } from 'lucide-react';
+import { Calendar, Settings, Link, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const GoogleCalendar: React.FC = () => {
@@ -49,7 +48,7 @@ const GoogleCalendar: React.FC = () => {
         <h2 className="text-2xl font-bold text-gray-900">Integração Google Calendar</h2>
         {isConnected && (
           <Button onClick={handleSyncReservations} className="bg-blue-600 hover:bg-blue-700">
-            <Sync size={16} className="mr-2" />
+            <RefreshCw size={16} className="mr-2" />
             Sincronizar Agora
           </Button>
         )}
