@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Calendar, Users, BarChart3, Settings, Menu, User, LogOut } from 'lucide-react';
+import { Calendar, Users, BarChart3, Settings, Menu, User, LogOut, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -23,7 +23,7 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     { id: 'dashboard', label: 'Dashboard', icon: BarChart3 },
     { id: 'reservations', label: 'Reservas', icon: Calendar },
     { id: 'users', label: 'Usuários', icon: Users },
-    { id: 'reports', label: 'Relatórios', icon: BarChart3 },
+    { id: 'reports', label: 'Relatórios', icon: FileText },
     { id: 'calendar', label: 'Google Calendar', icon: Calendar },
   ];
 
@@ -34,9 +34,9 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
         <div className="p-4">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-yellow-400 rounded-full flex items-center justify-center text-red-600 font-bold">
-              🍔
+              🦸
             </div>
-            {isSidebarOpen && <h1 className="text-xl font-bold">Burger Reserve</h1>}
+            {isSidebarOpen && <h1 className="text-xl font-bold">Herois Burguer</h1>}
           </div>
         </div>
         

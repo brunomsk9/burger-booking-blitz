@@ -7,27 +7,19 @@ export interface Reservation {
   dateTime: Date;
   people: number;
   birthday: boolean;
-  characters: string[];
+  birthdayPersonName?: string;
+  characters: string;
   status: 'pending' | 'confirmed' | 'cancelled';
   createdAt: Date;
   updatedAt: Date;
 }
 
 export const FRANCHISES = [
-  'Burger Central - Shopping',
-  'Burger Central - Centro',
-  'Burger Central - Zona Norte',
-  'Burger Central - Zona Sul',
-  'Burger Central - Zona Oeste'
-];
-
-export const CHARACTERS = [
-  'Ronald McDonald',
-  'Chef Burger',
-  'Hambúrguer',
-  'Batata Frita',
-  'Milkshake',
-  'Nuggets'
+  'Herois Burguer - Shopping',
+  'Herois Burguer - Centro',
+  'Herois Burguer - Zona Norte',
+  'Herois Burguer - Zona Sul',
+  'Herois Burguer - Zona Oeste'
 ];
 
 export interface User {
@@ -37,4 +29,11 @@ export interface User {
   role: 'admin' | 'editor' | 'viewer';
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface ReportFilters {
+  startDate?: Date;
+  endDate?: Date;
+  franchiseName?: string;
+  status?: 'pending' | 'confirmed' | 'cancelled' | '';
 }

@@ -40,7 +40,7 @@ const Dashboard: React.FC = () => {
     {
       id: '1',
       customerName: 'João Silva',
-      franchiseName: 'Burger Central - Shopping',
+      franchiseName: 'Herois Burguer - Shopping',
       dateTime: '2024-06-25 19:00',
       people: 4,
       status: 'pending' as const
@@ -48,7 +48,7 @@ const Dashboard: React.FC = () => {
     {
       id: '2',
       customerName: 'Maria Santos',
-      franchiseName: 'Burger Central - Centro',
+      franchiseName: 'Herois Burguer - Centro',
       dateTime: '2024-06-25 20:30',
       people: 2,
       status: 'confirmed' as const
@@ -56,7 +56,7 @@ const Dashboard: React.FC = () => {
     {
       id: '3',
       customerName: 'Pedro Costa',
-      franchiseName: 'Burger Central - Zona Norte',
+      franchiseName: 'Herois Burguer - Zona Norte',
       dateTime: '2024-06-26 18:00',
       people: 6,
       status: 'pending' as const
@@ -85,7 +85,7 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div className="bg-gradient-to-r from-red-500 to-red-600 text-white p-6 rounded-lg">
-        <h1 className="text-2xl font-bold mb-2">Bem-vindo ao Burger Reserve! 🍔</h1>
+        <h1 className="text-2xl font-bold mb-2">Bem-vindo ao Sistema Herois Burguer! 🦸‍♂️</h1>
         <p className="text-red-100">Gerencie suas reservas de forma simples e eficiente.</p>
       </div>
 

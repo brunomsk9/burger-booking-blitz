@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Dialog,
   DialogContent,
@@ -22,32 +23,33 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar, Phone, Edit, Trash2, Plus, MessageCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { Reservation, CHARACTERS, FRANCHISES } from '@/types';
+import { Reservation, FRANCHISES } from '@/types';
 
 const ReservationManager: React.FC = () => {
   const [reservations, setReservations] = useState<Reservation[]>([
     {
       id: '1',
-      franchiseName: 'Burger Central - Shopping',
+      franchiseName: 'Herois Burguer - Shopping',
       customerName: 'João Silva',
       phone: '11999888777',
       dateTime: new Date('2024-06-25T19:00:00'),
       people: 4,
       birthday: true,
-      characters: ['Ronald McDonald', 'Chef Burger'],
+      birthdayPersonName: 'Lucas Silva',
+      characters: 'Super-Homem, Batman',
       status: 'pending',
       createdAt: new Date(),
       updatedAt: new Date()
     },
     {
       id: '2',
-      franchiseName: 'Burger Central - Centro',
+      franchiseName: 'Herois Burguer - Centro',
       customerName: 'Maria Santos',
       phone: '11888777666',
       dateTime: new Date('2024-06-25T20:30:00'),
       people: 2,
       birthday: false,
-      characters: ['Hambúrguer'],
+      characters: 'Mulher Maravilha',
       status: 'confirmed',
       createdAt: new Date(),
       updatedAt: new Date()
@@ -63,7 +65,8 @@ const ReservationManager: React.FC = () => {
     dateTime: '',
     people: 1,
     birthday: false,
-    characters: [] as string[]
+    birthdayPersonName: '',
+    characters: ''
   });
 
   const resetForm = () => {
@@ -74,7 +77,8 @@ const ReservationManager: React.FC = () => {
       dateTime: '',
       people: 1,
       birthday: false,
-      characters: []
+      birthdayPersonName: '',
+      characters: ''
     });
     setEditingReservation(null);
   };
@@ -90,6 +94,7 @@ const ReservationManager: React.FC = () => {
       dateTime: new Date(formData.dateTime),
       people: formData.people,
       birthday: formData.birthday,
+      birthdayPersonName: formData.birthdayPersonName,
       characters: formData.characters,
       status: editingReservation?.status || 'pending',
       createdAt: editingReservation?.createdAt || new Date(),
@@ -117,6 +122,7 @@ const ReservationManager: React.FC = () => {
       dateTime: reservation.dateTime.toISOString().slice(0, 16),
       people: reservation.people,
       birthday: reservation.birthday,
+      birthdayPersonName: reservation.birthdayPersonName || '',
       characters: reservation.characters
     });
     setIsDialogOpen(true);
@@ -250,32 +256,27 @@ const ReservationManager: React.FC = () => {
                 </div>
               </div>
               
-              <div>
-                <Label>Personagens Solicitados</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-2">
-                  {CHARACTERS.map(character => (
-                    <div key={character} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={character}
-                        checked={formData.characters.includes(character)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setFormData({
-                              ...formData,
-                              characters: [...formData.characters, character]
-                            });
-                          } else {
-                            setFormData({
-                              ...formData,
-                              characters: formData.characters.filter(c => c !== character)
-                            });
-                          }
-                        }}
-                      />
-                      <Label htmlFor={character} className="text-sm">{character}</Label>
-                    </div>
-                  ))}
+              {formData.birthday && (
+                <div>
+                  <Label htmlFor="birthdayPersonName">Nome do Aniversariante</Label>
+                  <Input
+                    id="birthdayPersonName"
+                    value={formData.birthdayPersonName}
+                    onChange={(e) => setFormData({...formData, birthdayPersonName: e.target.value})}
+                    placeholder="Nome de quem está fazendo aniversário"
+                  />
                 </div>
+              )}
+              
+              <div>
+                <Label htmlFor="characters">Personagens Solicitados</Label>
+                <Textarea
+                  id="characters"
+                  value={formData.characters}
+                  onChange={(e) => setFormData({...formData, characters: e.target.value})}
+                  placeholder="Ex: Super-Homem, Batman, Mulher Maravilha..."
+                  rows={3}
+                />
               </div>
 
               <div className="flex gap-2 pt-4">
@@ -308,7 +309,7 @@ const ReservationManager: React.FC = () => {
                     </Badge>
                     {reservation.birthday && (
                       <Badge variant="outline" className="bg-pink-100 text-pink-700">
-                        🎂 Aniversário
+                        🎂 {reservation.birthdayPersonName ? `Aniversário: ${reservation.birthdayPersonName}` : 'Aniversário'}
                       </Badge>
                     )}
                   </div>
@@ -329,7 +330,7 @@ const ReservationManager: React.FC = () => {
                       <strong>Pessoas:</strong> {reservation.people}
                     </div>
                     <div className="md:col-span-2">
-                      <strong>Personagens:</strong> {reservation.characters.join(', ') || 'Nenhum'}
+                      <strong>Personagens:</strong> {reservation.characters || 'Nenhum'}
                     </div>
                   </div>
                 </div>
