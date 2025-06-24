@@ -32,7 +32,7 @@ export const usePermissions = () => {
   };
 
   const canManageUsers = () => {
-    const result = isSuperAdmin();
+    const result = isSuperAdmin() || isAdmin();
     console.log('🔐 canManageUsers:', result);
     return result;
   };
