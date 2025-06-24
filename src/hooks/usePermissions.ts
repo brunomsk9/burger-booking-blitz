@@ -50,19 +50,19 @@ export const usePermissions = () => {
   };
 
   const canCreateReservations = () => {
-    const result = isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin() || isEditor();
     console.log('🔐 canCreateReservations:', result);
     return result;
   };
 
   const canUpdateReservations = () => {
-    const result = isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin() || isEditor();
     console.log('🔐 canUpdateReservations:', result);
     return result;
   };
 
   const canDeleteReservations = () => {
-    const result = isSuperAdmin() || isAdmin();
+    const result = isSuperAdmin() || isAdmin() || isEditor();
     console.log('🔐 canDeleteReservations:', result);
     return result;
   };
