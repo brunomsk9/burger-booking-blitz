@@ -10,36 +10,42 @@ export const useReservations = () => {
 
   const fetchReservations = async () => {
     try {
-      console.log('Buscando reservas...');
+      console.log('Iniciando busca de reservas...');
       setLoading(true);
       
+      // Buscar reservas sem referências a outras tabelas para evitar problemas de RLS
       const { data, error } = await supabase
         .from('reservations')
         .select('*')
         .order('date_time', { ascending: true });
 
       if (error) {
-        console.error('Erro ao buscar reservas:', error);
+        console.error('Erro detalhado ao buscar reservas:', error);
         toast({
           title: 'Erro',
-          description: 'Não foi possível carregar as reservas.',
+          description: `Erro ao carregar reservas: ${error.message}`,
           variant: 'destructive',
         });
         return;
       }
       
-      console.log('Reservas carregadas:', data?.length || 0);
+      console.log('Reservas encontradas:', data?.length || 0);
+      console.log('Dados das reservas:', data);
+      
+      // Garantir que os dados estão no formato correto
       const typedReservations = (data || []).map(reservation => ({
         ...reservation,
-        status: reservation.status as 'pending' | 'confirmed' | 'cancelled'
+        status: reservation.status as 'pending' | 'confirmed' | 'cancelled',
+        birthday: Boolean(reservation.birthday),
+        people: Number(reservation.people)
       }));
       
       setReservations(typedReservations);
     } catch (error) {
-      console.error('Erro ao buscar reservas:', error);
+      console.error('Erro na função fetchReservations:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível carregar as reservas.',
+        description: 'Erro inesperado ao carregar reservas.',
         variant: 'destructive',
       });
     } finally {
@@ -49,16 +55,28 @@ export const useReservations = () => {
 
   const createReservation = async (reservationData: CreateReservationData) => {
     try {
-      console.log('Criando reserva:', reservationData);
+      console.log('Criando nova reserva:', reservationData);
       
-      const { data: userData } = await supabase.auth.getUser();
+      // Obter dados do usuário atual
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError) {
+        console.error('Erro ao obter usuário:', userError);
+        toast({
+          title: 'Erro',
+          description: 'Erro de autenticação.',
+          variant: 'destructive',
+        });
+        return { data: null, error: userError };
+      }
       
       const dataToInsert = {
         ...reservationData,
         created_by: userData.user?.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
       
-      console.log('Dados da reserva para inserir:', dataToInsert);
+      console.log('Dados para inserção:', dataToInsert);
       
       const { data, error } = await supabase
         .from('reservations')
@@ -70,7 +88,7 @@ export const useReservations = () => {
         console.error('Erro ao criar reserva:', error);
         toast({
           title: 'Erro',
-          description: 'Não foi possível criar a reserva.',
+          description: `Erro ao criar reserva: ${error.message}`,
           variant: 'destructive',
         });
         return { data: null, error };
@@ -80,7 +98,9 @@ export const useReservations = () => {
       
       const typedReservation = {
         ...data,
-        status: data.status as 'pending' | 'confirmed' | 'cancelled'
+        status: data.status as 'pending' | 'confirmed' | 'cancelled',
+        birthday: Boolean(data.birthday),
+        people: Number(data.people)
       };
       
       setReservations(prev => [...prev, typedReservation]);
@@ -91,10 +111,10 @@ export const useReservations = () => {
       
       return { data: typedReservation, error: null };
     } catch (error) {
-      console.error('Erro ao criar reserva:', error);
+      console.error('Erro inesperado ao criar reserva:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível criar a reserva.',
+        description: 'Erro inesperado ao criar reserva.',
         variant: 'destructive',
       });
       return { data: null, error };
@@ -107,12 +127,15 @@ export const useReservations = () => {
       
       const { data: userData } = await supabase.auth.getUser();
       
+      const updateData = {
+        ...updates,
+        updated_by: userData.user?.id,
+        updated_at: new Date().toISOString()
+      };
+      
       const { data, error } = await supabase
         .from('reservations')
-        .update({
-          ...updates,
-          updated_by: userData.user?.id,
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
@@ -121,7 +144,7 @@ export const useReservations = () => {
         console.error('Erro ao atualizar reserva:', error);
         toast({
           title: 'Erro',
-          description: 'Não foi possível atualizar a reserva.',
+          description: `Erro ao atualizar reserva: ${error.message}`,
           variant: 'destructive',
         });
         return { data: null, error };
@@ -129,7 +152,9 @@ export const useReservations = () => {
       
       const typedReservation = {
         ...data,
-        status: data.status as 'pending' | 'confirmed' | 'cancelled'
+        status: data.status as 'pending' | 'confirmed' | 'cancelled',
+        birthday: Boolean(data.birthday),
+        people: Number(data.people)
       };
       
       setReservations(prev => prev.map(r => r.id === id ? typedReservation : r));
@@ -140,10 +165,10 @@ export const useReservations = () => {
       
       return { data: typedReservation, error: null };
     } catch (error) {
-      console.error('Erro ao atualizar reserva:', error);
+      console.error('Erro inesperado ao atualizar reserva:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível atualizar a reserva.',
+        description: 'Erro inesperado ao atualizar reserva.',
         variant: 'destructive',
       });
       return { data: null, error };
@@ -152,7 +177,7 @@ export const useReservations = () => {
 
   const deleteReservation = async (id: string) => {
     try {
-      console.log('Deletando reserva:', id);
+      console.log('Excluindo reserva:', id);
       
       const { error } = await supabase
         .from('reservations')
@@ -163,7 +188,7 @@ export const useReservations = () => {
         console.error('Erro ao excluir reserva:', error);
         toast({
           title: 'Erro',
-          description: 'Não foi possível excluir a reserva.',
+          description: `Erro ao excluir reserva: ${error.message}`,
           variant: 'destructive',
         });
         return { error };
@@ -177,16 +202,17 @@ export const useReservations = () => {
       
       return { error: null };
     } catch (error) {
-      console.error('Erro ao excluir reserva:', error);
+      console.error('Erro inesperado ao excluir reserva:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível excluir a reserva.',
+        description: 'Erro inesperado ao excluir reserva.',
         variant: 'destructive',
       });
       return { error };
     }
   };
 
+  // Executar busca inicial
   useEffect(() => {
     fetchReservations();
   }, []);

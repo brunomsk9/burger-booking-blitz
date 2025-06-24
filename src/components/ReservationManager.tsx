@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,11 +25,13 @@ import { Calendar, Phone, Edit, Trash2, Plus, MessageCircle, Loader2 } from 'luc
 import { FRANCHISES } from '@/types';
 import { useReservations } from '@/hooks/useReservations';
 import { Reservation } from '@/types/reservation';
+import TestConnection from './TestConnection';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
+  const [showDebug, setShowDebug] = useState(false);
   const [formData, setFormData] = useState({
     franchise_name: '',
     customer_name: '',
@@ -139,131 +142,143 @@ const ReservationManager: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">Gerenciar Reservas</h2>
-        <Dialog open={isDialogOpen} onOpenChange={(open) => {
-          setIsDialogOpen(open);
-          if (!open) resetForm();
-        }}>
-          <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
-              <Plus size={16} className="mr-2" />
-              Nova Reserva
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {editingReservation ? 'Editar Reserva' : 'Nova Reserva'}
-              </DialogTitle>
-            </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="franchise_name">Franquia</Label>
-                  <Select 
-                    value={formData.franchise_name} 
-                    onValueChange={(value) => setFormData({...formData, franchise_name: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a franquia" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {FRANCHISES.map(franchise => (
-                        <SelectItem key={franchise} value={franchise}>
-                          {franchise}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowDebug(!showDebug)}
+          >
+            {showDebug ? 'Ocultar' : 'Debug'}
+          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) resetForm();
+          }}>
+            <DialogTrigger asChild>
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                <Plus size={16} className="mr-2" />
+                Nova Reserva
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingReservation ? 'Editar Reserva' : 'Nova Reserva'}
+                </DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="franchise_name">Franquia</Label>
+                    <Select 
+                      value={formData.franchise_name} 
+                      onValueChange={(value) => setFormData({...formData, franchise_name: value})}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a franquia" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {FRANCHISES.map(franchise => (
+                          <SelectItem key={franchise} value={franchise}>
+                            {franchise}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="customer_name">Nome do Cliente</Label>
+                    <Input
+                      id="customer_name"
+                      value={formData.customer_name}
+                      onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Telefone</Label>
+                    <Input
+                      id="phone"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      placeholder="11999888777"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="date_time">Data e Hora</Label>
+                    <Input
+                      id="date_time"
+                      type="datetime-local"
+                      value={formData.date_time}
+                      onChange={(e) => setFormData({...formData, date_time: e.target.value})}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="people">Número de Pessoas</Label>
+                    <Input
+                      id="people"
+                      type="number"
+                      min="1"
+                      value={formData.people}
+                      onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
+                      required
+                    />
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="birthday"
+                      checked={formData.birthday}
+                      onCheckedChange={(checked) => setFormData({...formData, birthday: Boolean(checked)})}
+                    />
+                    <Label htmlFor="birthday">É aniversário?</Label>
+                  </div>
                 </div>
+                
+                {formData.birthday && (
+                  <div>
+                    <Label htmlFor="birthday_person_name">Nome do Aniversariante</Label>
+                    <Input
+                      id="birthday_person_name"
+                      value={formData.birthday_person_name}
+                      onChange={(e) => setFormData({...formData, birthday_person_name: e.target.value})}
+                      placeholder="Nome de quem está fazendo aniversário"
+                    />
+                  </div>
+                )}
+                
                 <div>
-                  <Label htmlFor="customer_name">Nome do Cliente</Label>
-                  <Input
-                    id="customer_name"
-                    value={formData.customer_name}
-                    onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
-                    required
+                  <Label htmlFor="characters">Personagens Solicitados</Label>
+                  <Textarea
+                    id="characters"
+                    value={formData.characters}
+                    onChange={(e) => setFormData({...formData, characters: e.target.value})}
+                    placeholder="Ex: Super-Homem, Batman, Mulher Maravilha..."
+                    rows={3}
                   />
                 </div>
-                <div>
-                  <Label htmlFor="phone">Telefone</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                    placeholder="11999888777"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="date_time">Data e Hora</Label>
-                  <Input
-                    id="date_time"
-                    type="datetime-local"
-                    value={formData.date_time}
-                    onChange={(e) => setFormData({...formData, date_time: e.target.value})}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="people">Número de Pessoas</Label>
-                  <Input
-                    id="people"
-                    type="number"
-                    min="1"
-                    value={formData.people}
-                    onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
-                    required
-                  />
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="birthday"
-                    checked={formData.birthday}
-                    onCheckedChange={(checked) => setFormData({...formData, birthday: Boolean(checked)})}
-                  />
-                  <Label htmlFor="birthday">É aniversário?</Label>
-                </div>
-              </div>
-              
-              {formData.birthday && (
-                <div>
-                  <Label htmlFor="birthday_person_name">Nome do Aniversariante</Label>
-                  <Input
-                    id="birthday_person_name"
-                    value={formData.birthday_person_name}
-                    onChange={(e) => setFormData({...formData, birthday_person_name: e.target.value})}
-                    placeholder="Nome de quem está fazendo aniversário"
-                  />
-                </div>
-              )}
-              
-              <div>
-                <Label htmlFor="characters">Personagens Solicitados</Label>
-                <Textarea
-                  id="characters"
-                  value={formData.characters}
-                  onChange={(e) => setFormData({...formData, characters: e.target.value})}
-                  placeholder="Ex: Super-Homem, Batman, Mulher Maravilha..."
-                  rows={3}
-                />
-              </div>
 
-              <div className="flex gap-2 pt-4">
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  {editingReservation ? 'Atualizar' : 'Criar'} Reserva
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => setIsDialogOpen(false)}
-                >
-                  Cancelar
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <div className="flex gap-2 pt-4">
+                  <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                    {editingReservation ? 'Atualizar' : 'Criar'} Reserva
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsDialogOpen(false)}
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
+      {showDebug && (
+        <TestConnection />
+      )}
 
       <div className="grid gap-4">
         {reservations.map((reservation) => (
