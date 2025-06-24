@@ -18,8 +18,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FRANCHISES } from '@/types';
+import { useFranchises } from '@/hooks/useFranchises';
 import { Reservation } from '@/types/reservation';
+import { User, Phone, MapPin, Loader2, Calendar } from 'lucide-react';
 
 interface ReservationFormProps {
   isOpen: boolean;
@@ -56,6 +57,8 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   setFormData,
   editingReservation,
 }) => {
+  const { franchises, loading: franchisesLoading } = useFranchises();
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -67,34 +70,46 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="franchise_name">Franquia</Label>
+              <Label htmlFor="franchise_name" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Franquia
+                {franchisesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+              </Label>
               <Select 
                 value={formData.franchise_name} 
                 onValueChange={(value) => setFormData({...formData, franchise_name: value})}
+                disabled={franchisesLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Selecione a franquia" />
+                  <SelectValue placeholder={franchisesLoading ? "Carregando franquias..." : "Selecione a franquia"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {FRANCHISES.map(franchise => (
-                    <SelectItem key={franchise} value={franchise}>
-                      {franchise}
+                  {franchises.map(franchise => (
+                    <SelectItem key={franchise.id} value={franchise.name}>
+                      {franchise.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="customer_name">Nome do Cliente</Label>
+              <Label htmlFor="customer_name" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Nome do Cliente
+              </Label>
               <Input
                 id="customer_name"
                 value={formData.customer_name}
                 onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
                 required
+                placeholder="Nome completo do cliente"
               />
             </div>
             <div>
-              <Label htmlFor="phone">Telefone</Label>
+              <Label htmlFor="phone" className="flex items-center gap-2">
+                <Phone className="h-4 w-4" />
+                Telefone
+              </Label>
               <Input
                 id="phone"
                 value={formData.phone}
@@ -104,7 +119,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
               />
             </div>
             <div>
-              <Label htmlFor="date_time">Data e Hora</Label>
+              <Label htmlFor="date_time" className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                Data e Hora
+              </Label>
               <Input
                 id="date_time"
                 type="datetime-local"
@@ -119,6 +137,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                 id="people"
                 type="number"
                 min="1"
+                max="20"
                 value={formData.people}
                 onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
                 required
@@ -130,7 +149,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                 checked={formData.birthday}
                 onCheckedChange={(checked) => setFormData({...formData, birthday: Boolean(checked)})}
               />
-              <Label htmlFor="birthday">É aniversário?</Label>
+              <Label htmlFor="birthday" className="text-lg">🎂 É aniversário?</Label>
             </div>
           </div>
           
