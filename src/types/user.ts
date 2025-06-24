@@ -12,5 +12,11 @@ export interface UserFranchise {
   id: string;
   user_id: string;
   franchise_name: string;
+  franchise_id?: string;
   created_at: string;
+  franchises?: {
+    id: string;
+    name: string;
+    active: boolean;
+  };
 }

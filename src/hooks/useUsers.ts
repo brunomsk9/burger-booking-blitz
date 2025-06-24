@@ -51,7 +51,18 @@ export const useUsers = () => {
       
       const { data, error } = await supabase
         .from('user_franchises')
-        .select('*');
+        .select(`
+          id,
+          user_id,
+          franchise_name,
+          franchise_id,
+          created_at,
+          franchises:franchise_id (
+            id,
+            name,
+            active
+          )
+        `);
 
       if (error) {
         console.error('Erro ao buscar franquias dos usuários:', error);
@@ -121,13 +132,34 @@ export const useUsers = () => {
     }
   };
 
-  const assignUserToFranchise = async (userId: string, franchiseName: string) => {
+  const assignUserToFranchise = async (userId: string, franchiseId: string) => {
     try {
-      console.log('Atrelando usuário à franquia:', userId, franchiseName);
+      console.log('Atrelando usuário à franquia:', userId, franchiseId);
       
+      // Primeiro buscar o nome da franquia
+      const { data: franchise, error: franchiseError } = await supabase
+        .from('franchises')
+        .select('name')
+        .eq('id', franchiseId)
+        .single();
+
+      if (franchiseError) {
+        console.error('Erro ao buscar franquia:', franchiseError);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível encontrar a franquia.',
+          variant: 'destructive',
+        });
+        return { data: null, error: franchiseError };
+      }
+
       const { data, error } = await supabase
         .from('user_franchises')
-        .insert([{ user_id: userId, franchise_name: franchiseName }])
+        .insert([{ 
+          user_id: userId, 
+          franchise_id: franchiseId,
+          franchise_name: franchise.name 
+        }])
         .select()
         .single();
 

@@ -137,23 +137,33 @@ export type Database = {
       user_franchises: {
         Row: {
           created_at: string | null
+          franchise_id: string | null
           franchise_name: string
           id: string
           user_id: string
         }
         Insert: {
           created_at?: string | null
+          franchise_id?: string | null
           franchise_name: string
           id?: string
           user_id: string
         }
         Update: {
           created_at?: string | null
+          franchise_id?: string | null
           franchise_name?: string
           id?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_franchises_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_franchises_user_id_fkey"
             columns: ["user_id"]

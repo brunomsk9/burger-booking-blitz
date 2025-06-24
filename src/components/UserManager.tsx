@@ -18,13 +18,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Users, UserPlus, Building, Trash2, Loader2, ShieldAlert } from 'lucide-react';
-import { FRANCHISES } from '@/types';
 import { useUsers } from '@/hooks/useUsers';
+import { useFranchises } from '@/hooks/useFranchises';
 import { usePermissions } from '@/hooks/usePermissions';
 import { UserProfile } from '@/types/user';
 
 const UserManager: React.FC = () => {
   const { users, userFranchises, loading, updateUserRole, assignUserToFranchise, removeUserFromFranchise } = useUsers();
+  const { franchises, loading: franchisesLoading } = useFranchises();
   const { canManageUsers, getRoleText } = usePermissions();
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [selectedFranchise, setSelectedFranchise] = useState('');
@@ -62,7 +63,7 @@ const UserManager: React.FC = () => {
     setIsDialogOpen(false);
   };
 
-  if (loading) {
+  if (loading || franchisesLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -165,11 +166,13 @@ const UserManager: React.FC = () => {
                               <SelectValue placeholder="Selecione uma franquia" />
                             </SelectTrigger>
                             <SelectContent>
-                              {FRANCHISES.filter(franchise => 
-                                !userFranchisesList.some(uf => uf.franchise_name === franchise)
-                              ).map(franchise => (
-                                <SelectItem key={franchise} value={franchise}>
-                                  {franchise}
+                              {franchises
+                                .filter(franchise => 
+                                  !userFranchisesList.some(uf => uf.franchise_id === franchise.id)
+                                )
+                                .map(franchise => (
+                                <SelectItem key={franchise.id} value={franchise.id}>
+                                  {franchise.name}
                                 </SelectItem>
                               ))}
                             </SelectContent>
