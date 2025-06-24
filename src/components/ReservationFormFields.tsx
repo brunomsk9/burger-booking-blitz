@@ -5,8 +5,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { FRANCHISES } from '@/types';
-import { User, Phone, MapPin } from 'lucide-react';
+import { useFranchises } from '@/hooks/useFranchises';
+import { User, Phone, MapPin, Loader2 } from 'lucide-react';
 
 interface FormData {
   franchise_name: string;
@@ -28,6 +28,8 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
   formData,
   onFormDataChange
 }) => {
+  const { franchises, loading: franchisesLoading } = useFranchises();
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -35,18 +37,20 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
           <Label htmlFor="franchise_name" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
             Franquia
+            {franchisesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           </Label>
           <Select 
             value={formData.franchise_name} 
             onValueChange={(value) => onFormDataChange({ franchise_name: value })}
+            disabled={franchisesLoading}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Selecione a franquia" />
+              <SelectValue placeholder={franchisesLoading ? "Carregando franquias..." : "Selecione a franquia"} />
             </SelectTrigger>
             <SelectContent>
-              {FRANCHISES.map(franchise => (
-                <SelectItem key={franchise} value={franchise}>
-                  {franchise}
+              {franchises.map(franchise => (
+                <SelectItem key={franchise.id} value={franchise.name}>
+                  {franchise.name}
                 </SelectItem>
               ))}
             </SelectContent>
