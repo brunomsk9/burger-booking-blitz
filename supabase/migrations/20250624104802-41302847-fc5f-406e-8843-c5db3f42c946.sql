@@ -3,7 +3,7 @@
 -- Substitua 'seu-email@exemplo.com' pelo seu email real
 UPDATE public.profiles 
 SET role = 'superadmin' 
-WHERE email = 'seu-email@exemplo.com';
+WHERE email = 'brunomsk9@gmail.com';
 
 -- Alternativa: se você souber seu user ID, pode usar:
 -- UPDATE public.profiles 
