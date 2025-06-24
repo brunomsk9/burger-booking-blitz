@@ -1,8 +1,8 @@
 
-import PublicReservation from '@/components/PublicReservation';
+import PublicReservationForm from '@/components/PublicReservationForm';
 
 const PublicReservationPage = () => {
-  return <PublicReservation />;
+  return <PublicReservationForm />;
 };
 
 export default PublicReservationPage;
