@@ -13,34 +13,28 @@ export interface Reservation {
   updatedAt: Date;
 }
 
-export interface User {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'viewer' | 'editor';
-  createdAt: Date;
-}
-
-export interface ReportFilters {
-  startDate?: Date;
-  endDate?: Date;
-  franchiseName?: string;
-  status?: string;
-}
-
-export const CHARACTERS = [
-  'Ronald McDonald',
-  'Hambúrguer',
-  'Batata Frita',
-  'Milkshake',
-  'Chef Burger',
-  'Pickle Rick',
-  'King Burger'
-];
-
 export const FRANCHISES = [
   'Burger Central - Shopping',
   'Burger Central - Centro',
   'Burger Central - Zona Norte',
-  'Burger Central - Zona Sul'
+  'Burger Central - Zona Sul',
+  'Burger Central - Zona Oeste'
 ];
+
+export const CHARACTERS = [
+  'Ronald McDonald',
+  'Chef Burger',
+  'Hambúrguer',
+  'Batata Frita',
+  'Milkshake',
+  'Nuggets'
+];
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: 'admin' | 'editor' | 'viewer';
+  createdAt: Date;
+  updatedAt: Date;
+}
