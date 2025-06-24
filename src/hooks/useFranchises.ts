@@ -1,8 +1,7 @@
 
-import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { getFranchiseDisplayName } from '@/utils/franchiseUtils';
 
 export interface Franchise {
   id: string;
@@ -15,6 +14,7 @@ export interface Franchise {
   active: boolean;
   logo_url: string | null;
   created_at: string;
+  displayName?: string;
 }
 
 export const useFranchises = () => {
@@ -34,7 +34,15 @@ export const useFranchises = () => {
       }
 
       console.log('✅ Active franchises found:', data);
-      return data as Franchise[];
+      
+      // Adicionar displayName para cada franquia
+      const franchisesWithDisplayName = data.map(franchise => ({
+        ...franchise,
+        displayName: getFranchiseDisplayName(franchise)
+      }));
+
+      console.log('✅ Franchises with display names:', franchisesWithDisplayName);
+      return franchisesWithDisplayName as Franchise[];
     },
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: true,

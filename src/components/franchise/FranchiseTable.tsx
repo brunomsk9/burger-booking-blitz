@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, ImageIcon } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
+import { getFranchiseDisplayName } from '@/utils/franchiseUtils';
 
 interface Franchise {
   id: string;
@@ -63,7 +64,7 @@ const FranchiseTable: React.FC<FranchiseTableProps> = ({
               )}
             </TableCell>
             <TableCell className="font-medium">
-              {franchise.company_name || franchise.name}
+              {getFranchiseDisplayName(franchise)}
             </TableCell>
             <TableCell className="text-sm text-gray-600">
               {franchise.name}

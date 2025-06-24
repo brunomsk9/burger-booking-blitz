@@ -6,6 +6,7 @@ import FranchiseEditor from './FranchiseEditor';
 import FranchiseSearch from './franchise/FranchiseSearch';
 import FranchiseTable from './franchise/FranchiseTable';
 import { useFranchiseOperations } from '@/hooks/useFranchiseOperations';
+import { getFranchiseDisplayName } from '@/utils/franchiseUtils';
 
 interface Franchise {
   id: string;
@@ -45,12 +46,15 @@ const FranchiseManager: React.FC = () => {
     setEditingFranchise(null);
   };
 
-  const filteredFranchises = franchises?.filter(franchise =>
-    franchise.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    franchise.company_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    franchise.manager_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    franchise.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFranchises = franchises?.filter(franchise => {
+    const displayName = getFranchiseDisplayName(franchise);
+    const searchLower = searchTerm.toLowerCase();
+    
+    return displayName.toLowerCase().includes(searchLower) ||
+           franchise.name.toLowerCase().includes(searchLower) ||
+           franchise.manager_name?.toLowerCase().includes(searchLower) ||
+           franchise.email?.toLowerCase().includes(searchLower);
+  });
 
   if (error) {
     return (
