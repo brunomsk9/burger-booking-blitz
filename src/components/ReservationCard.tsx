@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar, Phone, Edit, Trash2, MessageCircle } from 'lucide-react';
+import { Calendar, Phone, Edit, Trash2, MessageCircle, Check, X } from 'lucide-react';
 import { Reservation } from '@/types/reservation';
 
 interface ReservationCardProps {
@@ -102,6 +102,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                     onClick={() => onStatusChange(reservation.id, 'confirmed')}
                     className="bg-blue-600 hover:bg-blue-700"
                   >
+                    <Check size={16} className="mr-1" />
                     Confirmar
                   </Button>
                   <Button
@@ -110,6 +111,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                     onClick={() => onStatusChange(reservation.id, 'cancelled')}
                     className="bg-red-600 hover:bg-red-700"
                   >
+                    <X size={16} className="mr-1" />
                     Cancelar
                   </Button>
                 </>
