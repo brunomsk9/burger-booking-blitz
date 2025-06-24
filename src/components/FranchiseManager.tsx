@@ -30,7 +30,7 @@ const FranchiseManager: React.FC = () => {
   const [editingFranchise, setEditingFranchise] = useState<Franchise | null>(null);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const queryClient = useQueryClient();
-  const { isSuperAdmin } = usePermissions();
+  const { isSuperAdmin, isAdmin } = usePermissions();
 
   const { data: franchises, isLoading, error } = useQuery({
     queryKey: ['franchises'],

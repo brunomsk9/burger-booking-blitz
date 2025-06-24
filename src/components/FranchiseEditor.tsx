@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -128,6 +127,46 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
     setLogoPreview(null);
   };
 
+  const updateFranchiseNameInReservations = async (oldName: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('reservations')
+        .update({ franchise_name: newName })
+        .eq('franchise_name', oldName);
+
+      if (error) {
+        console.error('Erro ao atualizar reservas:', error);
+        toast({
+          title: 'Aviso',
+          description: 'Franquia atualizada, mas houve erro ao sincronizar algumas reservas.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar reservas:', error);
+    }
+  };
+
+  const updateFranchiseNameInUserFranchises = async (oldName: string, newName: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_franchises')
+        .update({ franchise_name: newName })
+        .eq('franchise_name', oldName);
+
+      if (error) {
+        console.error('Erro ao atualizar user_franchises:', error);
+        toast({
+          title: 'Aviso',
+          description: 'Franquia atualizada, mas houve erro ao sincronizar alguns vínculos de usuário.',
+          variant: 'destructive',
+        });
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar user_franchises:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!franchise) return;
@@ -137,10 +176,14 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
     try {
       console.log('Atualizando franquia:', formData);
 
+      // Se o nome da empresa mudou, precisamos atualizar em todo o sistema
+      const companyNameChanged = franchise.company_name !== formData.company_name;
+      const oldCompanyName = franchise.company_name || franchise.name;
+      const newCompanyName = formData.company_name || formData.name;
+
       const { error } = await supabase
         .from('franchises')
         .update({
-          name: formData.name,
           company_name: formData.company_name,
           address: formData.address,
           phone: formData.phone,
@@ -159,6 +202,14 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
           variant: 'destructive',
         });
         return;
+      }
+
+      // Se o nome da empresa mudou, atualizar em reservas e user_franchises
+      if (companyNameChanged) {
+        await Promise.all([
+          updateFranchiseNameInReservations(oldCompanyName, newCompanyName),
+          updateFranchiseNameInUserFranchises(oldCompanyName, newCompanyName)
+        ]);
       }
 
       toast({
@@ -215,12 +266,12 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                required
+                disabled
+                className="bg-gray-100 cursor-not-allowed"
                 placeholder="nome-unico-franquia"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                Identificador único (usado internamente)
+                Identificador único (não pode ser alterado)
               </p>
             </div>
 
