@@ -20,12 +20,29 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) => {
-  const { signOut, userProfile } = useAuth();
+  const { signOut, userProfile, loading } = useAuth();
   const { canManageUsers, canViewReservations, getRoleText } = usePermissions();
 
-  console.log('📋 Layout - userProfile:', userProfile);
-  console.log('🔐 Layout - canManageUsers:', canManageUsers());
-  console.log('🔐 Layout - canViewReservations:', canViewReservations());
+  console.log('📋 Layout - Estado completo:', {
+    userProfile,
+    loading,
+    canManageUsers: canManageUsers(),
+    canViewReservations: canViewReservations()
+  });
+
+  // Se ainda está carregando, mostrar indicador
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-red-50 to-yellow-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-red-600 rounded-full flex items-center justify-center text-white text-2xl font-bold mx-auto mb-4 shadow-lg animate-pulse">
+            🦸
+          </div>
+          <p className="text-lg text-gray-600">Carregando perfil...</p>
+        </div>
+      </div>
+    );
+  }
 
   const navigationItems = [
     {
@@ -60,7 +77,10 @@ const Layout: React.FC<LayoutProps> = ({ children, currentPage, onPageChange }) 
     }
   ];
 
-  console.log('📋 Layout - navigationItems:', navigationItems);
+  console.log('📋 Layout - Items de navegação:', navigationItems.map(item => ({
+    label: item.label,
+    show: item.show
+  })));
 
   const handleSignOut = async () => {
     await signOut();

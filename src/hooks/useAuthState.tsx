@@ -14,7 +14,7 @@ export const useAuthState = () => {
 
     // Configurar listener de mudanças de auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('🔄 Auth state changed:', event, session?.user?.email);
         
         if (!mounted) {
@@ -24,11 +24,7 @@ export const useAuthState = () => {
         
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Se não há sessão, parar o loading
-        if (!session) {
-          setLoading(false);
-        }
+        setLoading(false);
       }
     );
 
@@ -49,11 +45,7 @@ export const useAuthState = () => {
         console.log('📋 Sessão inicial encontrada:', session?.user?.email || 'Nenhuma sessão');
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Se não há sessão, parar o loading
-        if (!session) {
-          setLoading(false);
-        }
+        setLoading(false);
       } catch (error) {
         console.error('💥 Erro inesperado ao buscar sessão:', error);
         if (mounted) setLoading(false);
@@ -69,5 +61,5 @@ export const useAuthState = () => {
     };
   }, []);
 
-  return { user, session, loading, setLoading };
+  return { user, session, loading };
 };

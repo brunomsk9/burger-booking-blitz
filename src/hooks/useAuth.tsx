@@ -20,14 +20,18 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, session, loading, setLoading } = useAuthState();
-  const { userProfile, refetchProfile } = useUserProfile(user, setLoading);
+  const { user, session, loading: authLoading } = useAuthState();
+  const { userProfile, profileLoading, refetchProfile } = useUserProfile(user);
+
+  const loading = authLoading || profileLoading;
 
   console.log('🏠 AuthProvider - Estado atual:', {
     user: user?.email,
     userProfile: userProfile?.name,
     role: userProfile?.role,
-    loading
+    authLoading,
+    profileLoading,
+    totalLoading: loading
   });
 
   const signIn = async (email: string, password: string) => {

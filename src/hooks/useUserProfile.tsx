@@ -4,12 +4,14 @@ import { User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { UserProfile } from '@/types/user';
 
-export const useUserProfile = (user: User | null, setAuthLoading: (loading: boolean) => void) => {
+export const useUserProfile = (user: User | null) => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const [profileLoading, setProfileLoading] = useState(false);
 
   const fetchUserProfile = async (userId: string): Promise<UserProfile | null> => {
     try {
       console.log('🔍 Buscando perfil para usuário:', userId);
+      setProfileLoading(true);
       
       const { data, error } = await supabase
         .from('profiles')
@@ -43,6 +45,8 @@ export const useUserProfile = (user: User | null, setAuthLoading: (loading: bool
     } catch (error) {
       console.error('💥 Erro inesperado ao buscar perfil:', error);
       return null;
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -68,16 +72,11 @@ export const useUserProfile = (user: User | null, setAuthLoading: (loading: bool
           }
         } catch (error) {
           console.error('💥 Erro ao carregar perfil:', error);
-        } finally {
-          if (isMounted) {
-            setAuthLoading(false);
-            console.log('⏹️ Loading finalizado');
-          }
         }
       } else if (!user && isMounted) {
         console.log('🚪 Usuário deslogado, limpando perfil');
         setUserProfile(null);
-        setAuthLoading(false);
+        setProfileLoading(false);
       }
     };
 
@@ -86,7 +85,7 @@ export const useUserProfile = (user: User | null, setAuthLoading: (loading: bool
     return () => {
       isMounted = false;
     };
-  }, [user, setAuthLoading]);
+  }, [user]);
 
-  return { userProfile, refetchProfile };
+  return { userProfile, profileLoading, refetchProfile };
 };
