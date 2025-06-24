@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -12,6 +13,7 @@ import FranchiseManager from './FranchiseManager';
 import FranchiseRegistration from './FranchiseRegistration';
 import ReportsManager from './ReportsManager';
 import GoogleCalendar from './GoogleCalendar';
+import ProfileEditor from './ProfileEditor';
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -21,10 +23,12 @@ import {
   LogOut,
   UserPlus,
   Building2,
-  Plus
+  Plus,
+  Settings,
+  User
 } from 'lucide-react';
 
-type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario';
+type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario' | 'perfil';
 
 const Layout: React.FC = () => {
   const { user, userProfile, loading, signOut } = useAuth();
@@ -33,12 +37,12 @@ const Layout: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
-          <div className="w-16 h-16 bg-yellow-400 rounded-full flex items-center justify-center text-red-600 text-2xl font-bold mx-auto mb-4 animate-pulse">
-            🦸
+          <div className="w-12 h-12 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-xl font-medium mx-auto mb-4 animate-pulse">
+            H
           </div>
-          <p className="text-gray-600">Carregando...</p>
+          <p className="text-muted-foreground">Carregando...</p>
         </div>
       </div>
     );
@@ -77,27 +81,38 @@ const Layout: React.FC = () => {
         return <ReportsManager />;
       case 'calendario':
         return <GoogleCalendar />;
+      case 'perfil':
+        return <ProfileEditor onCancel={() => setSelectedMenu('dashboard')} />;
       default:
         return <Dashboard />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card border-b border-border">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <div className="w-10 h-10 bg-yellow-400 rounded-full flex items-center justify-center text-red-600 text-xl font-bold mr-3">
-                🦸
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-primary-foreground text-sm font-semibold mr-3">
+                H
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Herois Burguer</h1>
+              <h1 className="text-lg font-semibold text-foreground">Herois Burguer</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                Olá, {userProfile.name} ({userProfile.role})
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-muted-foreground">
+                {userProfile.name} ({userProfile.role})
               </span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMenu('perfil')}
+                className="flex items-center gap-2"
+              >
+                <Settings size={16} />
+                Perfil
+              </Button>
               <Button
                 variant="outline"
                 size="sm"
@@ -116,20 +131,20 @@ const Layout: React.FC = () => {
         <div className="flex gap-8">
           {/* Sidebar */}
           <div className="w-64 flex-shrink-0">
-            <Card>
+            <Card className="bg-card">
               <CardContent className="p-0">
                 <nav className="space-y-1">
                   {menuItems.map((item) => (
                     <button
                       key={item.key}
                       onClick={() => setSelectedMenu(item.key)}
-                      className={`w-full flex items-center px-4 py-3 text-sm font-medium text-left transition-colors ${
+                      className={`w-full flex items-center px-4 py-3 text-sm font-medium text-left transition-colors rounded-none ${
                         selectedMenu === item.key
-                          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-700'
-                          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                          ? 'bg-accent text-accent-foreground border-r-2 border-primary'
+                          : 'text-muted-foreground hover:bg-accent/50 hover:text-accent-foreground'
                       }`}
                     >
-                      <item.icon className="mr-3 h-5 w-5" />
+                      <item.icon className="mr-3 h-4 w-4" />
                       {item.label}
                     </button>
                   ))}
