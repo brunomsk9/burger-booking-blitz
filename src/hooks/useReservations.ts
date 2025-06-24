@@ -31,7 +31,7 @@ export const useReservations = () => {
         .order('date_time', { ascending: true });
 
       if (error) throw error;
-      setReservations(data || []);
+      setReservations((data || []) as DatabaseReservation[]);
     } catch (error) {
       console.error('Erro ao buscar reservas:', error);
       toast({
@@ -57,7 +57,7 @@ export const useReservations = () => {
 
       if (error) throw error;
       
-      setReservations(prev => [...prev, data]);
+      setReservations(prev => [...prev, data as DatabaseReservation]);
       toast({
         title: 'Sucesso!',
         description: 'Reserva criada com sucesso.',
@@ -89,7 +89,7 @@ export const useReservations = () => {
 
       if (error) throw error;
       
-      setReservations(prev => prev.map(r => r.id === id ? data : r));
+      setReservations(prev => prev.map(r => r.id === id ? data as DatabaseReservation : r));
       toast({
         title: 'Sucesso!',
         description: 'Reserva atualizada com sucesso.',
