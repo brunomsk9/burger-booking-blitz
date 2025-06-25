@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -30,51 +29,79 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
 }) => {
   const { franchises, loading: franchisesLoading, error } = useFranchises();
 
-  console.log('🔍 ReservationFormFields - Franchises state:', {
+  console.log('🔍 ReservationFormFields - Render state:', {
     franchises,
     loading: franchisesLoading,
     error,
-    count: franchises?.length || 0
+    count: franchises?.length || 0,
+    selectedValue: formData.franchise_name
   });
+
+  const handleFranchiseChange = (value: string) => {
+    console.log('🔄 Franchise selection changed:', value);
+    onFormDataChange({ franchise_name: value });
+  };
 
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="franchise_name" className="flex items-center gap-2">
             <MapPin className="h-4 w-4" />
             Franquia
             {franchisesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           </Label>
+          
           {error && (
-            <p className="text-red-500 text-sm mb-2">
+            <p className="text-red-500 text-sm">
               Erro ao carregar franquias: {error.message}
             </p>
           )}
-          <Select 
-            value={formData.franchise_name} 
-            onValueChange={(value) => onFormDataChange({ franchise_name: value })}
-            disabled={franchisesLoading}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder={
-                franchisesLoading 
-                  ? "Carregando franquias..." 
-                  : franchises.length === 0 
-                    ? "Nenhuma franquia disponível" 
-                    : "Selecione a franquia"
-              } />
-            </SelectTrigger>
-            <SelectContent>
-              {franchises.map(franchise => (
-                <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
-                  {franchise.displayName || franchise.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          
+          <div onClick={() => console.log('🖱️ Select container clicked')}>
+            <Select 
+              value={formData.franchise_name} 
+              onValueChange={handleFranchiseChange}
+              disabled={franchisesLoading}
+              onOpenChange={(open) => console.log('🔄 Select open state:', open)}
+            >
+              <SelectTrigger 
+                className="w-full"
+                onClick={() => console.log('🖱️ SelectTrigger clicked')}
+              >
+                <SelectValue placeholder={
+                  franchisesLoading 
+                    ? "Carregando franquias..." 
+                    : franchises.length === 0 
+                      ? "Nenhuma franquia disponível" 
+                      : "Selecione a franquia"
+                } />
+              </SelectTrigger>
+              <SelectContent className="z-[9999] bg-white border shadow-lg">
+                {franchises.length > 0 ? (
+                  franchises.map(franchise => {
+                    console.log('🏢 Rendering franchise option:', franchise.displayName);
+                    return (
+                      <SelectItem 
+                        key={franchise.id} 
+                        value={franchise.displayName || franchise.name}
+                        className="cursor-pointer hover:bg-gray-100"
+                      >
+                        {franchise.displayName || franchise.name}
+                      </SelectItem>
+                    );
+                  })
+                ) : (
+                  <SelectItem value="no-franchises" disabled>
+                    {franchisesLoading ? "Carregando..." : "Nenhuma franquia disponível"}
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+          
           {franchises.length === 0 && !franchisesLoading && (
-            <p className="text-sm text-gray-500 mt-1">
+            <p className="text-sm text-gray-500">
               Nenhuma franquia ativa encontrada
             </p>
           )}
