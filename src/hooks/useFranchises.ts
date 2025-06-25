@@ -25,7 +25,7 @@ export const useFranchises = () => {
       console.log('🔍 Fetching active franchises...');
       const { data, error } = await supabase
         .from('franchises')
-        .select('id, name, company_name, address, phone, email, manager_name, active, logo_url, webhook_url, created_at')
+        .select('*')
         .eq('active', true)
         .order('company_name', { ascending: true });
 

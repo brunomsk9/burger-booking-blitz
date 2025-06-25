@@ -23,6 +23,7 @@ export type Database = {
           name: string
           phone: string | null
           updated_at: string
+          webhook_url: string | null
         }
         Insert: {
           active?: boolean
@@ -37,6 +38,7 @@ export type Database = {
           name: string
           phone?: string | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Update: {
           active?: boolean
@@ -51,6 +53,7 @@ export type Database = {
           name?: string
           phone?: string | null
           updated_at?: string
+          webhook_url?: string | null
         }
         Relationships: [
           {
