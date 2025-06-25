@@ -41,6 +41,28 @@ const PublicReservation: React.FC = () => {
     }
   }, [formData.franchise_name, formData.date]);
 
+  const notifyWhatsApp = async (reservationData: any) => {
+    try {
+      console.log('Enviando notificação WhatsApp...');
+      
+      const { error } = await supabase.functions.invoke('notify-whatsapp-reservation', {
+        body: {
+          type: 'INSERT',
+          table: 'reservations',
+          record: reservationData
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao enviar notificação WhatsApp:', error);
+      } else {
+        console.log('Notificação WhatsApp enviada com sucesso');
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao enviar WhatsApp:', error);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -87,6 +109,9 @@ const PublicReservation: React.FC = () => {
         });
         return;
       }
+
+      // Enviar notificação WhatsApp
+      await notifyWhatsApp(data);
 
       toast({
         title: 'Reserva solicitada com sucesso! 🎉',

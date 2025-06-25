@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
@@ -50,6 +49,28 @@ export const useReservations = () => {
     }
   };
 
+  const notifyWhatsApp = async (reservationData: any) => {
+    try {
+      console.log('Enviando notificação WhatsApp...');
+      
+      const { error } = await supabase.functions.invoke('notify-whatsapp-reservation', {
+        body: {
+          type: 'INSERT',
+          table: 'reservations',
+          record: reservationData
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao enviar notificação WhatsApp:', error);
+      } else {
+        console.log('Notificação WhatsApp enviada com sucesso');
+      }
+    } catch (error) {
+      console.error('Erro inesperado ao enviar WhatsApp:', error);
+    }
+  };
+
   const createReservation = async (reservationData: CreateReservationData) => {
     try {
       console.log('Criando reserva:', reservationData);
@@ -93,6 +114,9 @@ export const useReservations = () => {
         birthday: Boolean(data.birthday),
         people: Number(data.people)
       };
+      
+      // Enviar notificação WhatsApp
+      await notifyWhatsApp(typedReservation);
       
       setReservations(prev => [...prev, typedReservation]);
       toast({
