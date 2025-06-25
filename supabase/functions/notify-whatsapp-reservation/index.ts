@@ -1,4 +1,5 @@
 
+
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 
 const corsHeaders = {
@@ -37,17 +38,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     const reservation = payload.record;
     
-    // Configurações da EvolutionAPI
-    const evolutionApiUrl = Deno.env.get("EVOLUTION_API_URL");
-    const evolutionApiKey = Deno.env.get("EVOLUTION_API_KEY");
-    const instanceName = Deno.env.get("EVOLUTION_INSTANCE_NAME");
-    const notificationNumber = Deno.env.get("WHATSAPP_NOTIFICATION_NUMBER") || "5511999888777";
+    // URL do webhook n8n
+    const webhookUrl = "https://n8n-n8n.hjiq5w.easypanel.host/webhook/producao";
     
-    if (!evolutionApiUrl || !evolutionApiKey || !instanceName) {
-      console.error("Configurações da EvolutionAPI não encontradas");
-      return new Response("EvolutionAPI not configured", { status: 500 });
-    }
-
     // Formatar data e hora
     const dateTime = new Date(reservation.date_time);
     const formattedDate = dateTime.toLocaleDateString('pt-BR');
@@ -76,27 +69,33 @@ const handler = async (req: Request): Promise<Response> => {
     
     message += `\n📋 *ID da Reserva:* ${reservation.id}`;
 
-    // Enviar via EvolutionAPI
-    const evolutionResponse = await fetch(`${evolutionApiUrl}/message/sendText/${instanceName}`, {
+    // Preparar payload para n8n
+    const webhookPayload = {
+      type: 'whatsapp_notification',
+      reservation: reservation,
+      message: message,
+      formatted_date: formattedDate,
+      formatted_time: formattedTime,
+      timestamp: new Date().toISOString()
+    };
+
+    // Enviar para o webhook n8n
+    const webhookResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
-        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        number: notificationNumber,
-        text: message
-      })
+      body: JSON.stringify(webhookPayload)
     });
 
-    if (!evolutionResponse.ok) {
-      const errorText = await evolutionResponse.text();
-      console.error('Erro ao enviar WhatsApp via EvolutionAPI:', errorText);
-      return new Response(`EvolutionAPI error: ${errorText}`, { status: 500 });
+    if (!webhookResponse.ok) {
+      const errorText = await webhookResponse.text();
+      console.error('Erro ao enviar webhook n8n:', errorText);
+      return new Response(`Webhook error: ${errorText}`, { status: 500 });
     }
 
-    const result = await evolutionResponse.json();
-    console.log('Mensagem enviada com sucesso via EvolutionAPI:', result);
+    const result = await webhookResponse.text();
+    console.log('Webhook n8n enviado com sucesso:', result);
 
     return new Response(JSON.stringify({ success: true, result }), {
       status: 200,
@@ -113,3 +112,4 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 serve(handler);
+
