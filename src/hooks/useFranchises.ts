@@ -23,30 +23,50 @@ export const useFranchises = () => {
     queryKey: ['franchises'],
     queryFn: async () => {
       console.log('🔍 Fetching active franchises...');
-      const { data, error } = await supabase
-        .from('franchises')
-        .select('*')
-        .eq('active', true)
-        .order('company_name', { ascending: true });
-
-      if (error) {
-        console.error('❌ Error fetching franchises:', error);
-        throw error;
-      }
-
-      console.log('✅ Active franchises found:', data);
       
-      // Adicionar displayName para cada franquia
-      const franchisesWithDisplayName = data.map(franchise => ({
-        ...franchise,
-        displayName: getFranchiseDisplayName(franchise)
-      }));
+      try {
+        const { data, error } = await supabase
+          .from('franchises')
+          .select('*')
+          .eq('active', true)
+          .order('company_name', { ascending: true });
 
-      console.log('✅ Franchises with display names:', franchisesWithDisplayName);
-      return franchisesWithDisplayName as Franchise[];
+        if (error) {
+          console.error('❌ Error fetching franchises:', error);
+          throw error;
+        }
+
+        console.log('✅ Active franchises found:', data);
+        
+        if (!data || data.length === 0) {
+          console.warn('⚠️ No active franchises found in database');
+          return [];
+        }
+        
+        // Adicionar displayName para cada franquia
+        const franchisesWithDisplayName = data.map(franchise => ({
+          ...franchise,
+          displayName: getFranchiseDisplayName(franchise)
+        }));
+
+        console.log('✅ Franchises with display names:', franchisesWithDisplayName);
+        return franchisesWithDisplayName as Franchise[];
+      } catch (err) {
+        console.error('❌ Unexpected error in useFranchises:', err);
+        throw err;
+      }
     },
     staleTime: 30000, // 30 seconds
     refetchOnWindowFocus: true,
+    retry: 3,
+    retryDelay: 1000,
+  });
+
+  console.log('🔍 useFranchises hook state:', {
+    franchises: franchises || [],
+    loading: isLoading,
+    error,
+    count: franchises?.length || 0
   });
 
   return {

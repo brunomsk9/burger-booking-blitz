@@ -28,7 +28,14 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
   formData,
   onFormDataChange
 }) => {
-  const { franchises, loading: franchisesLoading } = useFranchises();
+  const { franchises, loading: franchisesLoading, error } = useFranchises();
+
+  console.log('🔍 ReservationFormFields - Franchises state:', {
+    franchises,
+    loading: franchisesLoading,
+    error,
+    count: franchises?.length || 0
+  });
 
   return (
     <>
@@ -39,22 +46,38 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
             Franquia
             {franchisesLoading && <Loader2 className="h-4 w-4 animate-spin" />}
           </Label>
+          {error && (
+            <p className="text-red-500 text-sm mb-2">
+              Erro ao carregar franquias: {error.message}
+            </p>
+          )}
           <Select 
             value={formData.franchise_name} 
             onValueChange={(value) => onFormDataChange({ franchise_name: value })}
             disabled={franchisesLoading}
           >
             <SelectTrigger>
-              <SelectValue placeholder={franchisesLoading ? "Carregando franquias..." : "Selecione a franquia"} />
+              <SelectValue placeholder={
+                franchisesLoading 
+                  ? "Carregando franquias..." 
+                  : franchises.length === 0 
+                    ? "Nenhuma franquia disponível" 
+                    : "Selecione a franquia"
+              } />
             </SelectTrigger>
             <SelectContent>
               {franchises.map(franchise => (
-                <SelectItem key={franchise.id} value={franchise.name}>
-                  {franchise.name}
+                <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
+                  {franchise.displayName || franchise.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {franchises.length === 0 && !franchisesLoading && (
+            <p className="text-sm text-gray-500 mt-1">
+              Nenhuma franquia ativa encontrada
+            </p>
+          )}
         </div>
 
         <div>
