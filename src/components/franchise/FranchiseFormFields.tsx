@@ -14,6 +14,7 @@ interface FormData {
   manager_name: string;
   active: boolean;
   logo_url: string;
+  webhook_url: string;
 }
 
 interface FranchiseFormFieldsProps {
@@ -100,6 +101,20 @@ const FranchiseFormFields: React.FC<FranchiseFormFieldsProps> = ({
           onChange={(e) => updateField('manager_name', e.target.value)}
           placeholder="Nome do gerente responsável"
         />
+      </div>
+
+      <div className="md:col-span-2">
+        <Label htmlFor="edit-webhook">URL do Webhook</Label>
+        <Input
+          id="edit-webhook"
+          type="url"
+          value={formData.webhook_url}
+          onChange={(e) => updateField('webhook_url', e.target.value)}
+          placeholder="https://n8n-n8n.hjiq5w.easypanel.host/webhook/producao"
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          URL para receber notificações de novas reservas desta franquia
+        </p>
       </div>
       
       <div className="md:col-span-2">

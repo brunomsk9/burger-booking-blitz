@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -20,6 +19,7 @@ interface Franchise {
   active: boolean;
   logo_url: string | null;
   created_at: string;
+  webhook_url: string | null;
 }
 
 interface FranchiseEditorProps {
@@ -44,7 +44,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
     email: '',
     manager_name: '',
     active: true,
-    logo_url: ''
+    logo_url: '',
+    webhook_url: ''
   });
 
   const { updateFranchiseNameInReservations, updateFranchiseNameInUserFranchises } = useFranchiseNameUpdate();
@@ -60,7 +61,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         email: franchise.email || '',
         manager_name: franchise.manager_name || '',
         active: franchise.active,
-        logo_url: franchise.logo_url || ''
+        logo_url: franchise.logo_url || '',
+        webhook_url: franchise.webhook_url || ''
       });
     }
   }, [franchise]);
@@ -100,7 +102,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
           email: formData.email,
           manager_name: formData.manager_name,
           active: formData.active,
-          logo_url: formData.logo_url
+          logo_url: formData.logo_url,
+          webhook_url: formData.webhook_url
         })
         .eq('id', franchise.id);
 
@@ -168,7 +171,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         email: franchise.email || '',
         manager_name: franchise.manager_name || '',
         active: franchise.active,
-        logo_url: franchise.logo_url || ''
+        logo_url: franchise.logo_url || '',
+        webhook_url: franchise.webhook_url || ''
       });
     }
   };

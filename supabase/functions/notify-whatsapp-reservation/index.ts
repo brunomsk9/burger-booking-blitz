@@ -1,6 +1,6 @@
 
-
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,8 +38,29 @@ const handler = async (req: Request): Promise<Response> => {
 
     const reservation = payload.record;
     
-    // URL do webhook n8n
-    const webhookUrl = "https://n8n-n8n.hjiq5w.easypanel.host/webhook/producao";
+    // Inicializar cliente Supabase
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // Buscar o webhook_url da franquia
+    const { data: franchise, error: franchiseError } = await supabase
+      .from('franchises')
+      .select('webhook_url')
+      .or(`name.eq.${reservation.franchise_name},company_name.eq.${reservation.franchise_name}`)
+      .single();
+    
+    if (franchiseError) {
+      console.error('Erro ao buscar franquia:', franchiseError);
+      return new Response('Franchise not found', { status: 404 });
+    }
+    
+    if (!franchise?.webhook_url) {
+      console.log('Franquia não possui webhook configurado:', reservation.franchise_name);
+      return new Response('No webhook configured for franchise', { status: 200 });
+    }
+    
+    const webhookUrl = franchise.webhook_url;
     
     // Formatar data e hora
     const dateTime = new Date(reservation.date_time);
@@ -69,7 +90,7 @@ const handler = async (req: Request): Promise<Response> => {
     
     message += `\n📋 *ID da Reserva:* ${reservation.id}`;
 
-    // Preparar payload para n8n
+    // Preparar payload para o webhook
     const webhookPayload = {
       type: 'whatsapp_notification',
       reservation: reservation,
@@ -79,7 +100,7 @@ const handler = async (req: Request): Promise<Response> => {
       timestamp: new Date().toISOString()
     };
 
-    // Enviar para o webhook n8n
+    // Enviar para o webhook da franquia
     const webhookResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
@@ -90,14 +111,14 @@ const handler = async (req: Request): Promise<Response> => {
 
     if (!webhookResponse.ok) {
       const errorText = await webhookResponse.text();
-      console.error('Erro ao enviar webhook n8n:', errorText);
+      console.error('Erro ao enviar webhook:', errorText);
       return new Response(`Webhook error: ${errorText}`, { status: 500 });
     }
 
     const result = await webhookResponse.text();
-    console.log('Webhook n8n enviado com sucesso:', result);
+    console.log('Webhook enviado com sucesso para:', webhookUrl, result);
 
-    return new Response(JSON.stringify({ success: true, result }), {
+    return new Response(JSON.stringify({ success: true, result, webhook_url: webhookUrl }), {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
@@ -112,4 +133,3 @@ const handler = async (req: Request): Promise<Response> => {
 };
 
 serve(handler);
-

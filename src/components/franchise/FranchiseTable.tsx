@@ -17,6 +17,7 @@ interface Franchise {
   manager_name: string | null;
   active: boolean;
   logo_url: string | null;
+  webhook_url: string | null;
   created_at: string;
 }
 
