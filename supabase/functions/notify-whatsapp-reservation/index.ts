@@ -1,6 +1,5 @@
 
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,13 +37,15 @@ const handler = async (req: Request): Promise<Response> => {
 
     const reservation = payload.record;
     
-    // Número do WhatsApp para notificar (remova os espaços e caracteres especiais)
+    // Configurações da EvolutionAPI
+    const evolutionApiUrl = Deno.env.get("EVOLUTION_API_URL");
+    const evolutionApiKey = Deno.env.get("EVOLUTION_API_KEY");
+    const instanceName = Deno.env.get("EVOLUTION_INSTANCE_NAME");
     const notificationNumber = Deno.env.get("WHATSAPP_NOTIFICATION_NUMBER") || "5511999888777";
-    const whatsappToken = Deno.env.get("WHATSAPP_API_TOKEN");
     
-    if (!whatsappToken) {
-      console.error("WHATSAPP_API_TOKEN não configurado");
-      return new Response("WhatsApp token not configured", { status: 500 });
+    if (!evolutionApiUrl || !evolutionApiKey || !instanceName) {
+      console.error("Configurações da EvolutionAPI não encontradas");
+      return new Response("EvolutionAPI not configured", { status: 500 });
     }
 
     // Formatar data e hora
@@ -75,31 +76,27 @@ const handler = async (req: Request): Promise<Response> => {
     
     message += `\n📋 *ID da Reserva:* ${reservation.id}`;
 
-    // Enviar via WhatsApp Business API
-    const whatsappResponse = await fetch(`https://graph.facebook.com/v18.0/${Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")}/messages`, {
+    // Enviar via EvolutionAPI
+    const evolutionResponse = await fetch(`${evolutionApiUrl}/message/sendText/${instanceName}`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${whatsappToken}`,
+        'apikey': evolutionApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        messaging_product: "whatsapp",
-        to: notificationNumber,
-        type: "text",
-        text: {
-          body: message
-        }
+        number: notificationNumber,
+        text: message
       })
     });
 
-    if (!whatsappResponse.ok) {
-      const errorText = await whatsappResponse.text();
-      console.error('Erro ao enviar WhatsApp:', errorText);
-      return new Response(`WhatsApp API error: ${errorText}`, { status: 500 });
+    if (!evolutionResponse.ok) {
+      const errorText = await evolutionResponse.text();
+      console.error('Erro ao enviar WhatsApp via EvolutionAPI:', errorText);
+      return new Response(`EvolutionAPI error: ${errorText}`, { status: 500 });
     }
 
-    const result = await whatsappResponse.json();
-    console.log('WhatsApp enviado com sucesso:', result);
+    const result = await evolutionResponse.json();
+    console.log('Mensagem enviada com sucesso via EvolutionAPI:', result);
 
     return new Response(JSON.stringify({ success: true, result }), {
       status: 200,
