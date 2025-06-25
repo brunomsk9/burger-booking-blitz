@@ -29,16 +29,16 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
 }) => {
   const { franchises, loading: franchisesLoading, error } = useFranchises();
 
-  console.log('🔍 ReservationFormFields - Render state:', {
+  console.log('🔍 ReservationFormFields - Current state:', {
     franchises,
+    franchisesCount: franchises?.length || 0,
     loading: franchisesLoading,
     error,
-    count: franchises?.length || 0,
     selectedValue: formData.franchise_name
   });
 
   const handleFranchiseChange = (value: string) => {
-    console.log('🔄 Franchise selection changed:', value);
+    console.log('🔄 Franchise selection changed to:', value);
     onFormDataChange({ franchise_name: value });
   };
 
@@ -58,49 +58,44 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
             </p>
           )}
           
-          <div onClick={() => console.log('🖱️ Select container clicked')}>
-            <Select 
-              value={formData.franchise_name} 
-              onValueChange={handleFranchiseChange}
-              disabled={franchisesLoading}
-              onOpenChange={(open) => console.log('🔄 Select open state:', open)}
-            >
-              <SelectTrigger 
-                className="w-full"
-                onClick={() => console.log('🖱️ SelectTrigger clicked')}
-              >
-                <SelectValue placeholder={
-                  franchisesLoading 
-                    ? "Carregando franquias..." 
-                    : franchises.length === 0 
-                      ? "Nenhuma franquia disponível" 
-                      : "Selecione a franquia"
-                } />
-              </SelectTrigger>
-              <SelectContent className="z-[9999] bg-white border shadow-lg">
-                {franchises.length > 0 ? (
-                  franchises.map(franchise => {
-                    console.log('🏢 Rendering franchise option:', franchise.displayName);
-                    return (
-                      <SelectItem 
-                        key={franchise.id} 
-                        value={franchise.displayName || franchise.name}
-                        className="cursor-pointer hover:bg-gray-100"
-                      >
-                        {franchise.displayName || franchise.name}
-                      </SelectItem>
-                    );
-                  })
-                ) : (
+          <Select 
+            value={formData.franchise_name} 
+            onValueChange={handleFranchiseChange}
+            disabled={franchisesLoading}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder={
+                franchisesLoading 
+                  ? "Carregando franquias..." 
+                  : !franchises || franchises.length === 0 
+                    ? "Nenhuma franquia disponível" 
+                    : "Selecione a franquia"
+              } />
+            </SelectTrigger>
+            <SelectContent>
+              {!franchisesLoading && franchises && franchises.length > 0 ? (
+                franchises.map(franchise => {
+                  console.log('🏢 Rendering franchise option:', franchise.displayName);
+                  return (
+                    <SelectItem 
+                      key={franchise.id} 
+                      value={franchise.displayName || franchise.name}
+                    >
+                      {franchise.displayName || franchise.name}
+                    </SelectItem>
+                  );
+                })
+              ) : (
+                !franchisesLoading && (
                   <SelectItem value="no-franchises" disabled>
-                    {franchisesLoading ? "Carregando..." : "Nenhuma franquia disponível"}
+                    Nenhuma franquia disponível
                   </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                )
+              )}
+            </SelectContent>
+          </Select>
           
-          {franchises.length === 0 && !franchisesLoading && (
+          {!franchisesLoading && (!franchises || franchises.length === 0) && (
             <p className="text-sm text-gray-500">
               Nenhuma franquia ativa encontrada
             </p>
