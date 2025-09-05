@@ -180,7 +180,7 @@ const FranchiseRegistration: React.FC = () => {
                   value={formData.company_name}
                   onChange={(e) => setFormData({...formData, company_name: e.target.value})}
                   required
-                  placeholder="Herois Burguer - Unidade Centro"
+                  placeholder="reservaja - Unidade Centro"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
                   Nome exibido para os clientes

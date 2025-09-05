@@ -84,7 +84,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-600 to-red-600 text-white p-6 rounded-lg">
-        <h1 className="text-2xl font-bold mb-2">Bem-vindo ao Sistema Herois Burguer! 🦸‍♂️</h1>
+        <h1 className="text-2xl font-bold mb-2">Bem-vindo ao Sistema reservaja! 🦸‍♂️</h1>
         <p className="text-blue-100">Gerencie suas reservas de forma simples e eficiente.</p>
       </div>
 

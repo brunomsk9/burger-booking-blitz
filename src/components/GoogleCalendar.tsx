@@ -29,7 +29,7 @@ const GoogleCalendar: React.FC = () => {
       return selectedFranchise || (franchises.length > 0 ? franchises[0].displayName : '');
     } else {
       // Para outros usuários, usar a primeira franquia disponível (pode ser melhorado com relacionamento user-franchise)
-      return franchises.length > 0 ? franchises[0].displayName : 'Herois Burguer';
+      return franchises.length > 0 ? franchises[0].displayName : 'reservaja';
     }
   };
 

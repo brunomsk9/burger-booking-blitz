@@ -51,7 +51,7 @@ const Layout: React.FC = () => {
   // Buscar o nome da franquia do usuário
   const getUserFranchiseName = () => {
     if (userProfile.role === 'superadmin') {
-      return 'Herois Burguer';
+      return 'reservaja';
     }
     
     // Como não temos franchise_id no UserProfile, por enquanto retornamos o nome padrão
@@ -62,7 +62,7 @@ const Layout: React.FC = () => {
       return firstFranchise.displayName || firstFranchise.company_name || firstFranchise.name;
     }
     
-    return 'Herois Burguer';
+    return 'reservaja';
   };
 
   const franchiseName = getUserFranchiseName();

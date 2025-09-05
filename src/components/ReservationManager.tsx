@@ -97,7 +97,7 @@ const ReservationManager: React.FC = () => {
   };
 
   const handleWhatsApp = (phone: string, customerName: string) => {
-    const message = `Olá ${customerName}! Este é um contato sobre sua reserva na Herois Burguer.`;
+    const message = `Olá ${customerName}! Este é um contato sobre sua reserva na reservaja.`;
     const whatsappUrl = `https://wa.me/55${phone.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };

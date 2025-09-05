@@ -60,7 +60,7 @@ const ReportsManager: React.FC = () => {
 
   // Dados para gráficos
   const franchiseData = Object.entries(reportData.reservationsByFranchise).map(([name, value]) => ({
-    name: name.replace('Herois Burguer - ', ''),
+    name: name.replace('reservaja - ', ''),
     value,
   }));
 

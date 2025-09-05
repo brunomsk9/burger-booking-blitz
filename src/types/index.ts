@@ -15,11 +15,11 @@ export interface Reservation {
 }
 
 export const FRANCHISES = [
-  'Herois Burguer - Shopping',
-  'Herois Burguer - Centro',
-  'Herois Burguer - Zona Norte',
-  'Herois Burguer - Zona Sul',
-  'Herois Burguer - Zona Oeste'
+  'reservaja - Shopping',
+  'reservaja - Centro',
+  'reservaja - Zona Norte',
+  'reservaja - Zona Sul',
+  'reservaja - Zona Oeste'
 ];
 
 export interface User {

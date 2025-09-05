@@ -156,7 +156,7 @@ const PublicReservation: React.FC = () => {
               <Utensils className="h-8 w-8" />
             </div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Herois Burguer</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">reservaja</h1>
           <p className="text-gray-600 text-lg">Solicite sua reserva para uma experiência inesquecível!</p>
         </div>
 

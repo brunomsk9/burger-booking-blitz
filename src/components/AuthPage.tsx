@@ -31,7 +31,7 @@ const AuthPage: React.FC = () => {
         } else {
           toast({
             title: 'Login realizado com sucesso!',
-            description: 'Bem-vindo ao sistema Herois Burguer.',
+            description: 'Bem-vindo ao sistema reservaja.',
           });
         }
       } else {
@@ -71,7 +71,7 @@ const AuthPage: React.FC = () => {
             </div>
           </div>
           <CardTitle className="text-2xl font-bold text-gray-900">
-            {isLogin ? 'Login' : 'Cadastro'} - Herois Burguer
+            {isLogin ? 'Login' : 'Cadastro'} - reservaja
           </CardTitle>
         </CardHeader>
         <CardContent>
