@@ -8,11 +8,12 @@ export interface ReportFilters {
   startDate?: string;
   endDate?: string;
   franchiseName?: string;
-  status?: 'pending' | 'confirmed' | 'cancelled' | '';
+  status?: 'pending' | 'approved' | 'confirmed' | 'cancelled' | '';
 }
 
 export interface ReportData {
   totalReservations: number;
+  approvedReservations: number;
   confirmedReservations: number;
   pendingReservations: number;
   cancelledReservations: number;
@@ -26,6 +27,7 @@ export interface ReportData {
 export const useReports = () => {
   const [reportData, setReportData] = useState<ReportData>({
     totalReservations: 0,
+    approvedReservations: 0,
     confirmedReservations: 0,
     pendingReservations: 0,
     cancelledReservations: 0,
@@ -77,11 +79,12 @@ export const useReports = () => {
       
       const reservations = (data || []).map(reservation => ({
         ...reservation,
-        status: reservation.status as 'pending' | 'confirmed' | 'cancelled'
+        status: reservation.status as 'pending' | 'approved' | 'confirmed' | 'cancelled'
       }));
       
       // Calcular estatísticas
       const totalReservations = reservations.length;
+      const approvedReservations = reservations.filter(r => r.status === 'approved').length;
       const confirmedReservations = reservations.filter(r => r.status === 'confirmed').length;
       const pendingReservations = reservations.filter(r => r.status === 'pending').length;
       const cancelledReservations = reservations.filter(r => r.status === 'cancelled').length;
@@ -103,6 +106,7 @@ export const useReports = () => {
 
       setReportData({
         totalReservations,
+        approvedReservations,
         confirmedReservations,
         pendingReservations,
         cancelledReservations,
@@ -115,6 +119,7 @@ export const useReports = () => {
       
       console.log('Relatório gerado com sucesso:', {
         totalReservations,
+        approvedReservations,
         confirmedReservations,
         pendingReservations,
         cancelledReservations

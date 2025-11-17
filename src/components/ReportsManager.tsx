@@ -65,8 +65,9 @@ const ReportsManager: React.FC = () => {
   }));
 
   const statusData = [
-    { name: 'Confirmadas', value: reportData.confirmedReservations, color: '#2563EB' },
-    { name: 'Pendentes', value: reportData.pendingReservations, color: '#DC2626' },
+    { name: 'Aprovadas', value: reportData.approvedReservations, color: '#2563EB' },
+    { name: 'Confirmadas', value: reportData.confirmedReservations, color: '#10B981' },
+    { name: 'Pendentes', value: reportData.pendingReservations, color: '#F59E0B' },
     { name: 'Canceladas', value: reportData.cancelledReservations, color: '#6B7280' },
   ];
 
@@ -144,6 +145,7 @@ const ReportsManager: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all-status">Todos os status</SelectItem>
                   <SelectItem value="pending">Pendente</SelectItem>
+                  <SelectItem value="approved">Aprovado</SelectItem>
                   <SelectItem value="confirmed">Confirmada</SelectItem>
                   <SelectItem value="cancelled">Cancelada</SelectItem>
                 </SelectContent>
@@ -162,7 +164,7 @@ const ReportsManager: React.FC = () => {
       </Card>
 
       {/* Cards de Estatísticas */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card className="border-l-4 border-l-blue-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -179,22 +181,34 @@ const ReportsManager: React.FC = () => {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Confirmadas</p>
-                <p className="text-2xl font-bold text-blue-600">{reportData.confirmedReservations}</p>
+                <p className="text-sm font-medium text-gray-600">Aprovadas</p>
+                <p className="text-2xl font-bold text-blue-600">{reportData.approvedReservations}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-blue-600" />
             </div>
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-red-600">
+        <Card className="border-l-4 border-l-green-600">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Confirmadas</p>
+                <p className="text-2xl font-bold text-green-600">{reportData.confirmedReservations}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-yellow-600">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pendentes</p>
-                <p className="text-2xl font-bold text-red-600">{reportData.pendingReservations}</p>
+                <p className="text-2xl font-bold text-yellow-600">{reportData.pendingReservations}</p>
               </div>
-              <Clock className="h-8 w-8 text-red-600" />
+              <Clock className="h-8 w-8 text-yellow-600" />
             </div>
           </CardContent>
         </Card>
@@ -288,12 +302,14 @@ const ReportsManager: React.FC = () => {
                     <h4 className="font-semibold">{reservation.customer_name}</h4>
                     <Badge 
                       className={
-                        reservation.status === 'confirmed' ? 'bg-blue-100 text-blue-700' :
-                        reservation.status === 'pending' ? 'bg-red-100 text-red-700' :
+                        reservation.status === 'approved' ? 'bg-blue-100 text-blue-700' :
+                        reservation.status === 'confirmed' ? 'bg-green-100 text-green-700' :
+                        reservation.status === 'pending' ? 'bg-yellow-100 text-yellow-700' :
                         'bg-gray-100 text-gray-700'
                       }
                     >
-                      {reservation.status === 'confirmed' ? 'Confirmada' :
+                      {reservation.status === 'approved' ? 'Aprovado' :
+                       reservation.status === 'confirmed' ? 'Confirmada' :
                        reservation.status === 'pending' ? 'Pendente' : 'Cancelada'}
                     </Badge>
                     {reservation.birthday && (
