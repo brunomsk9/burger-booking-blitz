@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      "[whatsapp][cadastro_de_clientes]": {
+        Row: {
+          atendimento: string | null
+          chatID: string | null
+          historicoConversa: string | null
+          nomeCompleto: string | null
+          statusLembrete: string | null
+          whatsApp: string
+        }
+        Insert: {
+          atendimento?: string | null
+          chatID?: string | null
+          historicoConversa?: string | null
+          nomeCompleto?: string | null
+          statusLembrete?: string | null
+          whatsApp: string
+        }
+        Update: {
+          atendimento?: string | null
+          chatID?: string | null
+          historicoConversa?: string | null
+          nomeCompleto?: string | null
+          statusLembrete?: string | null
+          whatsApp?: string
+        }
+        Relationships: []
+      }
+      "[whatsapp][mensagens_temporarias]": {
+        Row: {
+          chatID: string | null
+          created_at: string
+          id: number
+          mensagens: string | null
+        }
+        Insert: {
+          chatID?: string | null
+          created_at?: string
+          id?: number
+          mensagens?: string | null
+        }
+        Update: {
+          chatID?: string | null
+          created_at?: string
+          id?: number
+          mensagens?: string | null
+        }
+        Relationships: []
+      }
       franchises: {
         Row: {
           active: boolean
@@ -192,14 +240,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      get_current_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
-      get_user_role: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_current_user_role: { Args: never; Returns: string }
+      get_user_role: { Args: never; Returns: string }
       user_has_franchise_access: {
         Args: { franchise_name_param: string }
         Returns: boolean
