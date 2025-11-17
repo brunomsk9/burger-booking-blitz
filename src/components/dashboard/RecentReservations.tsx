@@ -10,7 +10,7 @@ interface RecentReservation {
   franchise_name: string;
   date_time: string;
   people: number;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'approved' | 'confirmed' | 'cancelled';
 }
 
 interface RecentReservationsProps {
@@ -21,8 +21,9 @@ interface RecentReservationsProps {
 const RecentReservations: React.FC<RecentReservationsProps> = ({ reservations, loading }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-blue-100 text-blue-700';
-      case 'pending': return 'bg-red-100 text-red-700';
+      case 'approved': return 'bg-blue-100 text-blue-700';
+      case 'confirmed': return 'bg-green-100 text-green-700';
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'cancelled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -30,6 +31,7 @@ const RecentReservations: React.FC<RecentReservationsProps> = ({ reservations, l
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case 'approved': return 'Aprovado';
       case 'confirmed': return 'Confirmada';
       case 'pending': return 'Pendente';
       case 'cancelled': return 'Cancelada';

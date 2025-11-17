@@ -29,8 +29,9 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
 }) => {
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed': return 'bg-blue-100 text-blue-700';
-      case 'pending': return 'bg-red-100 text-red-700';
+      case 'approved': return 'bg-blue-100 text-blue-700';
+      case 'confirmed': return 'bg-green-100 text-green-700';
+      case 'pending': return 'bg-yellow-100 text-yellow-700';
       case 'cancelled': return 'bg-gray-100 text-gray-700';
       default: return 'bg-gray-100 text-gray-700';
     }
@@ -38,6 +39,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
 
   const getStatusText = (status: string) => {
     switch (status) {
+      case 'approved': return 'Aprovado';
       case 'confirmed': return 'Confirmada';
       case 'pending': return 'Pendente';
       case 'cancelled': return 'Cancelada';
@@ -99,8 +101,16 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
                 <>
                   <Button
                     size="sm"
-                    onClick={() => onStatusChange(reservation.id, 'confirmed')}
+                    onClick={() => onStatusChange(reservation.id, 'approved')}
                     className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <Check size={16} className="mr-1" />
+                    Aprovar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onStatusChange(reservation.id, 'confirmed')}
                   >
                     <Check size={16} className="mr-1" />
                     Confirmar

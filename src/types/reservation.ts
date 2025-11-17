@@ -9,7 +9,7 @@ export interface Reservation {
   birthday: boolean;
   birthday_person_name?: string;
   characters?: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'approved' | 'confirmed' | 'cancelled';
   created_at: string;
   updated_at: string;
   created_by?: string;
@@ -25,7 +25,7 @@ export interface CreateReservationData {
   birthday: boolean;
   birthday_person_name?: string;
   characters?: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'approved' | 'confirmed' | 'cancelled';
 }
 
 export interface UpdateReservationData extends Partial<CreateReservationData> {}

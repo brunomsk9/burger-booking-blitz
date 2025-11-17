@@ -7,6 +7,7 @@ import RecentReservations from './dashboard/RecentReservations';
 
 interface DashboardStats {
   totalReservations: number;
+  approvedReservations: number;
   confirmedReservations: number;
   pendingReservations: number;
   cancelledReservations: number;
@@ -18,12 +19,13 @@ interface RecentReservation {
   franchise_name: string;
   date_time: string;
   people: number;
-  status: 'pending' | 'confirmed' | 'cancelled';
+  status: 'pending' | 'approved' | 'confirmed' | 'cancelled';
 }
 
 const Dashboard: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats>({
     totalReservations: 0,
+    approvedReservations: 0,
     confirmedReservations: 0,
     pendingReservations: 0,
     cancelledReservations: 0,
@@ -53,12 +55,14 @@ const Dashboard: React.FC = () => {
       console.log('Dados carregados:', reservations?.length || 0, 'reservas');
 
       const totalReservations = reservations?.length || 0;
+      const approvedReservations = reservations?.filter(r => r.status === 'approved').length || 0;
       const confirmedReservations = reservations?.filter(r => r.status === 'confirmed').length || 0;
       const pendingReservations = reservations?.filter(r => r.status === 'pending').length || 0;
       const cancelledReservations = reservations?.filter(r => r.status === 'cancelled').length || 0;
 
       setStats({
         totalReservations,
+        approvedReservations,
         confirmedReservations,
         pendingReservations,
         cancelledReservations,
@@ -70,7 +74,7 @@ const Dashboard: React.FC = () => {
         franchise_name: r.franchise_name,
         date_time: r.date_time,
         people: r.people,
-        status: r.status as 'pending' | 'confirmed' | 'cancelled',
+        status: r.status as 'pending' | 'approved' | 'confirmed' | 'cancelled',
       })) || [];
 
       setRecentReservations(recent);
@@ -88,7 +92,7 @@ const Dashboard: React.FC = () => {
         <p className="text-blue-100">Gerencie suas reservas de forma simples e eficiente.</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         <StatsCard
           title="Total de Reservas"
           value={stats.totalReservations}
@@ -98,11 +102,19 @@ const Dashboard: React.FC = () => {
         />
 
         <StatsCard
-          title="Confirmadas"
-          value={stats.confirmedReservations}
-          subtitle="Ativas"
+          title="Aprovadas"
+          value={stats.approvedReservations}
+          subtitle="Aprovadas"
           icon={<CheckCircle />}
           color="blue"
+        />
+
+        <StatsCard
+          title="Confirmadas"
+          value={stats.confirmedReservations}
+          subtitle="Confirmadas"
+          icon={<CheckCircle />}
+          color="green"
         />
 
         <StatsCard
@@ -110,7 +122,7 @@ const Dashboard: React.FC = () => {
           value={stats.pendingReservations}
           subtitle="Aguardando"
           icon={<Clock />}
-          color="red"
+          color="yellow"
         />
 
         <StatsCard

@@ -8,7 +8,7 @@ interface StatsCardProps {
   value: number;
   subtitle: string;
   icon: React.ReactNode;
-  color: 'blue' | 'red' | 'gray';
+  color: 'blue' | 'red' | 'gray' | 'green' | 'yellow';
 }
 
 const StatsCard: React.FC<StatsCardProps> = ({ title, value, subtitle, icon, color }) => {
@@ -27,6 +27,20 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, subtitle, icon, col
           text: 'text-red-600',
           bg: 'bg-red-500',
           icon: 'text-red-500'
+        };
+      case 'green':
+        return {
+          border: 'border-l-green-600',
+          text: 'text-green-600',
+          bg: 'bg-green-500',
+          icon: 'text-green-500'
+        };
+      case 'yellow':
+        return {
+          border: 'border-l-yellow-600',
+          text: 'text-yellow-600',
+          bg: 'bg-yellow-500',
+          icon: 'text-yellow-500'
         };
       case 'gray':
         return {
