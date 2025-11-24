@@ -159,6 +159,7 @@ export type Database = {
           people: number
           phone: string
           status: string
+          status_lembrete_whatsapp: string | null
           updated_at: string | null
           updated_by: string | null
         }
@@ -175,6 +176,7 @@ export type Database = {
           people: number
           phone: string
           status?: string
+          status_lembrete_whatsapp?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }
@@ -191,6 +193,7 @@ export type Database = {
           people?: number
           phone?: string
           status?: string
+          status_lembrete_whatsapp?: string | null
           updated_at?: string | null
           updated_by?: string | null
         }

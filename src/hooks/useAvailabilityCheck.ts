@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 
 interface TimeSlot {
   time: string;
@@ -27,13 +29,17 @@ export const useAvailabilityCheck = () => {
     try {
       console.log('Verificando disponibilidade para:', franchise, date);
 
+      // Criar início e fim do dia no timezone de Brasília
+      const startOfDay = fromZonedTime(`${date}T00:00:00`, 'America/Sao_Paulo');
+      const endOfDay = fromZonedTime(`${date}T23:59:59`, 'America/Sao_Paulo');
+
       // Buscar reservas existentes para a franquia e data selecionada
       const { data: existingReservations, error } = await supabase
         .from('reservations')
         .select('date_time')
         .eq('franchise_name', franchise)
-        .gte('date_time', `${date}T00:00:00`)
-        .lt('date_time', `${date}T23:59:59`)
+        .gte('date_time', startOfDay.toISOString())
+        .lt('date_time', endOfDay.toISOString())
         .neq('status', 'cancelled');
 
       if (error) {
@@ -46,10 +52,11 @@ export const useAvailabilityCheck = () => {
         return;
       }
 
-      // Extrair horários ocupados
-      const occupiedTimes = (existingReservations || []).map(reservation => 
-        new Date(reservation.date_time).toTimeString().slice(0, 5)
-      );
+      // Extrair horários ocupados convertendo para timezone de Brasília
+      const occupiedTimes = (existingReservations || []).map(reservation => {
+        const brasiliaDate = toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo');
+        return format(brasiliaDate, 'HH:mm');
+      });
 
       // Criar lista de horários com disponibilidade
       const slots: TimeSlot[] = standardSlots.map(time => ({

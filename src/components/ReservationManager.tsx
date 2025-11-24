@@ -10,6 +10,8 @@ import { Reservation } from '@/types/reservation';
 import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
 import ReservationCard from './ReservationCard';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { format } from 'date-fns';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
@@ -51,11 +53,14 @@ const ReservationManager: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    // Converter data do formulário para timezone de Brasília
+    const brasiliaDate = fromZonedTime(formData.date_time, 'America/Sao_Paulo');
+    
     const reservationData = {
       franchise_name: formData.franchise_name,
       customer_name: formData.customer_name,
       phone: formData.phone,
-      date_time: formData.date_time,
+      date_time: brasiliaDate.toISOString(),
       people: formData.people,
       birthday: formData.birthday,
       birthday_person_name: formData.birthday_person_name,
@@ -75,11 +80,12 @@ const ReservationManager: React.FC = () => {
 
   const handleEdit = (reservation: Reservation) => {
     setEditingReservation(reservation);
+    const brasiliaDate = toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo');
     setFormData({
       franchise_name: reservation.franchise_name,
       customer_name: reservation.customer_name,
       phone: reservation.phone,
-      date_time: new Date(reservation.date_time).toISOString().slice(0, 16),
+      date_time: format(brasiliaDate, "yyyy-MM-dd'T'HH:mm"),
       people: reservation.people,
       birthday: reservation.birthday,
       birthday_person_name: reservation.birthday_person_name || '',
