@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,8 +56,12 @@ const ReportsManager: React.FC = () => {
 
   const handleClearFilters = () => {
     setFilters({});
-    generateReport({});
   };
+
+  // Filtrar automaticamente quando os filtros mudarem
+  useEffect(() => {
+    generateReport(filters);
+  }, [filters]);
 
   // Dados para gráficos
   const franchiseData = Object.entries(reportData.reservationsByFranchise).map(([name, value]) => ({
@@ -154,9 +158,6 @@ const ReportsManager: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-2 mt-4">
-            <Button onClick={handleGenerateReport} className="bg-blue-600 hover:bg-blue-700">
-              Gerar Relatório
-            </Button>
             <Button variant="outline" onClick={handleClearFilters}>
               Limpar Filtros
             </Button>
