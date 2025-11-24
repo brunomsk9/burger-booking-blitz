@@ -8,6 +8,7 @@ import { Calendar, Loader2, Utensils } from 'lucide-react';
 import { useAvailabilityCheck } from '@/hooks/useAvailabilityCheck';
 import TimeSlotSelector from './TimeSlotSelector';
 import ReservationFormFields from './ReservationFormFields';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 const PublicReservation: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -78,13 +79,15 @@ const PublicReservation: React.FC = () => {
     setLoading(true);
 
     try {
-      const dateTime = `${formData.date}T${formData.time}:00`;
+      // Criar data no timezone de Brasília
+      const localDateTime = `${formData.date}T${formData.time}:00`;
+      const brasiliaDate = fromZonedTime(localDateTime, 'America/Sao_Paulo');
       
       const reservationData = {
         franchise_name: formData.franchise_name,
         customer_name: formData.customer_name,
         phone: formData.phone,
-        date_time: dateTime,
+        date_time: brasiliaDate.toISOString(),
         people: formData.people,
         birthday: formData.birthday,
         birthday_person_name: formData.birthday_person_name,
