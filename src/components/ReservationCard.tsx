@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Phone, Edit, Trash2, MessageCircle, Check, X } from 'lucide-react';
 import { Reservation } from '@/types/reservation';
-import { format, parseISO } from 'date-fns';
+import { format } from 'date-fns';
 
 interface ReservationCardProps {
   reservation: Reservation;
@@ -75,7 +75,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
               </div>
               <div className="flex items-center gap-1">
                 <Calendar size={14} />
-                <strong>Data/Hora:</strong> {format(parseISO(reservation.date_time), 'dd/MM/yyyy')} às {format(parseISO(reservation.date_time), 'HH:mm')}
+                <strong>Data/Hora:</strong> {reservation.date_time.slice(8,10)}/{reservation.date_time.slice(5,7)}/{reservation.date_time.slice(0,4)} às {reservation.date_time.slice(11,16)}
               </div>
               <div>
                 <strong>Pessoas:</strong> {reservation.people}
