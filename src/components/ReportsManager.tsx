@@ -35,11 +35,12 @@ import {
   Loader2,
   Building
 } from 'lucide-react';
-import { FRANCHISES } from '@/types';
 import { useReports, ReportFilters } from '@/hooks/useReports';
+import { useFranchises } from '@/hooks/useFranchises';
 
 const ReportsManager: React.FC = () => {
   const { reportData, loading, generateReport } = useReports();
+  const { franchises, loading: franchisesLoading } = useFranchises();
   const [filters, setFilters] = useState<ReportFilters>({});
 
   const handleFilterChange = (key: keyof ReportFilters, value: string) => {
@@ -71,7 +72,7 @@ const ReportsManager: React.FC = () => {
     { name: 'Canceladas', value: reportData.cancelledReservations, color: '#6B7280' },
   ];
 
-  if (loading) {
+  if (loading || franchisesLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
@@ -125,9 +126,9 @@ const ReportsManager: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all-franchises">Todas as franquias</SelectItem>
-                  {FRANCHISES.map(franchise => (
-                    <SelectItem key={franchise} value={franchise}>
-                      {franchise}
+                  {franchises.map(franchise => (
+                    <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
+                      {franchise.displayName || franchise.company_name || franchise.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
