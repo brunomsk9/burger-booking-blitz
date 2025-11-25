@@ -8,7 +8,7 @@ interface FranchiseTheme {
   accentColor: string;
 }
 
-export const useFranchiseTheme = (franchiseName: string | undefined) => {
+export const useFranchiseTheme = (franchiseSlugOrName: string | undefined) => {
   const [theme, setTheme] = useState<FranchiseTheme>({
     logoUrl: null,
     primaryColor: '#2563eb',
@@ -19,18 +19,19 @@ export const useFranchiseTheme = (franchiseName: string | undefined) => {
 
   useEffect(() => {
     const fetchTheme = async () => {
-      if (!franchiseName) {
+      if (!franchiseSlugOrName) {
         setLoading(false);
         return;
       }
 
       try {
+        // Tentar buscar por slug primeiro, depois por nome
         const { data, error } = await supabase
           .from('franchises')
-          .select('logo_url, primary_color, secondary_color, accent_color, company_name, name')
-          .or(`company_name.eq.${franchiseName},name.eq.${franchiseName}`)
+          .select('logo_url, primary_color, secondary_color, accent_color, company_name, name, slug')
+          .or(`slug.eq.${franchiseSlugOrName},company_name.eq.${franchiseSlugOrName},name.eq.${franchiseSlugOrName}`)
           .eq('active', true)
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching franchise theme:', error);
@@ -54,7 +55,7 @@ export const useFranchiseTheme = (franchiseName: string | undefined) => {
     };
 
     fetchTheme();
-  }, [franchiseName]);
+  }, [franchiseSlugOrName]);
 
   return { theme, loading };
 };

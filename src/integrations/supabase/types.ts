@@ -78,6 +78,7 @@ export type Database = {
           phone: string | null
           primary_color: string | null
           secondary_color: string | null
+          slug: string | null
           updated_at: string
           webhook_url: string | null
         }
@@ -96,6 +97,7 @@ export type Database = {
           phone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          slug?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
@@ -114,6 +116,7 @@ export type Database = {
           phone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          slug?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
@@ -255,6 +258,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_slug: { Args: { text_input: string }; Returns: string }
       get_current_user_role: { Args: never; Returns: string }
       get_user_role: { Args: never; Returns: string }
       user_has_franchise_access: {

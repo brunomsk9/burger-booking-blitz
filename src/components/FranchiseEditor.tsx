@@ -23,6 +23,7 @@ interface Franchise {
   primary_color: string | null;
   secondary_color: string | null;
   accent_color: string | null;
+  slug: string | null;
 }
 
 interface FranchiseEditorProps {
@@ -51,7 +52,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
     webhook_url: '',
     primary_color: '#2563eb',
     secondary_color: '#1e40af',
-    accent_color: '#3b82f6'
+    accent_color: '#3b82f6',
+    slug: ''
   });
 
   const { updateFranchiseNameInReservations, updateFranchiseNameInUserFranchises } = useFranchiseNameUpdate();
@@ -71,7 +73,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         webhook_url: franchise.webhook_url || '',
         primary_color: franchise.primary_color || '#2563eb',
         secondary_color: franchise.secondary_color || '#1e40af',
-        accent_color: franchise.accent_color || '#3b82f6'
+        accent_color: franchise.accent_color || '#3b82f6',
+        slug: franchise.slug || ''
       });
     }
   }, [franchise]);
@@ -115,7 +118,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
           webhook_url: formData.webhook_url,
           primary_color: formData.primary_color,
           secondary_color: formData.secondary_color,
-          accent_color: formData.accent_color
+          accent_color: formData.accent_color,
+          slug: formData.slug
         })
         .eq('id', franchise.id);
 
@@ -187,7 +191,8 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         webhook_url: franchise.webhook_url || '',
         primary_color: franchise.primary_color || '#2563eb',
         secondary_color: franchise.secondary_color || '#1e40af',
-        accent_color: franchise.accent_color || '#3b82f6'
+        accent_color: franchise.accent_color || '#3b82f6',
+        slug: franchise.slug || ''
       });
     }
   };

@@ -15,6 +15,10 @@ interface Franchise {
   active: boolean;
   logo_url: string | null;
   webhook_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  accent_color: string | null;
+  slug: string | null;
   created_at: string;
   displayName?: string;
 }
