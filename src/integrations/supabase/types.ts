@@ -64,6 +64,7 @@ export type Database = {
       }
       franchises: {
         Row: {
+          accent_color: string | null
           active: boolean
           address: string | null
           company_name: string | null
@@ -75,10 +76,13 @@ export type Database = {
           manager_name: string | null
           name: string
           phone: string | null
+          primary_color: string | null
+          secondary_color: string | null
           updated_at: string
           webhook_url: string | null
         }
         Insert: {
+          accent_color?: string | null
           active?: boolean
           address?: string | null
           company_name?: string | null
@@ -90,10 +94,13 @@ export type Database = {
           manager_name?: string | null
           name: string
           phone?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string
           webhook_url?: string | null
         }
         Update: {
+          accent_color?: string | null
           active?: boolean
           address?: string | null
           company_name?: string | null
@@ -105,6 +112,8 @@ export type Database = {
           manager_name?: string | null
           name?: string
           phone?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
           updated_at?: string
           webhook_url?: string | null
         }

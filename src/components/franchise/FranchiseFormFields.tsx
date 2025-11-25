@@ -15,6 +15,9 @@ interface FormData {
   active: boolean;
   logo_url: string;
   webhook_url: string;
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
 }
 
 interface FranchiseFormFieldsProps {
@@ -114,6 +117,74 @@ const FranchiseFormFields: React.FC<FranchiseFormFieldsProps> = ({
         />
         <p className="text-xs text-muted-foreground mt-1">
           URL para receber notificações de novas reservas desta franquia
+        </p>
+      </div>
+
+      <div className="md:col-span-2">
+        <Label className="text-base font-semibold mb-3 block">Personalização Visual</Label>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="edit-primary-color">Cor Primária</Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                id="edit-primary-color"
+                type="color"
+                value={formData.primary_color}
+                onChange={(e) => updateField('primary_color', e.target.value)}
+                className="w-20 h-10 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={formData.primary_color}
+                onChange={(e) => updateField('primary_color', e.target.value)}
+                placeholder="#2563eb"
+                className="flex-1"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="edit-secondary-color">Cor Secundária</Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                id="edit-secondary-color"
+                type="color"
+                value={formData.secondary_color}
+                onChange={(e) => updateField('secondary_color', e.target.value)}
+                className="w-20 h-10 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={formData.secondary_color}
+                onChange={(e) => updateField('secondary_color', e.target.value)}
+                placeholder="#1e40af"
+                className="flex-1"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <Label htmlFor="edit-accent-color">Cor de Destaque</Label>
+            <div className="flex gap-2 items-center">
+              <Input
+                id="edit-accent-color"
+                type="color"
+                value={formData.accent_color}
+                onChange={(e) => updateField('accent_color', e.target.value)}
+                className="w-20 h-10 cursor-pointer"
+              />
+              <Input
+                type="text"
+                value={formData.accent_color}
+                onChange={(e) => updateField('accent_color', e.target.value)}
+                placeholder="#3b82f6"
+                className="flex-1"
+              />
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground mt-2">
+          Estas cores serão aplicadas na página pública de reservas da franquia
         </p>
       </div>
       

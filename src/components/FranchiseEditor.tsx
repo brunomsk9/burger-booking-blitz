@@ -20,6 +20,9 @@ interface Franchise {
   logo_url: string | null;
   created_at: string;
   webhook_url: string | null;
+  primary_color: string | null;
+  secondary_color: string | null;
+  accent_color: string | null;
 }
 
 interface FranchiseEditorProps {
@@ -45,7 +48,10 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
     manager_name: '',
     active: true,
     logo_url: '',
-    webhook_url: ''
+    webhook_url: '',
+    primary_color: '#2563eb',
+    secondary_color: '#1e40af',
+    accent_color: '#3b82f6'
   });
 
   const { updateFranchiseNameInReservations, updateFranchiseNameInUserFranchises } = useFranchiseNameUpdate();
@@ -62,7 +68,10 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         manager_name: franchise.manager_name || '',
         active: franchise.active,
         logo_url: franchise.logo_url || '',
-        webhook_url: franchise.webhook_url || ''
+        webhook_url: franchise.webhook_url || '',
+        primary_color: franchise.primary_color || '#2563eb',
+        secondary_color: franchise.secondary_color || '#1e40af',
+        accent_color: franchise.accent_color || '#3b82f6'
       });
     }
   }, [franchise]);
@@ -103,7 +112,10 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
           manager_name: formData.manager_name,
           active: formData.active,
           logo_url: formData.logo_url,
-          webhook_url: formData.webhook_url
+          webhook_url: formData.webhook_url,
+          primary_color: formData.primary_color,
+          secondary_color: formData.secondary_color,
+          accent_color: formData.accent_color
         })
         .eq('id', franchise.id);
 
@@ -172,7 +184,10 @@ const FranchiseEditor: React.FC<FranchiseEditorProps> = ({
         manager_name: franchise.manager_name || '',
         active: franchise.active,
         logo_url: franchise.logo_url || '',
-        webhook_url: franchise.webhook_url || ''
+        webhook_url: franchise.webhook_url || '',
+        primary_color: franchise.primary_color || '#2563eb',
+        secondary_color: franchise.secondary_color || '#1e40af',
+        accent_color: franchise.accent_color || '#3b82f6'
       });
     }
   };
