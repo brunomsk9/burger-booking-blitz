@@ -1,9 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { generateSlug, validateSlug } from '@/utils/slugUtils';
+import { RefreshCw } from 'lucide-react';
 
 interface FormData {
   name: string;
@@ -18,6 +21,7 @@ interface FormData {
   primary_color: string;
   secondary_color: string;
   accent_color: string;
+  slug: string;
 }
 
 interface FranchiseFormFieldsProps {
@@ -29,8 +33,21 @@ const FranchiseFormFields: React.FC<FranchiseFormFieldsProps> = ({
   formData,
   onFormDataChange
 }) => {
+  const [slugError, setSlugError] = useState<string>('');
+
   const updateField = (field: keyof FormData, value: string | boolean) => {
     onFormDataChange({ ...formData, [field]: value });
+  };
+
+  const handleSlugChange = (value: string) => {
+    const validation = validateSlug(value);
+    setSlugError(validation.error || '');
+    updateField('slug', value);
+  };
+
+  const handleGenerateSlug = () => {
+    const newSlug = generateSlug(formData.company_name || formData.name);
+    handleSlugChange(newSlug);
   };
 
   return (
@@ -61,6 +78,36 @@ const FranchiseFormFields: React.FC<FranchiseFormFieldsProps> = ({
         <p className="text-xs text-muted-foreground mt-1">
           Nome exibido para os clientes
         </p>
+      </div>
+
+      <div>
+        <Label htmlFor="edit-slug">Slug da URL</Label>
+        <div className="flex gap-2">
+          <Input
+            id="edit-slug"
+            value={formData.slug}
+            onChange={(e) => handleSlugChange(e.target.value)}
+            required
+            placeholder="centro-sp"
+            className={slugError ? 'border-red-500' : ''}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={handleGenerateSlug}
+            title="Gerar slug automaticamente"
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
+        {slugError ? (
+          <p className="text-xs text-red-500 mt-1">{slugError}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground mt-1">
+            URL amigável: /reserva/{formData.slug || 'slug-aqui'}
+          </p>
+        )}
       </div>
 
       <div className="md:col-span-2">

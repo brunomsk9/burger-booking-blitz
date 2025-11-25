@@ -1,11 +1,11 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Edit, ImageIcon } from 'lucide-react';
+import { Edit, ImageIcon, Copy, ExternalLink } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 import { getFranchiseDisplayName } from '@/utils/franchiseUtils';
+import { toast } from '@/hooks/use-toast';
 
 interface Franchise {
   id: string;
@@ -18,6 +18,7 @@ interface Franchise {
   active: boolean;
   logo_url: string | null;
   webhook_url: string | null;
+  slug: string | null;
   created_at: string;
 }
 
@@ -34,16 +35,31 @@ const FranchiseTable: React.FC<FranchiseTableProps> = ({
 }) => {
   const { isSuperAdmin } = usePermissions();
 
+  const handleCopyLink = (franchise: Franchise) => {
+    const slug = franchise.slug || encodeURIComponent(getFranchiseDisplayName(franchise));
+    const url = `${window.location.origin}/reserva/${slug}`;
+    
+    navigator.clipboard.writeText(url).then(() => {
+      toast({
+        title: 'Link copiado!',
+        description: 'O link da página de reservas foi copiado para a área de transferência.',
+      });
+    });
+  };
+
+  const handleOpenLink = (franchise: Franchise) => {
+    const slug = franchise.slug || encodeURIComponent(getFranchiseDisplayName(franchise));
+    window.open(`/reserva/${slug}`, '_blank');
+  };
+
   return (
     <Table>
       <TableHeader>
         <TableRow>
           <TableHead>Logo</TableHead>
           <TableHead>Nome da Empresa</TableHead>
-          <TableHead>ID</TableHead>
+          <TableHead>Slug</TableHead>
           <TableHead>Gerente</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Telefone</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Ações</TableHead>
         </TableRow>
@@ -67,12 +83,12 @@ const FranchiseTable: React.FC<FranchiseTableProps> = ({
             <TableCell className="font-medium">
               {getFranchiseDisplayName(franchise)}
             </TableCell>
-            <TableCell className="text-sm text-gray-600">
-              {franchise.name}
+            <TableCell>
+              <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                {franchise.slug || '-'}
+              </code>
             </TableCell>
             <TableCell>{franchise.manager_name || '-'}</TableCell>
-            <TableCell>{franchise.email || '-'}</TableCell>
-            <TableCell>{franchise.phone || '-'}</TableCell>
             <TableCell>
               <Badge variant={franchise.active ? 'default' : 'secondary'}>
                 {franchise.active ? 'Ativa' : 'Inativa'}
@@ -84,9 +100,26 @@ const FranchiseTable: React.FC<FranchiseTableProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => onEdit(franchise)}
+                  title="Editar franquia"
                 >
                   <Edit className="h-4 w-4 mr-1" />
                   Editar
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleCopyLink(franchise)}
+                  title="Copiar link da página de reservas"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleOpenLink(franchise)}
+                  title="Abrir página de reservas"
+                >
+                  <ExternalLink className="h-4 w-4" />
                 </Button>
                 {isSuperAdmin() && (
                   <Button
@@ -103,7 +136,7 @@ const FranchiseTable: React.FC<FranchiseTableProps> = ({
         ))}
         {franchises.length === 0 && (
           <TableRow>
-            <TableCell colSpan={8} className="text-center py-4">
+            <TableCell colSpan={6} className="text-center py-4">
               Nenhuma franquia encontrada.
             </TableCell>
           </TableRow>

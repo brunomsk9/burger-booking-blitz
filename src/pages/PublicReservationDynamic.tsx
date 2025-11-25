@@ -15,11 +15,14 @@ const PublicReservationDynamic = () => {
     );
   }
 
-  // Decodificar o nome da franquia da URL e procurar no banco
-  const decodedFranchiseName = decodeURIComponent(franchiseName || '');
+  // Decodificar o slug/nome da franquia da URL e procurar no banco
+  const decodedSlugOrName = decodeURIComponent(franchiseName || '');
+  
+  // Buscar por slug primeiro (prioridade), depois por displayName ou name
   const franchise = franchises.find(
-    f => f.displayName?.toLowerCase() === decodedFranchiseName.toLowerCase() ||
-         f.name.toLowerCase() === decodedFranchiseName.toLowerCase()
+    f => f.slug?.toLowerCase() === decodedSlugOrName.toLowerCase() ||
+         f.displayName?.toLowerCase() === decodedSlugOrName.toLowerCase() ||
+         f.name.toLowerCase() === decodedSlugOrName.toLowerCase()
   );
 
   if (!franchise) {

@@ -17,6 +17,7 @@ export interface Franchise {
   primary_color: string | null;
   secondary_color: string | null;
   accent_color: string | null;
+  slug: string | null;
   created_at: string;
   displayName?: string;
 }
