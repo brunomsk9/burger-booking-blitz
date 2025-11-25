@@ -40,64 +40,43 @@ export const useUserRegistration = () => {
     setLoading(true);
 
     try {
-      console.log('Criando convite para usuário:', formData);
+      console.log('Criando usuário com email confirmado:', formData);
 
-      // Usar signUp normal que criará o usuário
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            name: formData.name,
-            full_name: formData.name,
-            display_name: formData.name
-          },
-          emailRedirectTo: `${window.location.origin}/`
+      // Chamar edge function que usa Admin API para criar usuário com email confirmado
+      const { data, error } = await supabase.functions.invoke('create-user', {
+        body: {
+          email: formData.email,
+          password: formData.password,
+          name: formData.name,
+          role: formData.role
         }
       });
 
-      if (authError) {
-        console.error('Erro ao criar usuário:', authError);
+      if (error) {
+        console.error('Erro ao criar usuário:', error);
         toast({
           title: 'Erro no Cadastro',
-          description: `Não foi possível criar o usuário: ${authError.message}`,
+          description: `Não foi possível criar o usuário: ${error.message}`,
           variant: 'destructive',
         });
         return;
       }
 
-      if (authData.user) {
-        // Aguardar um pouco para o trigger criar o perfil
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
-        // Atualizar o role do usuário criado usando update diretamente
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ role: formData.role })
-          .eq('email', formData.email);
-
-        if (profileError) {
-          console.error('Erro ao atualizar perfil:', profileError);
-          toast({
-            title: 'Usuário Criado Parcialmente',
-            description: 'O usuário foi criado, mas não foi possível definir o papel. Por favor, ajuste manualmente na gestão de usuários.',
-            variant: 'destructive',
-          });
-        } else {
-          toast({
-            title: 'Usuário Convidado com Sucesso!',
-            description: `${formData.name} foi convidado para a plataforma. Eles receberão um email para ativar a conta.`,
-          });
-        }
-
-        resetForm();
-      } else {
-        // Usuário pode já existir
+      if (data?.error) {
+        console.error('Erro retornado pela função:', data.error);
         toast({
-          title: 'Convite Enviado',
-          description: 'Se o usuário não existir no sistema, receberá um email de confirmação.',
+          title: 'Erro no Cadastro',
+          description: `Não foi possível criar o usuário: ${data.error}`,
+          variant: 'destructive',
         });
-        
+        return;
+      }
+
+      if (data?.success) {
+        toast({
+          title: 'Usuário Criado com Sucesso!',
+          description: `${formData.name} foi criado e já pode fazer login com a senha definida.`,
+        });
         resetForm();
       }
     } catch (error) {
