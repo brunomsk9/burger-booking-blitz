@@ -21,11 +21,13 @@ interface FormData {
 interface ReservationFormFieldsProps {
   formData: FormData;
   onFormDataChange: (updates: Partial<FormData>) => void;
+  disableFranchiseSelect?: boolean;
 }
 
 const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
   formData,
-  onFormDataChange
+  onFormDataChange,
+  disableFranchiseSelect = false
 }) => {
   const { franchises, loading: franchisesLoading, error } = useFranchises();
 
@@ -61,7 +63,7 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
           <Select 
             value={formData.franchise_name} 
             onValueChange={handleFranchiseChange}
-            disabled={franchisesLoading}
+            disabled={franchisesLoading || disableFranchiseSelect}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder={

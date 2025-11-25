@@ -10,12 +10,16 @@ import TimeSlotSelector from './TimeSlotSelector';
 import ReservationFormFields from './ReservationFormFields';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
-const PublicReservation: React.FC = () => {
+interface PublicReservationProps {
+  preselectedFranchise?: string;
+}
+
+const PublicReservation: React.FC<PublicReservationProps> = ({ preselectedFranchise }) => {
   const [loading, setLoading] = useState(false);
   const { availableSlots, checkingAvailability, checkAvailability, clearAvailableSlots } = useAvailabilityCheck();
   
   const [formData, setFormData] = useState({
-    franchise_name: '',
+    franchise_name: preselectedFranchise || '',
     customer_name: '',
     phone: '',
     date: '',
@@ -35,6 +39,12 @@ const PublicReservation: React.FC = () => {
       clearAvailableSlots();
     }
   };
+
+  useEffect(() => {
+    if (preselectedFranchise && formData.franchise_name !== preselectedFranchise) {
+      setFormData(prev => ({ ...prev, franchise_name: preselectedFranchise }));
+    }
+  }, [preselectedFranchise]);
 
   useEffect(() => {
     if (formData.franchise_name && formData.date) {
@@ -123,7 +133,7 @@ const PublicReservation: React.FC = () => {
 
       // Limpar formulário
       setFormData({
-        franchise_name: '',
+        franchise_name: preselectedFranchise || '',
         customer_name: '',
         phone: '',
         date: '',
@@ -176,6 +186,7 @@ const PublicReservation: React.FC = () => {
               <ReservationFormFields 
                 formData={formData}
                 onFormDataChange={handleFormDataChange}
+                disableFranchiseSelect={!!preselectedFranchise}
               />
 
               <TimeSlotSelector

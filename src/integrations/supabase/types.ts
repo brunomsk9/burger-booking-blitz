@@ -147,6 +147,7 @@ export type Database = {
       }
       reservations: {
         Row: {
+          avaliacao: string | null
           birthday: boolean | null
           birthday_person_name: string | null
           characters: string | null
@@ -164,6 +165,7 @@ export type Database = {
           updated_by: string | null
         }
         Insert: {
+          avaliacao?: string | null
           birthday?: boolean | null
           birthday_person_name?: string | null
           characters?: string | null
@@ -181,6 +183,7 @@ export type Database = {
           updated_by?: string | null
         }
         Update: {
+          avaliacao?: string | null
           birthday?: boolean | null
           birthday_person_name?: string | null
           characters?: string | null
