@@ -39,18 +39,28 @@ const ReservationManager: React.FC = () => {
   });
 
   // Filtros de pesquisa
-  const [filterDate, setFilterDate] = useState('');
+  const [filterDateStart, setFilterDateStart] = useState('');
+  const [filterDateEnd, setFilterDateEnd] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterCustomerName, setFilterCustomerName] = useState('');
 
   // Aplicar filtros às reservas
   const filteredReservations = useMemo(() => {
     return reservations.filter((reservation) => {
-      // Filtro de data
-      if (filterDate) {
+      // Filtro de data inicial
+      if (filterDateStart) {
         const reservationDate = startOfDay(parseISO(reservation.date_time));
-        const selectedDate = startOfDay(parseISO(filterDate));
-        if (reservationDate.getTime() !== selectedDate.getTime()) {
+        const startDate = startOfDay(parseISO(filterDateStart));
+        if (reservationDate < startDate) {
+          return false;
+        }
+      }
+
+      // Filtro de data final
+      if (filterDateEnd) {
+        const reservationDate = endOfDay(parseISO(reservation.date_time));
+        const endDate = endOfDay(parseISO(filterDateEnd));
+        if (reservationDate > endDate) {
           return false;
         }
       }
@@ -67,15 +77,16 @@ const ReservationManager: React.FC = () => {
 
       return true;
     });
-  }, [reservations, filterDate, filterStatus, filterCustomerName]);
+  }, [reservations, filterDateStart, filterDateEnd, filterStatus, filterCustomerName]);
 
   const clearFilters = () => {
-    setFilterDate('');
+    setFilterDateStart('');
+    setFilterDateEnd('');
     setFilterStatus('all');
     setFilterCustomerName('');
   };
 
-  const hasActiveFilters = filterDate || filterStatus !== 'all' || filterCustomerName;
+  const hasActiveFilters = filterDateStart || filterDateEnd || filterStatus !== 'all' || filterCustomerName;
 
   const resetForm = () => {
     setFormData({
@@ -218,14 +229,25 @@ const ReservationManager: React.FC = () => {
               )}
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {/* Filtro por Data */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Filtro por Data Início */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">Data</label>
+                <label className="text-sm font-medium">Data Início</label>
                 <Input
                   type="date"
-                  value={filterDate}
-                  onChange={(e) => setFilterDate(e.target.value)}
+                  value={filterDateStart}
+                  onChange={(e) => setFilterDateStart(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Filtro por Data Fim */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data Fim</label>
+                <Input
+                  type="date"
+                  value={filterDateEnd}
+                  onChange={(e) => setFilterDateEnd(e.target.value)}
                   className="w-full"
                 />
               </div>
