@@ -1,9 +1,11 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
-import { Calendar, Plus, Loader2 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar, Plus, Loader2, Search, X } from 'lucide-react';
 import { useReservations } from '@/hooks/useReservations';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Reservation } from '@/types/reservation';
@@ -11,7 +13,7 @@ import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
 import ReservationCard from './ReservationCard';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { format } from 'date-fns';
+import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
@@ -35,6 +37,45 @@ const ReservationManager: React.FC = () => {
     birthday_person_name: '',
     characters: ''
   });
+
+  // Filtros de pesquisa
+  const [filterDate, setFilterDate] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [filterCustomerName, setFilterCustomerName] = useState('');
+
+  // Aplicar filtros às reservas
+  const filteredReservations = useMemo(() => {
+    return reservations.filter((reservation) => {
+      // Filtro de data
+      if (filterDate) {
+        const reservationDate = startOfDay(parseISO(reservation.date_time));
+        const selectedDate = startOfDay(parseISO(filterDate));
+        if (reservationDate.getTime() !== selectedDate.getTime()) {
+          return false;
+        }
+      }
+
+      // Filtro de status
+      if (filterStatus !== 'all' && reservation.status !== filterStatus) {
+        return false;
+      }
+
+      // Filtro de nome do cliente
+      if (filterCustomerName && !reservation.customer_name.toLowerCase().includes(filterCustomerName.toLowerCase())) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [reservations, filterDate, filterStatus, filterCustomerName]);
+
+  const clearFilters = () => {
+    setFilterDate('');
+    setFilterStatus('all');
+    setFilterCustomerName('');
+  };
+
+  const hasActiveFilters = filterDate || filterStatus !== 'all' || filterCustomerName;
 
   const resetForm = () => {
     setFormData({
@@ -157,6 +198,77 @@ const ReservationManager: React.FC = () => {
         <TestConnection />
       )}
 
+      {/* Filtros de Pesquisa */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Search className="h-5 w-5 text-muted-foreground" />
+              <h3 className="text-lg font-semibold">Filtros de Pesquisa</h3>
+              {hasActiveFilters && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="ml-auto"
+                >
+                  <X className="h-4 w-4 mr-1" />
+                  Limpar Filtros
+                </Button>
+              )}
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Filtro por Data */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Data</label>
+                <Input
+                  type="date"
+                  value={filterDate}
+                  onChange={(e) => setFilterDate(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Filtro por Status */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos os status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os status</SelectItem>
+                    <SelectItem value="pending">Pendente</SelectItem>
+                    <SelectItem value="approved">Aprovado</SelectItem>
+                    <SelectItem value="confirmed">Confirmado</SelectItem>
+                    <SelectItem value="cancelled">Cancelado</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro por Nome do Cliente */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Nome do Cliente</label>
+                <Input
+                  type="text"
+                  placeholder="Buscar por nome..."
+                  value={filterCustomerName}
+                  onChange={(e) => setFilterCustomerName(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+            </div>
+
+            {hasActiveFilters && (
+              <div className="text-sm text-muted-foreground">
+                {filteredReservations.length} de {reservations.length} reserva(s) encontrada(s)
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       <ReservationForm
         isOpen={isDialogOpen}
         onClose={handleCloseDialog}
@@ -167,7 +279,7 @@ const ReservationManager: React.FC = () => {
       />
 
       <div className="grid gap-4">
-        {reservations.map((reservation) => (
+        {filteredReservations.map((reservation) => (
           <ReservationCard
             key={reservation.id}
             reservation={reservation}
@@ -180,6 +292,21 @@ const ReservationManager: React.FC = () => {
             isViewer={isViewer()}
           />
         ))}
+        
+        {filteredReservations.length === 0 && reservations.length > 0 && (
+          <Card className="border-l-4 border-l-blue-600">
+            <CardContent className="text-center py-12">
+              <Search size={48} className="mx-auto mb-4 text-gray-400" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Nenhuma reserva encontrada</h3>
+              <p className="text-gray-600 mb-4">
+                Não há reservas que correspondam aos filtros aplicados.
+              </p>
+              <Button onClick={clearFilters} variant="outline">
+                Limpar Filtros
+              </Button>
+            </CardContent>
+          </Card>
+        )}
         
         {reservations.length === 0 && (
           <Card className="border-l-4 border-l-blue-600">
