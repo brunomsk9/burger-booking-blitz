@@ -55,7 +55,17 @@ serve(async (req) => {
     // chatLid vem direto da Z-API, então tem prioridade
     const chatId = payload.chatLid || payload.chatId || payload.chat_id;
     const messageId = payload.messageId;
-    const status = payload.status || 'SENT';
+    
+    // Mapear status da Z-API para valores aceitos pelo banco (sent, delivered, read, failed)
+    const statusMapping: Record<string, string> = {
+      'SENT': 'sent',
+      'RECEIVED': 'sent', // Mensagens recebidas também são consideradas "sent"
+      'DELIVERED': 'delivered',
+      'READ': 'read',
+      'FAILED': 'failed'
+    };
+    const rawStatus = payload.status?.toUpperCase() || 'SENT';
+    const status = statusMapping[rawStatus] || 'sent';
     
     console.log('🔍 Valores extraídos:', {
       franchiseId,
@@ -63,6 +73,7 @@ serve(async (req) => {
       messageText,
       chatId,
       messageId,
+      rawStatus,
       status
     });
     
@@ -151,7 +162,7 @@ serve(async (req) => {
         direction: isAgentMessage ? 'outgoing' : 'incoming',
         message_id: messageId,
         timestamp: timestamp,
-        status: status.toLowerCase()
+        status: status
       })
       .select()
       .single();
