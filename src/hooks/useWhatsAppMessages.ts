@@ -49,6 +49,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ChatFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
 
   // Fetch chats metadata
@@ -231,19 +232,34 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     }
   };
 
-  // Filter chat groups based on selected filter
+  // Filter chat groups based on selected filter and search query
   const filteredChatGroups = chatGroups.filter((chat) => {
+    // Apply status filter
+    let statusMatch = false;
     switch (filter) {
       case 'unread':
-        return chat.unread_count > 0;
+        statusMatch = chat.unread_count > 0;
+        break;
       case 'awaiting_response':
-        return chat.needs_response && !chat.archived;
+        statusMatch = chat.needs_response && !chat.archived;
+        break;
       case 'archived':
-        return chat.archived;
+        statusMatch = chat.archived;
+        break;
       case 'all':
       default:
-        return !chat.archived;
+        statusMatch = !chat.archived;
     }
+
+    // Apply search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      const nameMatch = chat.customer_name.toLowerCase().includes(query);
+      const phoneMatch = chat.customer_phone.includes(query);
+      return statusMatch && (nameMatch || phoneMatch);
+    }
+
+    return statusMatch;
   });
 
   // Subscribe to realtime updates
@@ -308,6 +324,8 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     loading,
     filter,
     setFilter,
+    searchQuery,
+    setSearchQuery,
     sendMessage,
     toggleArchiveChat,
     markChatAsRead,
