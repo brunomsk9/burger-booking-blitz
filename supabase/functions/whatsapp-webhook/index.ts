@@ -18,39 +18,58 @@ serve(async (req) => {
     );
 
     const payload = await req.json();
-    console.log('📥 Webhook recebido:', JSON.stringify(payload, null, 2));
+    console.log('📥 Webhook Z-API recebido:', JSON.stringify(payload, null, 2));
 
-    // Extract data from n8n webhook payload
-    const {
-      franchiseId,
-      chatId,
-      customerName,
-      customerPhone,
-      messageText,
-      messageId,
-      timestamp
-    } = payload;
+    // Extract data from Z-API webhook payload
+    // Z-API format: { phone: "5513997162888", text: { message: "texto" }, chatId: "5513997162888@c.us", ... }
+    const phone = payload.phone || payload.chatId?.replace('@c.us', '');
+    const messageText = payload.text?.message || payload.message || payload.body;
+    const chatId = payload.chatId || `${phone}@c.us`;
+    const messageId = payload.messageId || payload.id?.id;
+    const timestamp = payload.momment ? new Date(payload.momment * 1000).toISOString() : new Date().toISOString();
+    const senderName = payload.senderName || payload.notifyName;
 
-    if (!franchiseId || !chatId || !customerPhone || !messageText) {
-      console.error('❌ Dados obrigatórios faltando');
+    console.log('📞 Dados extraídos:', { phone, messageText, chatId, messageId, senderName });
+
+    if (!phone || !messageText) {
+      console.error('❌ Dados obrigatórios faltando - phone ou messageText');
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: franchiseId, chatId, customerPhone, messageText' }),
+        JSON.stringify({ error: 'Missing required fields: phone, messageText' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Buscar a franquia pelo número (heroissantos instance)
+    // Para simplificar, vamos usar a franquia Heróis Burger Santos por padrão
+    const { data: franchises, error: franchiseError } = await supabase
+      .from('franchises')
+      .select('id')
+      .eq('company_name', 'Heróis Burger Santos')
+      .limit(1)
+      .single();
+
+    if (franchiseError || !franchises) {
+      console.error('❌ Franquia não encontrada:', franchiseError);
+      return new Response(
+        JSON.stringify({ error: 'Franchise not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('🏢 Franquia encontrada:', franchises.id);
 
     // Insert message into database
     const { data, error } = await supabase
       .from('whatsapp_messages')
       .insert({
-        franchise_id: franchiseId,
+        franchise_id: franchises.id,
         chat_id: chatId,
-        customer_name: customerName || customerPhone,
-        customer_phone: customerPhone,
+        customer_name: senderName || phone,
+        customer_phone: phone,
         message_text: messageText,
         direction: 'incoming',
         message_id: messageId,
-        timestamp: timestamp || new Date().toISOString(),
+        timestamp: timestamp,
         status: 'delivered'
       })
       .select()
@@ -61,7 +80,7 @@ serve(async (req) => {
       throw error;
     }
 
-    console.log('✅ Mensagem salva:', data);
+    console.log('✅ Mensagem salva com sucesso:', data);
 
     return new Response(
       JSON.stringify({ success: true, message: data }),
