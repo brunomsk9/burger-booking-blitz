@@ -61,7 +61,7 @@ serve(async (req) => {
         message_text: messageText,
         direction: 'outgoing',
         timestamp: new Date().toISOString(),
-        status: 'pending'
+        status: 'sent'
       })
       .select()
       .single();
