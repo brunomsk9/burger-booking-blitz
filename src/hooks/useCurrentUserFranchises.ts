@@ -66,10 +66,26 @@ export const useCurrentUserFranchises = () => {
             throw error;
           }
 
-          console.log('📋 user_franchises encontrados:', userFranchises?.length || 0, userFranchises);
+          console.log('📋 user_franchises RAW encontrados:', userFranchises?.length || 0);
+          console.log('📋 Dados completos:', JSON.stringify(userFranchises, null, 2));
+
+          // Verificar cada item individualmente
+          userFranchises?.forEach((uf, index) => {
+            console.log(`Item ${index}:`, {
+              franchise_id: uf.franchise_id,
+              franchises: uf.franchises,
+              hasFramchises: !!uf.franchises,
+              isActive: uf.franchises ? (uf.franchises as any).active : 'N/A'
+            });
+          });
 
           const activeFranchises = (userFranchises || [])
-            .filter(uf => uf.franchises && uf.franchises.active)
+            .filter(uf => {
+              const hasData = !!uf.franchises;
+              const isActive = uf.franchises && (uf.franchises as any).active;
+              console.log('🔍 Filtrando:', { hasData, isActive, franchise: uf.franchises });
+              return hasData && isActive;
+            })
             .map(uf => {
               const franchise = uf.franchises as any;
               return {
