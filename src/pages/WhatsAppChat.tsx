@@ -330,8 +330,13 @@ const WhatsAppChat: React.FC = () => {
                       <Input
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                        placeholder="Digite sua mensagem..."
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            handleSendMessage();
+                          }
+                        }}
+                        placeholder="Digite sua mensagem... (Enter para enviar)"
                         className="flex-1 rounded-full"
                       />
                       <Button 
