@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DialogTrigger } from '@/components/ui/dialog';
@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Plus, Loader2, Search, X } from 'lucide-react';
 import { useReservations } from '@/hooks/useReservations';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
 import { Reservation } from '@/types/reservation';
 import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
@@ -23,6 +24,7 @@ const ReservationManager: React.FC = () => {
     canDeleteReservations,
     isViewer 
   } = usePermissions();
+  const { franchises: userFranchises, loading: franchisesLoading } = useCurrentUserFranchises();
   
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingReservation, setEditingReservation] = useState<Reservation | null>(null);
@@ -87,6 +89,19 @@ const ReservationManager: React.FC = () => {
   };
 
   const hasActiveFilters = filterDateStart || filterDateEnd || filterStatus !== 'all' || filterCustomerName;
+
+  // Pré-selecionar franquia do usuário quando abrir nova reserva
+  useEffect(() => {
+    if (isDialogOpen && !editingReservation && !franchisesLoading && userFranchises.length > 0) {
+      // Se o usuário tem apenas 1 franquia, pré-selecionar automaticamente
+      if (userFranchises.length === 1) {
+        setFormData(prev => ({
+          ...prev,
+          franchise_name: userFranchises[0].displayName
+        }));
+      }
+    }
+  }, [isDialogOpen, editingReservation, franchisesLoading, userFranchises]);
 
   const resetForm = () => {
     setFormData({
@@ -298,6 +313,7 @@ const ReservationManager: React.FC = () => {
         formData={formData}
         setFormData={setFormData}
         editingReservation={editingReservation}
+        userFranchises={userFranchises}
       />
 
       <div className="grid gap-4">
