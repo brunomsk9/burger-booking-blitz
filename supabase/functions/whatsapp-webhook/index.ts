@@ -25,7 +25,8 @@ serve(async (req) => {
     const phone = payload.phone;
     const messageText = payload.text?.message;
     // n8n pode enviar como chatId ou chatLid, dependendo da configuração
-    const chatId = payload.chatId || payload.chatLid || payload.chat_id;
+    // chatLid vem direto da Z-API, então tem prioridade
+    const chatId = payload.chatLid || payload.chatId || payload.chat_id;
     const messageId = payload.messageId;
     
     console.log('🔍 Valores extraídos:', {
