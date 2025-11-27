@@ -18,9 +18,11 @@ export const useCurrentUserFranchises = () => {
     const fetchUserFranchises = async () => {
       try {
         setLoading(true);
+        console.log('🔍 useCurrentUserFranchises - Iniciando busca de franquias');
         
         // Superadmin vê todas as franquias, outros veem apenas as suas
         if (isSuperAdmin()) {
+          console.log('👑 Usuário é superadmin, buscando todas as franquias');
           const { data, error } = await supabase
             .from('franchises')
             .select('id, name, company_name')
@@ -29,6 +31,7 @@ export const useCurrentUserFranchises = () => {
 
           if (error) throw error;
 
+          console.log('✅ Franquias encontradas (superadmin):', data?.length || 0);
           const franchisesWithDisplay = (data || []).map(f => ({
             ...f,
             displayName: f.company_name || f.name
@@ -38,7 +41,9 @@ export const useCurrentUserFranchises = () => {
         } else {
           // Buscar franquias do usuário atual
           const { data: { user } } = await supabase.auth.getUser();
+          console.log('👤 Buscando franquias para o usuário:', user?.id);
           if (!user) {
+            console.log('❌ Nenhum usuário autenticado');
             setFranchises([]);
             return;
           }
@@ -56,7 +61,12 @@ export const useCurrentUserFranchises = () => {
             `)
             .eq('user_id', user.id);
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Erro ao buscar user_franchises:', error);
+            throw error;
+          }
+
+          console.log('📋 user_franchises encontrados:', userFranchises?.length || 0, userFranchises);
 
           const activeFranchises = (userFranchises || [])
             .filter(uf => uf.franchises && uf.franchises.active)
@@ -70,6 +80,7 @@ export const useCurrentUserFranchises = () => {
               };
             });
 
+          console.log('✅ Franquias ativas do usuário:', activeFranchises.length, activeFranchises);
           setFranchises(activeFranchises);
         }
       } catch (error) {
