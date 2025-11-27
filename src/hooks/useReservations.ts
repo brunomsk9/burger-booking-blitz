@@ -9,7 +9,6 @@ export const useReservations = () => {
 
   const fetchReservations = async () => {
     try {
-      console.log('Buscando reservas...');
       setLoading(true);
       
       const { data, error } = await supabase
@@ -18,7 +17,6 @@ export const useReservations = () => {
         .order('date_time', { ascending: true });
 
       if (error) {
-        console.error('Erro ao buscar reservas:', error);
         toast({
           title: 'Erro',
           description: `Erro ao carregar reservas: ${error.message}`,
@@ -26,8 +24,6 @@ export const useReservations = () => {
         });
         return;
       }
-      
-      console.log('Reservas carregadas:', data?.length || 0);
       
       const typedReservations = (data || []).map(reservation => ({
         ...reservation,
@@ -38,7 +34,6 @@ export const useReservations = () => {
       
       setReservations(typedReservations);
     } catch (error) {
-      console.error('Erro inesperado:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao carregar reservas.',
@@ -51,8 +46,6 @@ export const useReservations = () => {
 
   const notifyWhatsApp = async (reservationData: any) => {
     try {
-      console.log('Enviando notificação WhatsApp...');
-      
       const { error } = await supabase.functions.invoke('notify-whatsapp-reservation', {
         body: {
           type: 'INSERT',
@@ -63,8 +56,6 @@ export const useReservations = () => {
 
       if (error) {
         console.error('Erro ao enviar notificação WhatsApp:', error);
-      } else {
-        console.log('Notificação WhatsApp enviada com sucesso');
       }
     } catch (error) {
       console.error('Erro inesperado ao enviar WhatsApp:', error);
@@ -73,8 +64,6 @@ export const useReservations = () => {
 
   const createReservation = async (reservationData: CreateReservationData) => {
     try {
-      console.log('Criando reserva:', reservationData);
-      
       const { data: userData, error: userError } = await supabase.auth.getUser();
       if (userError) {
         toast({
@@ -99,7 +88,6 @@ export const useReservations = () => {
         .single();
 
       if (error) {
-        console.error('Erro ao criar reserva:', error);
         toast({
           title: 'Erro',
           description: `Erro ao criar reserva: ${error.message}`,
@@ -126,7 +114,6 @@ export const useReservations = () => {
       
       return { data: typedReservation, error: null };
     } catch (error) {
-      console.error('Erro inesperado ao criar reserva:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao criar reserva.',
@@ -138,7 +125,6 @@ export const useReservations = () => {
 
   const updateReservation = async (id: string, updates: UpdateReservationData) => {
     try {
-      console.log('Atualizando reserva:', id, updates);
       
       const { data: userData } = await supabase.auth.getUser();
       
@@ -156,7 +142,6 @@ export const useReservations = () => {
         .single();
 
       if (error) {
-        console.error('Erro ao atualizar reserva:', error);
         toast({
           title: 'Erro',
           description: `Erro ao atualizar reserva: ${error.message}`,
@@ -180,7 +165,6 @@ export const useReservations = () => {
       
       return { data: typedReservation, error: null };
     } catch (error) {
-      console.error('Erro inesperado ao atualizar reserva:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao atualizar reserva.',
@@ -192,7 +176,6 @@ export const useReservations = () => {
 
   const deleteReservation = async (id: string) => {
     try {
-      console.log('Excluindo reserva:', id);
       
       const { error } = await supabase
         .from('reservations')
@@ -200,7 +183,6 @@ export const useReservations = () => {
         .eq('id', id);
 
       if (error) {
-        console.error('Erro ao excluir reserva:', error);
         toast({
           title: 'Erro',
           description: `Erro ao excluir reserva: ${error.message}`,
@@ -217,7 +199,6 @@ export const useReservations = () => {
       
       return { error: null };
     } catch (error) {
-      console.error('Erro inesperado ao excluir reserva:', error);
       toast({
         title: 'Erro',
         description: 'Erro inesperado ao excluir reserva.',
