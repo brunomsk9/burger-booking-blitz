@@ -22,10 +22,10 @@ serve(async (req) => {
 
     // Extract data from n8n payload (que recebeu da Z-API)
     const franchiseId = payload.franchiseId;
-    const phone = payload.phone || payload.customerPhone || payload.chatId?.replace('@c.us', '').replace('@lid', '');
-    const messageText = payload.messageText || payload.text?.message || payload.message || payload.body;
-    const chatId = payload.chatId || `${phone}@c.us`;
-    const messageId = payload.messageId || payload.id?.id;
+    const phone = payload.phone;
+    const messageText = payload.text?.message;
+    const chatId = payload.chatLid;
+    const messageId = payload.messageId;
     
     console.log('🔍 Valores extraídos:', {
       franchiseId,
@@ -51,15 +51,10 @@ serve(async (req) => {
       timestamp = new Date().toISOString();
     }
     
-    const senderName = payload.customerName || payload.senderName || payload.notifyName;
+    const senderName = payload.senderName || payload.chatName;
     
-    // Detectar se a mensagem é do agente automático
-    // Mensagens do agente podem ter: fromMe=true, isAgent=true, ou vir com direction='outgoing'
-    const isAgentMessage = payload.fromMe === true || 
-                          payload.isAgent === true || 
-                          payload.direction === 'outgoing' ||
-                          payload.source === 'agent' ||
-                          payload.type === 'agent_message';
+    // Detectar se a mensagem é do agente (fromMe=true na Z-API)
+    const isAgentMessage = payload.fromMe === true;
 
     console.log('📞 Dados extraídos:', { 
       franchiseId, 
