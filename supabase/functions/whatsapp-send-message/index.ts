@@ -14,12 +14,7 @@ serve(async (req) => {
   try {
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
     const { franchiseId, chatId, customerPhone, messageText } = await req.json();
@@ -75,27 +70,35 @@ serve(async (req) => {
 
     // Send message via n8n webhook
     try {
+      const webhookPayload = {
+        action: 'send_message',
+        franchiseId: franchiseId,
+        franchiseName: franchise.company_name,
+        chatId: formattedChatId,
+        customerPhone: phone,
+        messageText: messageText,
+        messageId: savedMessage.id
+      };
+
       console.log('📡 Enviando para n8n:', franchise.webhook_url);
+      console.log('📦 Payload:', JSON.stringify(webhookPayload, null, 2));
 
       const webhookResponse = await fetch(franchise.webhook_url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          action: 'send_message',
-          franchiseId: franchiseId,
-          franchiseName: franchise.company_name,
-          chatId: formattedChatId,
-          customerPhone: phone,
-          messageText: messageText,
-          messageId: savedMessage.id
-        }),
+        body: JSON.stringify(webhookPayload),
       });
 
       if (!webhookResponse.ok) {
         const errorText = await webhookResponse.text();
-        console.error('❌ Erro ao enviar para webhook:', errorText);
+        console.error('❌ Erro ao enviar para webhook:', {
+          status: webhookResponse.status,
+          statusText: webhookResponse.statusText,
+          error: errorText,
+          payload: webhookPayload
+        });
         
         // Update message status to failed
         await supabase
@@ -106,7 +109,8 @@ serve(async (req) => {
         throw new Error(`Failed to send message via webhook: ${errorText}`);
       }
 
-      console.log('✅ Mensagem enviada para n8n');
+      const responseData = await webhookResponse.text();
+      console.log('✅ Resposta do n8n:', responseData);
 
       // Update message status to sent
       await supabase
