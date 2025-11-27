@@ -78,8 +78,10 @@ serve(async (req) => {
 
     // Send message via n8n webhook
     try {
-      // Formato compatível com o n8n/Z-API
+      // Formato compatível com o n8n/Z-API para ENVIAR mensagem
       const webhookPayload = {
+        action: 'send_message',  // Indica que queremos ENVIAR, não receber
+        fromApi: true,  // Indica que vem da API, não do WhatsApp
         franchiseId: franchiseId,
         phone: phone,
         text: {
@@ -90,7 +92,7 @@ serve(async (req) => {
       };
 
       console.log('📡 Enviando para n8n:', franchise.webhook_url);
-      console.log('📦 Payload:', JSON.stringify(webhookPayload, null, 2));
+      console.log('📦 Payload completo:', JSON.stringify(webhookPayload, null, 2));
 
       const webhookResponse = await fetch(franchise.webhook_url, {
         method: 'POST',
