@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail } from 'lucide-react';
+import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
@@ -35,6 +35,8 @@ const WhatsAppChat: React.FC = () => {
     loading, 
     filter,
     setFilter,
+    searchQuery,
+    setSearchQuery,
     sendMessage, 
     toggleArchiveChat,
     markChatAsRead 
@@ -165,28 +167,39 @@ const WhatsAppChat: React.FC = () => {
           <div className="flex-1 flex overflow-hidden">
             {/* Sidebar - Chat List */}
             <div className="w-80 border-r bg-card">
-              <div className="p-4 border-b space-y-3">
-                <h2 className="font-semibold text-lg">Conversas</h2>
+              <div className="p-4 border-b space-y-3 bg-[hsl(var(--whatsapp-green-dark))]">
+                <h2 className="font-semibold text-lg text-white">Conversas</h2>
+                
+                {/* Search */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Buscar conversa..."
+                    className="pl-9 bg-white/90"
+                  />
+                </div>
                 
                 {/* Filters */}
                 <Tabs value={filter} onValueChange={(value) => setFilter(value as any)}>
-                  <TabsList className="grid w-full grid-cols-4">
-                    <TabsTrigger value="all" className="text-xs">
+                  <TabsList className="grid w-full grid-cols-4 bg-white/10">
+                    <TabsTrigger value="all" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                       Todas
                     </TabsTrigger>
-                    <TabsTrigger value="unread" className="text-xs">
+                    <TabsTrigger value="unread" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                       <Mail className="h-3 w-3" />
                     </TabsTrigger>
-                    <TabsTrigger value="awaiting_response" className="text-xs">
+                    <TabsTrigger value="awaiting_response" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                       <Clock className="h-3 w-3" />
                     </TabsTrigger>
-                    <TabsTrigger value="archived" className="text-xs">
+                    <TabsTrigger value="archived" className="text-xs text-white data-[state=active]:bg-white/20 data-[state=active]:text-white">
                       <Archive className="h-3 w-3" />
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
               </div>
-              <ScrollArea className="h-[calc(100vh-12rem)]">
+              <ScrollArea className="h-[calc(100vh-16rem)]">
                 {loading ? (
                   <div className="flex justify-center items-center h-32">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -194,7 +207,7 @@ const WhatsAppChat: React.FC = () => {
                 ) : chatGroups.length === 0 ? (
                   <div className="p-4 text-center text-muted-foreground">
                     <MessageCircle className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                    <p>Nenhuma conversa ainda</p>
+                    <p>{searchQuery ? 'Nenhuma conversa encontrada' : 'Nenhuma conversa ainda'}</p>
                   </div>
                 ) : (
                   chatGroups.map((chat) => (
@@ -248,23 +261,24 @@ const WhatsAppChat: React.FC = () => {
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col bg-muted/30">
               {selectedChatId && selectedChat ? (
-                <>
+                  <>
                   {/* Chat Header */}
-                  <div className="bg-card border-b p-4">
+                  <div className="bg-[hsl(var(--whatsapp-green-dark))] p-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <MessageCircle className="h-5 w-5 text-primary" />
+                        <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                          <MessageCircle className="h-5 w-5 text-white" />
                         </div>
                         <div>
-                          <h3 className="font-semibold">{selectedChat.customer_name}</h3>
-                          <p className="text-sm text-muted-foreground">{selectedChat.customer_phone}</p>
+                          <h3 className="font-semibold text-white">{selectedChat.customer_name}</h3>
+                          <p className="text-sm text-white/80">{selectedChat.customer_phone}</p>
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleArchiveChat(selectedChatId)}
+                        className="text-white hover:bg-white/10"
                       >
                         <Archive className="h-4 w-4 mr-2" />
                         {selectedChat.archived ? 'Desarquivar' : 'Arquivar'}
@@ -273,27 +287,27 @@ const WhatsAppChat: React.FC = () => {
                   </div>
 
                   {/* Messages */}
-                  <ScrollArea className="flex-1 p-4">
-                    <div className="space-y-4">
+                  <ScrollArea className="flex-1 p-4 bg-[hsl(var(--whatsapp-bg))]">
+                    <div className="space-y-2">
                       {filteredMessages.map((message) => (
                         <div
                           key={message.id}
                           className={`flex ${message.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
-                            className={`max-w-[70%] rounded-lg p-3 ${
+                            className={`max-w-[70%] rounded-lg p-3 shadow-sm ${
                               message.direction === 'outgoing'
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-card border'
+                                ? 'bg-[hsl(var(--whatsapp-bubble))] text-foreground rounded-br-none'
+                                : 'bg-white dark:bg-card rounded-bl-none'
                             }`}
                           >
                             <p className="text-sm whitespace-pre-wrap break-words">{message.message_text}</p>
-                            <div className="flex items-center gap-2 mt-1">
-                              <span className="text-xs opacity-70">
+                            <div className="flex items-center gap-2 mt-1 justify-end">
+                              <span className="text-xs opacity-60">
                                 {format(new Date(message.timestamp), 'HH:mm', { locale: ptBR })}
                               </span>
                               {message.direction === 'outgoing' && (
-                                <span className="text-xs opacity-70">
+                                <span className="text-xs opacity-60">
                                   {message.status === 'sent' && '✓'}
                                   {message.status === 'delivered' && '✓✓'}
                                   {message.status === 'read' && '✓✓'}
@@ -309,17 +323,21 @@ const WhatsAppChat: React.FC = () => {
                   </ScrollArea>
 
                   {/* Input */}
-                  <div className="bg-card border-t p-4">
+                  <div className="bg-card p-4">
                     <div className="flex gap-2">
                       <Input
                         value={messageInput}
                         onChange={(e) => setMessageInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
                         placeholder="Digite sua mensagem..."
-                        className="flex-1"
+                        className="flex-1 rounded-full"
                       />
-                      <Button onClick={handleSendMessage} disabled={!messageInput.trim()}>
-                        <Send className="h-4 w-4" />
+                      <Button 
+                        onClick={handleSendMessage} 
+                        disabled={!messageInput.trim()}
+                        className="rounded-full w-12 h-12 p-0"
+                      >
+                        <Send className="h-5 w-5" />
                       </Button>
                     </div>
                   </div>
