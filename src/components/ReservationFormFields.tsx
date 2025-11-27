@@ -22,14 +22,19 @@ interface ReservationFormFieldsProps {
   formData: FormData;
   onFormDataChange: (updates: Partial<FormData>) => void;
   disableFranchiseSelect?: boolean;
+  userFranchises?: Array<{ id: string; name: string; displayName: string }>;
 }
 
 const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
   formData,
   onFormDataChange,
-  disableFranchiseSelect = false
+  disableFranchiseSelect = false,
+  userFranchises
 }) => {
-  const { franchises, loading: franchisesLoading, error } = useFranchises();
+  const { franchises: allFranchises, loading: franchisesLoading, error } = useFranchises();
+  
+  // Se userFranchises foi passado, usar apenas elas; caso contrário, usar todas
+  const franchises = userFranchises || allFranchises;
 
   console.log('🔍 ReservationFormFields - Current state:', {
     franchises,

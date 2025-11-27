@@ -46,6 +46,7 @@ interface ReservationFormProps {
     characters: string;
   }>>;
   editingReservation: Reservation | null;
+  userFranchises?: Array<{ id: string; name: string; displayName: string }>;
 }
 
 const ReservationForm: React.FC<ReservationFormProps> = ({
@@ -55,8 +56,12 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   formData,
   setFormData,
   editingReservation,
+  userFranchises,
 }) => {
-  const { franchises, loading: franchisesLoading } = useFranchises();
+  const { franchises: allFranchises, loading: franchisesLoading } = useFranchises();
+  
+  // Se userFranchises foi passado, usar apenas elas; caso contrário, usar todas
+  const franchises = userFranchises || allFranchises;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -79,8 +84,8 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {franchises.map(franchise => (
-                    <SelectItem key={franchise.id} value={franchise.name}>
-                      {franchise.name}
+                    <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
+                      {franchise.displayName || franchise.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
