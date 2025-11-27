@@ -54,8 +54,8 @@ serve(async (req) => {
     
     const senderName = payload.senderName || payload.chatName;
     
-    // Detectar se a mensagem é do agente (fromMe=true na Z-API)
-    const isAgentMessage = payload.fromMe === true;
+    // Detectar se a mensagem é do agente (fromMe=true na Z-API OU fromApi=true quando vem da nossa API)
+    const isAgentMessage = payload.fromMe === true || payload.fromApi === true;
 
     console.log('📞 Dados extraídos:', { 
       franchiseId, 
@@ -64,7 +64,9 @@ serve(async (req) => {
       chatId, 
       messageId, 
       senderName,
-      isAgentMessage 
+      isAgentMessage,
+      fromMe: payload.fromMe,
+      fromApi: payload.fromApi
     });
 
     if (!franchiseId || !phone || !messageText || !chatId) {
@@ -113,7 +115,7 @@ serve(async (req) => {
       .insert({
         franchise_id: franchiseId,
         chat_id: chatId,
-        customer_name: senderName || phone,
+        customer_name: isAgentMessage ? (franchise.company_name || 'Agente') : senderName,
         customer_phone: phone,
         message_text: messageText,
         direction: isAgentMessage ? 'outgoing' : 'incoming',
