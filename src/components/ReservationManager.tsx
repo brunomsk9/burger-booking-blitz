@@ -92,14 +92,28 @@ const ReservationManager: React.FC = () => {
 
   // Pré-selecionar franquia do usuário quando abrir nova reserva
   useEffect(() => {
+    console.log('🎯 useEffect pré-seleção franquia - Estado:', {
+      isDialogOpen,
+      editingReservation: !!editingReservation,
+      franchisesLoading,
+      userFranchisesCount: userFranchises.length,
+      userFranchises
+    });
+
     if (isDialogOpen && !editingReservation && !franchisesLoading && userFranchises.length > 0) {
+      console.log('✅ Condições atendidas para pré-seleção');
       // Se o usuário tem apenas 1 franquia, pré-selecionar automaticamente
       if (userFranchises.length === 1) {
+        console.log('🎯 Pré-selecionando franquia:', userFranchises[0].displayName);
         setFormData(prev => ({
           ...prev,
           franchise_name: userFranchises[0].displayName
         }));
+      } else {
+        console.log('ℹ️ Usuário tem', userFranchises.length, 'franquias. Não pré-selecionando.');
       }
+    } else {
+      console.log('⚠️ Condições NÃO atendidas para pré-seleção');
     }
   }, [isDialogOpen, editingReservation, franchisesLoading, userFranchises]);
 
