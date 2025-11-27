@@ -7,7 +7,12 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('🚀 whatsapp-send-message iniciado');
+  console.log('📋 Método:', req.method);
+  console.log('📋 Headers:', Object.fromEntries(req.headers.entries()));
+  
   if (req.method === 'OPTIONS') {
+    console.log('✅ Respondendo OPTIONS com CORS');
     return new Response(null, { headers: corsHeaders });
   }
 
@@ -17,8 +22,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { franchiseId, chatId, customerPhone, messageText } = await req.json();
-    console.log('📤 Enviando mensagem via webhook n8n:', { franchiseId, chatId, customerPhone });
+    const body = await req.json();
+    console.log('📦 Body recebido:', JSON.stringify(body, null, 2));
+    
+    const { franchiseId, chatId, customerPhone, messageText } = body;
+    console.log('📤 Enviando mensagem via webhook n8n:', { franchiseId, chatId, customerPhone, messageText: messageText?.substring(0, 50) + '...' });
 
     if (!franchiseId || !customerPhone || !messageText) {
       return new Response(
