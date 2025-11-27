@@ -83,22 +83,48 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
         <form onSubmit={onSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-medium mb-2">
+                Franquia {franchisesLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-1" />}
+              </label>
               <Select 
                 value={formData.franchise_name} 
-                onValueChange={(value) => setFormData({...formData, franchise_name: value})}
-                disabled={franchisesLoading}
+                onValueChange={(value) => {
+                  console.log('🔄 Selecionando franquia:', value);
+                  setFormData({...formData, franchise_name: value});
+                }}
+                disabled={franchisesLoading || franchises.length === 0}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={franchisesLoading ? "Carregando franquias..." : "Selecione a franquia"} />
+                  <SelectValue placeholder={
+                    franchisesLoading 
+                      ? "Carregando franquias..." 
+                      : franchises.length === 0
+                        ? "Nenhuma franquia disponível"
+                        : "Selecione a franquia"
+                  } />
                 </SelectTrigger>
                 <SelectContent>
-                  {franchises.map(franchise => (
-                    <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
-                      {franchise.displayName || franchise.name}
+                  {franchises.length > 0 ? (
+                    franchises.map(franchise => {
+                      console.log('🏢 Opção de franquia:', franchise.displayName || franchise.name);
+                      return (
+                        <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
+                          {franchise.displayName || franchise.name}
+                        </SelectItem>
+                      );
+                    })
+                  ) : (
+                    <SelectItem value="none" disabled>
+                      Nenhuma franquia disponível
                     </SelectItem>
-                  ))}
+                  )}
                 </SelectContent>
               </Select>
+              {!franchisesLoading && franchises.length === 0 && (
+                <p className="text-sm text-red-500 mt-1">
+                  ⚠️ Você não tem acesso a nenhuma franquia. Contate o administrador.
+                </p>
+              )}
             </div>
             <div>
               <Input
