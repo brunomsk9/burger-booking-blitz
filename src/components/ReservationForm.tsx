@@ -82,7 +82,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   }, [franchises, editingReservation, formData.franchise_name, setFormData]);
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
