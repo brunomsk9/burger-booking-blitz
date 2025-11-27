@@ -17,8 +17,35 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const payload = await req.json();
-    console.log('📥 Webhook n8n recebido:', JSON.stringify(payload, null, 2));
+    // Verificar se há corpo na requisição
+    const contentType = req.headers.get('content-type');
+    console.log('📨 Content-Type:', contentType);
+    
+    let payload;
+    try {
+      const text = await req.text();
+      console.log('📄 Raw body:', text);
+      
+      if (!text || text.trim() === '') {
+        console.error('❌ Corpo da requisição vazio');
+        return new Response(
+          JSON.stringify({ error: 'Empty request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      payload = JSON.parse(text);
+      console.log('📥 Webhook n8n recebido:', JSON.stringify(payload, null, 2));
+    } catch (parseError) {
+      console.error('❌ Erro ao fazer parse do JSON:', parseError);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid JSON',
+          details: parseError.message 
+        }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Extract data from n8n payload (que recebeu da Z-API)
     const franchiseId = payload.franchiseId;
