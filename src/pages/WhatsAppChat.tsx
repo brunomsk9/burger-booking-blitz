@@ -164,9 +164,9 @@ const WhatsAppChat: React.FC = () => {
           </header>
 
           {/* Main Content */}
-          <div className="flex-1 flex overflow-hidden">
+          <div className="flex-1 flex overflow-hidden h-[calc(100vh-4rem)]">
             {/* Sidebar - Chat List */}
-            <div className="w-80 border-r bg-card">
+            <div className="w-80 border-r bg-card flex flex-col h-full">
               <div className="p-4 border-b space-y-3 bg-[hsl(var(--whatsapp-green-dark))]">
                 <h2 className="font-semibold text-lg text-white">Conversas</h2>
                 
@@ -199,7 +199,7 @@ const WhatsAppChat: React.FC = () => {
                   </TabsList>
                 </Tabs>
               </div>
-              <ScrollArea className="h-[calc(100vh-16rem)]">
+              <ScrollArea className="flex-1">
                 {loading ? (
                   <div className="flex justify-center items-center h-32">
                     <Loader2 className="h-6 w-6 animate-spin text-primary" />
@@ -259,7 +259,7 @@ const WhatsAppChat: React.FC = () => {
             </div>
 
             {/* Main Chat Area */}
-            <div className="flex-1 flex flex-col bg-muted/30">
+            <div className="flex-1 flex flex-col bg-muted/30 h-full">
               {selectedChatId && selectedChat ? (
                   <>
                   {/* Chat Header */}
@@ -287,7 +287,8 @@ const WhatsAppChat: React.FC = () => {
                   </div>
 
                   {/* Messages */}
-                  <ScrollArea className="flex-1 p-4 bg-[hsl(var(--whatsapp-bg))]">
+                  <div className="flex-1 overflow-hidden">
+                    <ScrollArea className="h-full p-4 bg-[hsl(var(--whatsapp-bg))]">
                     <div className="space-y-2">
                       {filteredMessages.map((message) => (
                         <div
@@ -321,6 +322,7 @@ const WhatsAppChat: React.FC = () => {
                       <div ref={messagesEndRef} />
                     </div>
                   </ScrollArea>
+                  </div>
 
                   {/* Input */}
                   <div className="bg-card p-4">
