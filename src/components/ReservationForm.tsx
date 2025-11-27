@@ -63,6 +63,15 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   // Se userFranchises foi passado, usar apenas elas; caso contrário, usar todas
   const franchises = userFranchises || allFranchises;
 
+  console.log('📝 ReservationForm renderizado:', {
+    isOpen,
+    userFranchises: userFranchises?.length || 0,
+    allFranchises: allFranchises?.length || 0,
+    franchises: franchises?.length || 0,
+    franchisesLoading,
+    selectedFranchise: formData.franchise_name
+  });
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
