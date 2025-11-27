@@ -18,6 +18,8 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFranchises } from '@/hooks/useFranchises';
+import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
+import { useEffect } from 'react';
 import { Reservation } from '@/types/reservation';
 import { Loader2 } from 'lucide-react';
 
@@ -92,11 +94,11 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                   console.log('🔄 Selecionando franquia:', value);
                   setFormData({...formData, franchise_name: value});
                 }}
-                disabled={franchisesLoading || franchises.length === 0}
+                disabled={loading || franchises.length === 0}
               >
                 <SelectTrigger>
                   <SelectValue placeholder={
-                    franchisesLoading 
+                    loading 
                       ? "Carregando franquias..." 
                       : franchises.length === 0
                         ? "Nenhuma franquia disponível"
@@ -120,7 +122,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                   )}
                 </SelectContent>
               </Select>
-              {!franchisesLoading && franchises.length === 0 && (
+              {!loading && franchises.length === 0 && (
                 <p className="text-sm text-red-500 mt-1">
                   ⚠️ Você não tem acesso a nenhuma franquia. Contate o administrador.
                 </p>
