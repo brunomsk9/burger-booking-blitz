@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useFranchises } from '@/hooks/useFranchises';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import AuthPage from './AuthPage';
 import Dashboard from './Dashboard';
@@ -24,11 +25,12 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 
-type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario' | 'perfil';
+type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario' | 'perfil' | 'whatsapp';
 
 const Layout: React.FC = () => {
   const { user, userProfile, loading, signOut } = useAuth();
   const { franchises } = useFranchises();
+  const navigate = useNavigate();
   const [selectedMenu, setSelectedMenu] = useState<MenuOption>('dashboard');
 
   if (loading) {
@@ -73,6 +75,9 @@ const Layout: React.FC = () => {
         return <Dashboard />;
       case 'reservas':
         return <ReservationManager />;
+      case 'whatsapp':
+        navigate('/whatsapp');
+        return null;
       case 'usuarios':
         return <UserManager />;
       case 'cadastro-usuario':

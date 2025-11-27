@@ -10,7 +10,8 @@ import {
   UserPlus,
   Building2,
   Plus,
-  User
+  User,
+  MessageCircle
 } from 'lucide-react';
 import {
   Sidebar,
@@ -23,7 +24,7 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 
-type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario' | 'perfil';
+type MenuOption = 'dashboard' | 'reservas' | 'usuarios' | 'cadastro-usuario' | 'franquias' | 'cadastro-franquia' | 'relatorios' | 'calendario' | 'perfil' | 'whatsapp';
 
 interface AppSidebarProps {
   selectedMenu: MenuOption;
@@ -36,6 +37,7 @@ export function AppSidebar({ selectedMenu, onMenuSelect }: AppSidebarProps) {
   const menuItems = [
     { key: 'dashboard' as MenuOption, label: 'Dashboard', icon: LayoutDashboard, show: true },
     { key: 'reservas' as MenuOption, label: 'Reservas', icon: Calendar, show: true },
+    { key: 'whatsapp' as MenuOption, label: 'WhatsApp', icon: MessageCircle, show: true },
     { key: 'usuarios' as MenuOption, label: 'Usuários', icon: Users, show: canManageUsers() },
     { key: 'cadastro-usuario' as MenuOption, label: 'Cadastrar Usuário', icon: UserPlus, show: canCreateUsers() },
     { key: 'franquias' as MenuOption, label: 'Franquias', icon: Building2, show: canManageFranchises() },
