@@ -163,15 +163,21 @@ serve(async (req) => {
 
     console.log('✅ Mensagem salva com sucesso:', data);
 
+    const responsePayload = { success: true, message: data };
+    console.log('📤 Enviando resposta para n8n:', JSON.stringify(responsePayload, null, 2));
+    
     return new Response(
-      JSON.stringify({ success: true, message: data }),
+      JSON.stringify(responsePayload),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
     console.error('❌ Erro no webhook:', error);
+    const errorResponse = { error: error.message };
+    console.log('📤 Enviando resposta de erro para n8n:', JSON.stringify(errorResponse));
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify(errorResponse),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
