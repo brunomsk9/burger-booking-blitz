@@ -25,7 +25,7 @@ serve(async (req) => {
     const phone = payload.phone;
     const messageText = payload.text?.message;
     // n8n pode enviar como chatId ou chatLid, dependendo da configuração
-    const chatId = payload.chatId || payload.chatLid;
+    const chatId = payload.chatId || payload.chatLid || payload.chat_id;
     const messageId = payload.messageId;
     
     console.log('🔍 Valores extraídos:', {
@@ -67,11 +67,12 @@ serve(async (req) => {
       isAgentMessage 
     });
 
-    if (!franchiseId || !phone || !messageText) {
+    if (!franchiseId || !phone || !messageText || !chatId) {
       console.error('❌ Dados obrigatórios faltando:', {
         temFranchiseId: !!franchiseId,
         temPhone: !!phone,
         temMessageText: !!messageText,
+        temChatId: !!chatId,
         payload: payload
       });
       return new Response(
@@ -80,9 +81,10 @@ serve(async (req) => {
           details: {
             franchiseId: franchiseId ? 'OK' : 'MISSING',
             phone: phone ? 'OK' : 'MISSING',
-            messageText: messageText ? 'OK' : 'MISSING'
+            messageText: messageText ? 'OK' : 'MISSING',
+            chatId: chatId ? 'OK' : 'MISSING'
           },
-          hint: 'Verifique se o n8n está enviando os campos: franchiseId, phone (ou customerPhone), e messageText (ou text.message)'
+          hint: 'Verifique se o n8n está enviando os campos: franchiseId, phone, messageText (text.message) e chatId (ou chatLid)'
         }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
