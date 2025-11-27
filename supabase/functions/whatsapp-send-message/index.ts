@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+const Z_API_URL = Deno.env.get('Z_API_URL');
+const Z_API_INSTANCE_ID = Deno.env.get('Z_API_INSTANCE_ID');
+const Z_API_TOKEN = Deno.env.get('Z_API_TOKEN');
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -23,41 +27,30 @@ serve(async (req) => {
     );
 
     const { franchiseId, chatId, customerPhone, messageText } = await req.json();
-    console.log('📤 Enviando mensagem:', { franchiseId, chatId, customerPhone });
+    console.log('📤 Enviando mensagem via Z-API:', { franchiseId, chatId, customerPhone });
 
-    if (!franchiseId || !chatId || !customerPhone || !messageText) {
+    if (!franchiseId || !customerPhone || !messageText) {
       return new Response(
-        JSON.stringify({ error: 'Missing required fields' }),
+        JSON.stringify({ error: 'Missing required fields: franchiseId, customerPhone, messageText' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get franchise webhook URL
-    const { data: franchise, error: franchiseError } = await supabase
-      .from('franchises')
-      .select('webhook_url, name')
-      .eq('id', franchiseId)
-      .single();
-
-    if (franchiseError || !franchise?.webhook_url) {
-      console.error('❌ Webhook URL não configurado para esta franquia');
-      return new Response(
-        JSON.stringify({ error: 'Webhook URL not configured for this franchise' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    // Format phone number (remove @ if present)
+    const phone = customerPhone.replace('@c.us', '');
+    const formattedChatId = chatId || `${phone}@c.us`;
 
     // Save message to database first
     const { data: savedMessage, error: saveError } = await supabase
       .from('whatsapp_messages')
       .insert({
         franchise_id: franchiseId,
-        chat_id: chatId,
-        customer_phone: customerPhone,
+        chat_id: formattedChatId,
+        customer_phone: phone,
         message_text: messageText,
         direction: 'outgoing',
         timestamp: new Date().toISOString(),
-        status: 'sent'
+        status: 'pending'
       })
       .select()
       .single();
@@ -69,25 +62,28 @@ serve(async (req) => {
 
     console.log('✅ Mensagem salva no banco:', savedMessage);
 
-    // Send message to n8n webhook
+    // Send message via Z-API
     try {
-      const webhookResponse = await fetch(franchise.webhook_url, {
+      const zapiUrl = `${Z_API_URL}/instances/${Z_API_INSTANCE_ID}/token/${Z_API_TOKEN}/send-text`;
+      
+      console.log('📡 Enviando para Z-API:', zapiUrl);
+
+      const zapiResponse = await fetch(zapiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'send_message',
-          chatId,
-          customerPhone,
-          messageText,
-          franchiseName: franchise.name,
-          messageId: savedMessage.id
+          phone: phone,
+          message: messageText
         }),
       });
 
-      if (!webhookResponse.ok) {
-        console.error('❌ Erro ao enviar para webhook:', await webhookResponse.text());
+      const zapiData = await zapiResponse.json();
+      console.log('📨 Resposta Z-API:', zapiData);
+
+      if (!zapiResponse.ok || !zapiData.messageId) {
+        console.error('❌ Erro ao enviar pela Z-API:', zapiData);
         
         // Update message status to failed
         await supabase
@@ -95,24 +91,31 @@ serve(async (req) => {
           .update({ status: 'failed' })
           .eq('id', savedMessage.id);
 
-        throw new Error('Failed to send message via webhook');
+        throw new Error(zapiData.message || 'Failed to send message via Z-API');
       }
 
-      console.log('✅ Mensagem enviada para n8n');
+      console.log('✅ Mensagem enviada pela Z-API');
 
-      // Update message status to delivered
+      // Update message with Z-API message ID and status
       await supabase
         .from('whatsapp_messages')
-        .update({ status: 'delivered' })
+        .update({ 
+          status: 'sent',
+          message_id: zapiData.messageId 
+        })
         .eq('id', savedMessage.id);
 
       return new Response(
-        JSON.stringify({ success: true, message: savedMessage }),
+        JSON.stringify({ 
+          success: true, 
+          message: savedMessage,
+          zapiMessageId: zapiData.messageId 
+        }),
         { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
 
-    } catch (webhookError) {
-      console.error('❌ Erro ao chamar webhook:', webhookError);
+    } catch (zapiError) {
+      console.error('❌ Erro ao chamar Z-API:', zapiError);
       
       // Update message status to failed
       await supabase
@@ -120,7 +123,7 @@ serve(async (req) => {
         .update({ status: 'failed' })
         .eq('id', savedMessage.id);
 
-      throw webhookError;
+      throw zapiError;
     }
 
   } catch (error) {
