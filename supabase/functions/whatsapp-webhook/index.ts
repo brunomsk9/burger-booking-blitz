@@ -18,37 +18,35 @@ serve(async (req) => {
     );
 
     const payload = await req.json();
-    console.log('📥 Webhook Z-API recebido:', JSON.stringify(payload, null, 2));
+    console.log('📥 Webhook n8n recebido:', JSON.stringify(payload, null, 2));
 
-    // Extract data from Z-API webhook payload
-    // Z-API format: { phone: "5513997162888", text: { message: "texto" }, chatId: "5513997162888@c.us", ... }
-    const phone = payload.phone || payload.chatId?.replace('@c.us', '');
-    const messageText = payload.text?.message || payload.message || payload.body;
+    // Extract data from n8n payload (que recebeu da Z-API)
+    const franchiseId = payload.franchiseId;
+    const phone = payload.phone || payload.customerPhone || payload.chatId?.replace('@c.us', '');
+    const messageText = payload.messageText || payload.text?.message || payload.message || payload.body;
     const chatId = payload.chatId || `${phone}@c.us`;
     const messageId = payload.messageId || payload.id?.id;
-    const timestamp = payload.momment ? new Date(payload.momment * 1000).toISOString() : new Date().toISOString();
-    const senderName = payload.senderName || payload.notifyName;
+    const timestamp = payload.timestamp || (payload.momment ? new Date(payload.momment * 1000).toISOString() : new Date().toISOString());
+    const senderName = payload.customerName || payload.senderName || payload.notifyName;
 
-    console.log('📞 Dados extraídos:', { phone, messageText, chatId, messageId, senderName });
+    console.log('📞 Dados extraídos:', { franchiseId, phone, messageText, chatId, messageId, senderName });
 
-    if (!phone || !messageText) {
-      console.error('❌ Dados obrigatórios faltando - phone ou messageText');
+    if (!franchiseId || !phone || !messageText) {
+      console.error('❌ Dados obrigatórios faltando - franchiseId, phone ou messageText');
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: phone, messageText' }),
+        JSON.stringify({ error: 'Missing required fields: franchiseId, phone, messageText' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Buscar a franquia pelo número (heroissantos instance)
-    // Para simplificar, vamos usar a franquia Heróis Burger Santos por padrão
-    const { data: franchises, error: franchiseError } = await supabase
+    // Verificar se a franquia existe
+    const { data: franchise, error: franchiseError } = await supabase
       .from('franchises')
-      .select('id')
-      .eq('company_name', 'Heróis Burger Santos')
-      .limit(1)
+      .select('id, company_name')
+      .eq('id', franchiseId)
       .single();
 
-    if (franchiseError || !franchises) {
+    if (franchiseError || !franchise) {
       console.error('❌ Franquia não encontrada:', franchiseError);
       return new Response(
         JSON.stringify({ error: 'Franchise not found' }),
@@ -56,13 +54,13 @@ serve(async (req) => {
       );
     }
 
-    console.log('🏢 Franquia encontrada:', franchises.id);
+    console.log('🏢 Franquia encontrada:', franchise.company_name);
 
     // Insert message into database
     const { data, error } = await supabase
       .from('whatsapp_messages')
       .insert({
-        franchise_id: franchises.id,
+        franchise_id: franchiseId,
         chat_id: chatId,
         customer_name: senderName || phone,
         customer_phone: phone,
