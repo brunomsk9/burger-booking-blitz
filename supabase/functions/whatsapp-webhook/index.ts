@@ -44,8 +44,24 @@ serve(async (req) => {
     }
     
     const senderName = payload.customerName || payload.senderName || payload.notifyName;
+    
+    // Detectar se a mensagem é do agente automático
+    // Mensagens do agente podem ter: fromMe=true, isAgent=true, ou vir com direction='outgoing'
+    const isAgentMessage = payload.fromMe === true || 
+                          payload.isAgent === true || 
+                          payload.direction === 'outgoing' ||
+                          payload.source === 'agent' ||
+                          payload.type === 'agent_message';
 
-    console.log('📞 Dados extraídos:', { franchiseId, phone, messageText, chatId, messageId, senderName });
+    console.log('📞 Dados extraídos:', { 
+      franchiseId, 
+      phone, 
+      messageText, 
+      chatId, 
+      messageId, 
+      senderName,
+      isAgentMessage 
+    });
 
     if (!franchiseId || !phone || !messageText) {
       console.error('❌ Dados obrigatórios faltando - franchiseId, phone ou messageText');
@@ -81,7 +97,7 @@ serve(async (req) => {
         customer_name: senderName || phone,
         customer_phone: phone,
         message_text: messageText,
-        direction: 'incoming',
+        direction: isAgentMessage ? 'outgoing' : 'incoming',
         message_id: messageId,
         timestamp: timestamp,
         status: 'delivered'
