@@ -1,9 +1,10 @@
-
 import React, { useEffect, useState } from 'react';
-import { Calendar, Users, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Calendar, Users, CheckCircle, Clock, XCircle, Building2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import StatsCard from './dashboard/StatsCard';
 import RecentReservations from './dashboard/RecentReservations';
+import { useAuth } from '@/hooks/useAuth';
+import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
 
 interface DashboardStats {
   totalReservations: number;
@@ -23,6 +24,8 @@ interface RecentReservation {
 }
 
 const Dashboard: React.FC = () => {
+  const { userProfile } = useAuth();
+  const { franchises } = useCurrentUserFranchises();
   const [stats, setStats] = useState<DashboardStats>({
     totalReservations: 0,
     approvedReservations: 0,
@@ -88,8 +91,20 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="bg-gradient-to-r from-blue-600 to-red-600 text-white p-6 rounded-lg">
-        <h1 className="text-2xl font-bold mb-2">Bem-vindo ao Sistema reservaja! 🦸‍♂️</h1>
-        <p className="text-blue-100">Gerencie suas reservas de forma simples e eficiente.</p>
+        <h1 className="text-2xl font-bold mb-2">
+          Olá, {userProfile?.name || 'Usuário'}! 🦸‍♂️
+        </h1>
+        <p className="text-blue-100 mb-3">Gerencie suas reservas de forma simples e eficiente.</p>
+        {franchises.length > 0 && (
+          <div className="flex items-center gap-2 text-sm">
+            <Building2 className="w-4 h-4" />
+            <span>
+              {franchises.length === 1 
+                ? `Franquia: ${franchises[0].displayName}`
+                : `Franquias: ${franchises.map(f => f.displayName).join(', ')}`}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
