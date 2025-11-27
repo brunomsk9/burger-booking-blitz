@@ -26,7 +26,23 @@ serve(async (req) => {
     const messageText = payload.messageText || payload.text?.message || payload.message || payload.body;
     const chatId = payload.chatId || `${phone}@c.us`;
     const messageId = payload.messageId || payload.id?.id;
-    const timestamp = payload.timestamp || (payload.momment ? new Date(payload.momment * 1000).toISOString() : new Date().toISOString());
+    
+    // Convert timestamp properly
+    let timestamp: string;
+    if (payload.timestamp) {
+      timestamp = payload.timestamp;
+    } else if (payload.momment) {
+      // momment vem como string em milissegundos da Z-API
+      const mommentMs = parseInt(String(payload.momment), 10);
+      if (!isNaN(mommentMs) && mommentMs > 0) {
+        timestamp = new Date(mommentMs).toISOString();
+      } else {
+        timestamp = new Date().toISOString();
+      }
+    } else {
+      timestamp = new Date().toISOString();
+    }
+    
     const senderName = payload.customerName || payload.senderName || payload.notifyName;
 
     console.log('📞 Dados extraídos:', { franchiseId, phone, messageText, chatId, messageId, senderName });
