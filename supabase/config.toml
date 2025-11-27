@@ -5,3 +5,10 @@ verify_jwt = true
 
 [functions.notify-whatsapp-reservation]
 verify_jwt = false
+
+[functions.whatsapp-webhook]
+verify_jwt = false
+
+[functions.whatsapp-send-message]
+verify_jwt = true
+

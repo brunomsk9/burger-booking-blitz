@@ -253,6 +253,56 @@ export type Database = {
           },
         ]
       }
+      whatsapp_messages: {
+        Row: {
+          chat_id: string
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string
+          direction: string
+          franchise_id: string
+          id: string
+          message_id: string | null
+          message_text: string
+          status: string | null
+          timestamp: string
+        }
+        Insert: {
+          chat_id: string
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone: string
+          direction: string
+          franchise_id: string
+          id?: string
+          message_id?: string | null
+          message_text: string
+          status?: string | null
+          timestamp?: string
+        }
+        Update: {
+          chat_id?: string
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string
+          direction?: string
+          franchise_id?: string
+          id?: string
+          message_id?: string | null
+          message_text?: string
+          status?: string | null
+          timestamp?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_messages_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
