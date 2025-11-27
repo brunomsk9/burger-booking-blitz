@@ -25,27 +25,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loading = authLoading || profileLoading;
 
-  console.log('🏠 AuthProvider - Estado atual:', {
-    user: user?.email,
-    userProfile: userProfile?.name,
-    role: userProfile?.role,
-    authLoading,
-    profileLoading,
-    totalLoading: loading
-  });
-
   const signIn = async (email: string, password: string) => {
-    console.log('🔑 Tentando fazer login...');
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    console.log('🔑 Resultado do login:', error ? 'Erro' : 'Sucesso');
     return { error };
   };
 
   const signUp = async (email: string, password: string, name: string) => {
-    console.log('📝 Tentando fazer cadastro...');
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -60,12 +48,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     });
-    console.log('📝 Resultado do cadastro:', error ? 'Erro' : 'Sucesso');
     return { error };
   };
 
   const signOut = async () => {
-    console.log('🚪 Fazendo logout...');
     await supabase.auth.signOut();
   };
 

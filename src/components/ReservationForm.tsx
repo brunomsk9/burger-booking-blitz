@@ -73,21 +73,10 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   const franchises = userFranchises || (shouldUseUserFranchises ? currentUserFranchises : availableFranchises);
   const loading = shouldUseUserFranchises ? userFranchisesLoading : franchisesLoading;
 
-  console.log('📝 ReservationForm renderizado:', {
-    isOpen,
-    userFranchises: userFranchises?.length || 0,
-    currentUserFranchises: currentUserFranchises?.length || 0,
-    availableFranchises: availableFranchises?.length || 0,
-    franchises: franchises?.length || 0,
-    loading,
-    selectedFranchise: formData.franchise_name
-  });
-
   // Pré-selecionar franquia se usuário tem apenas uma e não está editando
   useEffect(() => {
     if (!editingReservation && franchises.length === 1 && !formData.franchise_name) {
       const franchiseName = franchises[0].displayName || franchises[0].name;
-      console.log('🎯 Pré-selecionando única franquia do usuário:', franchiseName);
       setFormData(prev => ({ ...prev, franchise_name: franchiseName }));
     }
   }, [franchises, editingReservation, formData.franchise_name, setFormData]);
@@ -108,10 +97,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
               </label>
               <Select 
                 value={formData.franchise_name} 
-                onValueChange={(value) => {
-                  console.log('🔄 Selecionando franquia:', value);
-                  setFormData({...formData, franchise_name: value});
-                }}
+                onValueChange={(value) => setFormData({...formData, franchise_name: value})}
                 disabled={loading || franchises.length === 0}
               >
                 <SelectTrigger>
@@ -125,14 +111,11 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
                 </SelectTrigger>
                 <SelectContent>
                   {franchises.length > 0 ? (
-                    franchises.map(franchise => {
-                      console.log('🏢 Opção de franquia:', franchise.displayName || franchise.name);
-                      return (
-                        <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
-                          {franchise.displayName || franchise.name}
-                        </SelectItem>
-                      );
-                    })
+                    franchises.map(franchise => (
+                      <SelectItem key={franchise.id} value={franchise.displayName || franchise.name}>
+                        {franchise.displayName || franchise.name}
+                      </SelectItem>
+                    ))
                   ) : (
                     <SelectItem value="none" disabled>
                       Nenhuma franquia disponível
