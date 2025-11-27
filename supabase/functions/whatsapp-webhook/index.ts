@@ -24,7 +24,8 @@ serve(async (req) => {
     const franchiseId = payload.franchiseId;
     const phone = payload.phone;
     const messageText = payload.text?.message;
-    const chatId = payload.chatLid;
+    // n8n pode enviar como chatId ou chatLid, dependendo da configuração
+    const chatId = payload.chatId || payload.chatLid;
     const messageId = payload.messageId;
     
     console.log('🔍 Valores extraídos:', {
