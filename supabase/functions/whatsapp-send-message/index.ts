@@ -70,13 +70,14 @@ serve(async (req) => {
 
     // Send message via n8n webhook
     try {
+      // Formato compatível com o n8n/Z-API
       const webhookPayload = {
-        action: 'send_message',
         franchiseId: franchiseId,
-        franchiseName: franchise.company_name,
+        phone: phone,
+        text: {
+          message: messageText
+        },
         chatId: formattedChatId,
-        customerPhone: phone,
-        messageText: messageText,
         messageId: savedMessage.id
       };
 
