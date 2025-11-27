@@ -15,7 +15,7 @@ import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
 import ReservationCard from './ReservationCard';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
-import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { format, parseISO, startOfDay, endOfDay, addDays } from 'date-fns';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation, refetch } = useReservations();
@@ -48,9 +48,12 @@ const ReservationManager: React.FC = () => {
     characters: ''
   });
 
-  // Filtros de pesquisa
-  const [filterDateStart, setFilterDateStart] = useState('');
-  const [filterDateEnd, setFilterDateEnd] = useState('');
+  // Filtros de pesquisa - pré-selecionar 7 dias
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const sevenDaysLater = format(addDays(new Date(), 7), 'yyyy-MM-dd');
+  
+  const [filterDateStart, setFilterDateStart] = useState(today);
+  const [filterDateEnd, setFilterDateEnd] = useState(sevenDaysLater);
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterCustomerName, setFilterCustomerName] = useState('');
 
@@ -90,8 +93,8 @@ const ReservationManager: React.FC = () => {
   }, [reservations, filterDateStart, filterDateEnd, filterStatus, filterCustomerName]);
 
   const clearFilters = () => {
-    setFilterDateStart('');
-    setFilterDateEnd('');
+    setFilterDateStart(today);
+    setFilterDateEnd(sevenDaysLater);
     setFilterStatus('all');
     setFilterCustomerName('');
   };
