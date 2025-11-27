@@ -16,6 +16,20 @@ export interface WhatsAppMessage {
   created_at: string;
 }
 
+export interface WhatsAppChat {
+  id: string;
+  franchise_id: string;
+  chat_id: string;
+  customer_name: string | null;
+  customer_phone: string;
+  archived: boolean;
+  last_message_time: string | null;
+  last_agent_message_time: string | null;
+  unread_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface ChatGroup {
   chat_id: string;
   customer_name: string;
@@ -23,20 +37,56 @@ export interface ChatGroup {
   last_message: string;
   last_message_time: string;
   unread_count: number;
+  archived: boolean;
+  needs_response: boolean;
 }
+
+export type ChatFilter = 'all' | 'unread' | 'awaiting_response' | 'archived';
 
 export const useWhatsAppMessages = (franchiseId: string | null) => {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
+  const [chats, setChats] = useState<WhatsAppChat[]>([]);
   const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<ChatFilter>('all');
   const { toast } = useToast();
+
+  // Fetch chats metadata
+  const fetchChats = async () => {
+    if (!franchiseId) {
+      setChats([]);
+      setChatGroups([]);
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data: chatsData, error: chatsError } = await supabase
+        .from('whatsapp_chats')
+        .select('*')
+        .eq('franchise_id', franchiseId)
+        .order('last_message_time', { ascending: false });
+
+      if (chatsError) throw chatsError;
+
+      setChats((chatsData || []) as WhatsAppChat[]);
+      await buildChatGroups(chatsData || []);
+    } catch (error) {
+      console.error('Erro ao carregar conversas:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar as conversas',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Fetch all messages for a franchise
   const fetchMessages = async () => {
     if (!franchiseId) {
       setMessages([]);
-      setChatGroups([]);
-      setLoading(false);
       return;
     }
 
@@ -50,47 +100,53 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       if (error) throw error;
 
       setMessages((data || []) as WhatsAppMessage[]);
-      
-      // Group messages by chat_id
-      const groups = groupMessagesByChat((data || []) as WhatsAppMessage[]);
-      setChatGroups(groups);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as mensagens',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
     }
   };
 
-  // Group messages by chat for the sidebar
-  const groupMessagesByChat = (msgs: WhatsAppMessage[]): ChatGroup[] => {
-    const grouped = msgs.reduce((acc, msg) => {
-      if (!acc[msg.chat_id]) {
-        acc[msg.chat_id] = {
-          chat_id: msg.chat_id,
-          customer_name: msg.customer_name || msg.customer_phone,
-          customer_phone: msg.customer_phone,
-          last_message: msg.message_text,
-          last_message_time: msg.timestamp,
-          unread_count: 0,
-        };
-      } else {
-        // Update with latest message
-        if (new Date(msg.timestamp) > new Date(acc[msg.chat_id].last_message_time)) {
-          acc[msg.chat_id].last_message = msg.message_text;
-          acc[msg.chat_id].last_message_time = msg.timestamp;
-        }
-      }
-      return acc;
-    }, {} as Record<string, ChatGroup>);
+  // Build chat groups with last message from messages table
+  const buildChatGroups = async (chatsData: WhatsAppChat[]) => {
+    const groups: ChatGroup[] = [];
 
-    return Object.values(grouped).sort(
-      (a, b) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime()
-    );
+    for (const chat of chatsData) {
+      // Get last message for this chat
+      const { data: lastMessage } = await supabase
+        .from('whatsapp_messages')
+        .select('message_text, timestamp')
+        .eq('franchise_id', franchiseId)
+        .eq('chat_id', chat.chat_id)
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      // Determine if awaiting response (last message was incoming)
+      const { data: lastIncoming } = await supabase
+        .from('whatsapp_messages')
+        .select('timestamp')
+        .eq('franchise_id', franchiseId)
+        .eq('chat_id', chat.chat_id)
+        .eq('direction', 'incoming')
+        .order('timestamp', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const needsResponse = lastIncoming && (!chat.last_agent_message_time || 
+        new Date(lastIncoming.timestamp) > new Date(chat.last_agent_message_time));
+
+      groups.push({
+        chat_id: chat.chat_id,
+        customer_name: chat.customer_name || chat.customer_phone,
+        customer_phone: chat.customer_phone,
+        last_message: lastMessage?.message_text || '',
+        last_message_time: lastMessage?.timestamp || chat.last_message_time || new Date().toISOString(),
+        unread_count: chat.unread_count,
+        archived: chat.archived,
+        needs_response: !!needsResponse,
+      });
+    }
+
+    setChatGroups(groups);
   };
 
   // Send a message
@@ -126,14 +182,79 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     }
   };
 
+  // Archive/unarchive chat
+  const toggleArchiveChat = async (chatId: string) => {
+    if (!franchiseId) return;
+
+    try {
+      const chat = chats.find((c) => c.chat_id === chatId);
+      if (!chat) return;
+
+      const { error } = await supabase
+        .from('whatsapp_chats')
+        .update({ archived: !chat.archived })
+        .eq('franchise_id', franchiseId)
+        .eq('chat_id', chatId);
+
+      if (error) throw error;
+
+      toast({
+        title: chat.archived ? 'Conversa desarquivada' : 'Conversa arquivada',
+        description: `A conversa foi ${chat.archived ? 'desarquivada' : 'arquivada'} com sucesso`,
+      });
+
+      await fetchChats();
+    } catch (error) {
+      console.error('Erro ao arquivar conversa:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível arquivar a conversa',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Mark chat as read
+  const markChatAsRead = async (chatId: string) => {
+    if (!franchiseId) return;
+
+    try {
+      const { error } = await supabase
+        .from('whatsapp_chats')
+        .update({ unread_count: 0 })
+        .eq('franchise_id', franchiseId)
+        .eq('chat_id', chatId);
+
+      if (error) throw error;
+    } catch (error) {
+      console.error('Erro ao marcar conversa como lida:', error);
+    }
+  };
+
+  // Filter chat groups based on selected filter
+  const filteredChatGroups = chatGroups.filter((chat) => {
+    switch (filter) {
+      case 'unread':
+        return chat.unread_count > 0;
+      case 'awaiting_response':
+        return chat.needs_response && !chat.archived;
+      case 'archived':
+        return chat.archived;
+      case 'all':
+      default:
+        return !chat.archived;
+    }
+  });
+
   // Subscribe to realtime updates
   useEffect(() => {
     if (!franchiseId) return;
 
+    fetchChats();
     fetchMessages();
 
-    const channel = supabase
-      .channel('whatsapp-messages')
+    const messagesChannel = supabase
+      .channel('whatsapp-messages-updates')
       .on(
         'postgres_changes',
         {
@@ -147,33 +268,6 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
           const newMessage = payload.new as WhatsAppMessage;
           
           setMessages((prev) => [...prev, newMessage]);
-          
-          // Update chat groups
-          setChatGroups((prev) => {
-            const updated = [...prev];
-            const existingIndex = updated.findIndex((g) => g.chat_id === newMessage.chat_id);
-            
-            if (existingIndex >= 0) {
-              updated[existingIndex] = {
-                ...updated[existingIndex],
-                last_message: newMessage.message_text,
-                last_message_time: newMessage.timestamp,
-              };
-            } else {
-              updated.unshift({
-                chat_id: newMessage.chat_id,
-                customer_name: newMessage.customer_name || newMessage.customer_phone,
-                customer_phone: newMessage.customer_phone,
-                last_message: newMessage.message_text,
-                last_message_time: newMessage.timestamp,
-                unread_count: 0,
-              });
-            }
-            
-            return updated.sort(
-              (a, b) => new Date(b.last_message_time).getTime() - new Date(a.last_message_time).getTime()
-            );
-          });
 
           if (newMessage.direction === 'incoming') {
             toast({
@@ -185,16 +279,41 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       )
       .subscribe();
 
+    const chatsChannel = supabase
+      .channel('whatsapp-chats-updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'whatsapp_chats',
+          filter: `franchise_id=eq.${franchiseId}`,
+        },
+        () => {
+          console.log('💬 Metadata do chat atualizada');
+          fetchChats();
+        }
+      )
+      .subscribe();
+
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(messagesChannel);
+      supabase.removeChannel(chatsChannel);
     };
   }, [franchiseId]);
 
   return {
     messages,
-    chatGroups,
+    chatGroups: filteredChatGroups,
     loading,
+    filter,
+    setFilter,
     sendMessage,
-    refetch: fetchMessages,
+    toggleArchiveChat,
+    markChatAsRead,
+    refetch: () => {
+      fetchChats();
+      fetchMessages();
+    },
   };
 };

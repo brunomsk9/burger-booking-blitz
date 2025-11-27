@@ -253,6 +253,56 @@ export type Database = {
           },
         ]
       }
+      whatsapp_chats: {
+        Row: {
+          archived: boolean | null
+          chat_id: string
+          created_at: string | null
+          customer_name: string | null
+          customer_phone: string
+          franchise_id: string
+          id: string
+          last_agent_message_time: string | null
+          last_message_time: string | null
+          unread_count: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          archived?: boolean | null
+          chat_id: string
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone: string
+          franchise_id: string
+          id?: string
+          last_agent_message_time?: string | null
+          last_message_time?: string | null
+          unread_count?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          archived?: boolean | null
+          chat_id?: string
+          created_at?: string | null
+          customer_name?: string | null
+          customer_phone?: string
+          franchise_id?: string
+          id?: string
+          last_agent_message_time?: string | null
+          last_message_time?: string | null
+          unread_count?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_chats_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       whatsapp_messages: {
         Row: {
           chat_id: string
@@ -264,6 +314,7 @@ export type Database = {
           id: string
           message_id: string | null
           message_text: string
+          read: boolean | null
           status: string | null
           timestamp: string
         }
@@ -277,6 +328,7 @@ export type Database = {
           id?: string
           message_id?: string | null
           message_text: string
+          read?: boolean | null
           status?: string | null
           timestamp?: string
         }
@@ -290,6 +342,7 @@ export type Database = {
           id?: string
           message_id?: string | null
           message_text?: string
+          read?: boolean | null
           status?: string | null
           timestamp?: string
         }

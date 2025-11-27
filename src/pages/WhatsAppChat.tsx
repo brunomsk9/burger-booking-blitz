@@ -8,7 +8,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home } from 'lucide-react';
+import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -27,7 +29,16 @@ const WhatsAppChat: React.FC = () => {
   const [messageInput, setMessageInput] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { messages, chatGroups, loading, sendMessage } = useWhatsAppMessages(selectedFranchiseId);
+  const { 
+    messages, 
+    chatGroups, 
+    loading, 
+    filter,
+    setFilter,
+    sendMessage, 
+    toggleArchiveChat,
+    markChatAsRead 
+  } = useWhatsAppMessages(selectedFranchiseId);
 
   // Auto-select first franchise
   useEffect(() => {
@@ -53,6 +64,11 @@ const WhatsAppChat: React.FC = () => {
     } catch (error) {
       console.error('Erro ao enviar mensagem:', error);
     }
+  };
+
+  const handleChatClick = async (chatId: string) => {
+    setSelectedChatId(chatId);
+    await markChatAsRead(chatId);
   };
 
   const filteredMessages = selectedChatId
@@ -149,8 +165,26 @@ const WhatsAppChat: React.FC = () => {
           <div className="flex-1 flex overflow-hidden">
             {/* Sidebar - Chat List */}
             <div className="w-80 border-r bg-card">
-              <div className="p-4 border-b">
+              <div className="p-4 border-b space-y-3">
                 <h2 className="font-semibold text-lg">Conversas</h2>
+                
+                {/* Filters */}
+                <Tabs value={filter} onValueChange={(value) => setFilter(value as any)}>
+                  <TabsList className="grid w-full grid-cols-4">
+                    <TabsTrigger value="all" className="text-xs">
+                      Todas
+                    </TabsTrigger>
+                    <TabsTrigger value="unread" className="text-xs">
+                      <Mail className="h-3 w-3" />
+                    </TabsTrigger>
+                    <TabsTrigger value="awaiting_response" className="text-xs">
+                      <Clock className="h-3 w-3" />
+                    </TabsTrigger>
+                    <TabsTrigger value="archived" className="text-xs">
+                      <Archive className="h-3 w-3" />
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
               </div>
               <ScrollArea className="h-[calc(100vh-12rem)]">
                 {loading ? (
@@ -166,23 +200,43 @@ const WhatsAppChat: React.FC = () => {
                   chatGroups.map((chat) => (
                     <div
                       key={chat.chat_id}
-                      onClick={() => setSelectedChatId(chat.chat_id)}
+                      onClick={() => handleChatClick(chat.chat_id)}
                       className={`p-4 border-b cursor-pointer hover:bg-accent transition-colors ${
                         selectedChatId === chat.chat_id ? 'bg-accent' : ''
                       }`}
                     >
                       <div className="flex items-start gap-3">
-                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 relative">
                           <MessageCircle className="h-5 w-5 text-primary" />
+                          {chat.unread_count > 0 && (
+                            <Badge 
+                              variant="destructive" 
+                              className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                            >
+                              {chat.unread_count}
+                            </Badge>
+                          )}
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex justify-between items-start mb-1">
-                            <h3 className="font-semibold text-sm truncate">{chat.customer_name}</h3>
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <h3 className={`text-sm truncate ${chat.unread_count > 0 ? 'font-bold' : 'font-semibold'}`}>
+                                {chat.customer_name}
+                              </h3>
+                              {chat.needs_response && !chat.archived && (
+                                <Clock className="h-3 w-3 text-orange-500 flex-shrink-0" />
+                              )}
+                              {chat.archived && (
+                                <Archive className="h-3 w-3 text-muted-foreground flex-shrink-0" />
+                              )}
+                            </div>
                             <span className="text-xs text-muted-foreground whitespace-nowrap ml-2">
                               {format(new Date(chat.last_message_time), 'HH:mm')}
                             </span>
                           </div>
-                          <p className="text-sm text-muted-foreground truncate">{chat.last_message}</p>
+                          <p className={`text-sm truncate ${chat.unread_count > 0 ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                            {chat.last_message}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -197,14 +251,24 @@ const WhatsAppChat: React.FC = () => {
                 <>
                   {/* Chat Header */}
                   <div className="bg-card border-b p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                        <MessageCircle className="h-5 w-5 text-primary" />
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                          <MessageCircle className="h-5 w-5 text-primary" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold">{selectedChat.customer_name}</h3>
+                          <p className="text-sm text-muted-foreground">{selectedChat.customer_phone}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold">{selectedChat.customer_name}</h3>
-                        <p className="text-sm text-muted-foreground">{selectedChat.customer_phone}</p>
-                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleArchiveChat(selectedChatId)}
+                      >
+                        <Archive className="h-4 w-4 mr-2" />
+                        {selectedChat.archived ? 'Desarquivar' : 'Arquivar'}
+                      </Button>
                     </div>
                   </div>
 
