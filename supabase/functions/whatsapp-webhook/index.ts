@@ -22,10 +22,18 @@ serve(async (req) => {
 
     // Extract data from n8n payload (que recebeu da Z-API)
     const franchiseId = payload.franchiseId;
-    const phone = payload.phone || payload.customerPhone || payload.chatId?.replace('@c.us', '');
+    const phone = payload.phone || payload.customerPhone || payload.chatId?.replace('@c.us', '').replace('@lid', '');
     const messageText = payload.messageText || payload.text?.message || payload.message || payload.body;
     const chatId = payload.chatId || `${phone}@c.us`;
     const messageId = payload.messageId || payload.id?.id;
+    
+    console.log('🔍 Valores extraídos:', {
+      franchiseId,
+      phone,
+      messageText,
+      chatId,
+      messageId
+    });
     
     // Convert timestamp properly
     let timestamp: string;
@@ -64,9 +72,22 @@ serve(async (req) => {
     });
 
     if (!franchiseId || !phone || !messageText) {
-      console.error('❌ Dados obrigatórios faltando - franchiseId, phone ou messageText');
+      console.error('❌ Dados obrigatórios faltando:', {
+        temFranchiseId: !!franchiseId,
+        temPhone: !!phone,
+        temMessageText: !!messageText,
+        payload: payload
+      });
       return new Response(
-        JSON.stringify({ error: 'Missing required fields: franchiseId, phone, messageText' }),
+        JSON.stringify({ 
+          error: 'Missing required fields',
+          details: {
+            franchiseId: franchiseId ? 'OK' : 'MISSING',
+            phone: phone ? 'OK' : 'MISSING',
+            messageText: messageText ? 'OK' : 'MISSING'
+          },
+          hint: 'Verifique se o n8n está enviando os campos: franchiseId, phone (ou customerPhone), e messageText (ou text.message)'
+        }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
