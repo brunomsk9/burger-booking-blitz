@@ -19,6 +19,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useFranchises } from '@/hooks/useFranchises';
 import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useEffect } from 'react';
 import { Reservation } from '@/types/reservation';
 import { Loader2 } from 'lucide-react';
@@ -60,12 +61,17 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   editingReservation,
   userFranchises,
 }) => {
+  const { isEditor } = usePermissions();
+  
+  // Editors usam apenas suas franquias (query otimizada), outros roles usam todas
+  const shouldUseUserFranchises = isEditor() && !userFranchises;
+  
   const { franchises: availableFranchises, loading: franchisesLoading } = useFranchises();
   const { franchises: currentUserFranchises, loading: userFranchisesLoading } = useCurrentUserFranchises();
   
-  // Usar franquias do usuário logado ou as passadas como prop ou todas disponíveis
-  const franchises = userFranchises || currentUserFranchises || availableFranchises;
-  const loading = franchisesLoading || userFranchisesLoading;
+  // Usar franquias baseado no role para evitar queries desnecessárias
+  const franchises = userFranchises || (shouldUseUserFranchises ? currentUserFranchises : availableFranchises);
+  const loading = shouldUseUserFranchises ? userFranchisesLoading : franchisesLoading;
 
   console.log('📝 ReservationForm renderizado:', {
     isOpen,
