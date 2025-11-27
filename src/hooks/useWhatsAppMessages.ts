@@ -152,7 +152,17 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
   // Send a message
   const sendMessage = async (chatId: string, customerPhone: string, messageText: string) => {
-    if (!franchiseId) return;
+    if (!franchiseId) {
+      console.error('❌ franchiseId não está definido');
+      return;
+    }
+
+    console.log('📤 Tentando enviar mensagem:', {
+      franchiseId,
+      chatId,
+      customerPhone,
+      messageText: messageText.substring(0, 50) + '...'
+    });
 
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-send-message', {
@@ -164,7 +174,12 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         },
       });
 
-      if (error) throw error;
+      console.log('✅ Resposta da função:', { data, error });
+
+      if (error) {
+        console.error('❌ Erro retornado pela função:', error);
+        throw error;
+      }
 
       toast({
         title: 'Mensagem enviada',
@@ -173,7 +188,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       return data;
     } catch (error) {
-      console.error('Erro ao enviar mensagem:', error);
+      console.error('❌ Erro ao enviar mensagem:', error);
       toast({
         title: 'Erro',
         description: 'Não foi possível enviar a mensagem',
