@@ -5,6 +5,7 @@ import StatsCard from './dashboard/StatsCard';
 import RecentReservations from './dashboard/RecentReservations';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface DashboardStats {
   totalReservations: number;
@@ -26,6 +27,7 @@ interface RecentReservation {
 const Dashboard: React.FC = () => {
   const { userProfile } = useAuth();
   const { franchises } = useCurrentUserFranchises();
+  const [selectedFranchise, setSelectedFranchise] = useState<string>('all');
   const [stats, setStats] = useState<DashboardStats>({
     totalReservations: 0,
     approvedReservations: 0,
@@ -38,17 +40,24 @@ const Dashboard: React.FC = () => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [selectedFranchise]);
 
   const fetchDashboardData = async () => {
     try {
       console.log('Carregando dados do dashboard...');
       setLoading(true);
       
-      const { data: reservations, error } = await supabase
+      let query = supabase
         .from('reservations')
         .select('*')
         .order('created_at', { ascending: false });
+
+      // Filter by selected franchise if not "all"
+      if (selectedFranchise !== 'all') {
+        query = query.eq('franchise_name', selectedFranchise);
+      }
+
+      const { data: reservations, error } = await query;
 
       if (error) {
         console.error('Erro ao carregar dados do dashboard:', error);
@@ -95,16 +104,30 @@ const Dashboard: React.FC = () => {
           Olá, {userProfile?.name || 'Usuário'}! 🦸‍♂️
         </h1>
         <p className="text-blue-100 mb-3">Gerencie suas reservas de forma simples e eficiente.</p>
-        {franchises.length > 0 && (
-          <div className="flex items-center gap-2 text-sm">
-            <Building2 className="w-4 h-4" />
-            <span>
-              {franchises.length === 1 
-                ? `Franquia: ${franchises[0].displayName}`
-                : `Franquias: ${franchises.map(f => f.displayName).join(', ')}`}
-            </span>
+        
+        {franchises.length > 1 ? (
+          <div className="flex items-center gap-3 mt-4">
+            <Building2 className="w-4 h-4 flex-shrink-0" />
+            <Select value={selectedFranchise} onValueChange={setSelectedFranchise}>
+              <SelectTrigger className="w-[280px] bg-white/10 border-white/20 text-white">
+                <SelectValue placeholder="Selecione uma franquia" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Franquias</SelectItem>
+                {franchises.map((franchise) => (
+                  <SelectItem key={franchise.id} value={franchise.displayName}>
+                    {franchise.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-        )}
+        ) : franchises.length === 1 ? (
+          <div className="flex items-center gap-2 text-sm mt-3">
+            <Building2 className="w-4 h-4" />
+            <span>Franquia: {franchises[0].displayName}</span>
+          </div>
+        ) : null}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
