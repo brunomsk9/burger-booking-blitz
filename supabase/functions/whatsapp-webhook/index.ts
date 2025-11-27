@@ -28,13 +28,15 @@ serve(async (req) => {
     // chatLid vem direto da Z-API, então tem prioridade
     const chatId = payload.chatLid || payload.chatId || payload.chat_id;
     const messageId = payload.messageId;
+    const status = payload.status || 'SENT';
     
     console.log('🔍 Valores extraídos:', {
       franchiseId,
       phone,
       messageText,
       chatId,
-      messageId
+      messageId,
+      status
     });
     
     // Convert timestamp properly
@@ -122,7 +124,7 @@ serve(async (req) => {
         direction: isAgentMessage ? 'outgoing' : 'incoming',
         message_id: messageId,
         timestamp: timestamp,
-        status: 'delivered'
+        status: status.toLowerCase()
       })
       .select()
       .single();
