@@ -9,6 +9,7 @@ import { Calendar, Plus, Loader2, Search, X } from 'lucide-react';
 import { useReservations } from '@/hooks/useReservations';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
+import { useRealtimeReservations } from '@/hooks/useRealtimeReservations';
 import { Reservation } from '@/types/reservation';
 import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
@@ -17,7 +18,14 @@ import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { format, parseISO, startOfDay, endOfDay } from 'date-fns';
 
 const ReservationManager: React.FC = () => {
-  const { reservations, loading, createReservation, updateReservation, deleteReservation } = useReservations();
+  const { reservations, loading, createReservation, updateReservation, deleteReservation, refetch } = useReservations();
+  
+  // Hook para escutar novas reservas em tempo real
+  useRealtimeReservations({
+    onNewReservation: () => {
+      refetch();
+    }
+  });
   const { 
     canCreateReservations, 
     canUpdateReservations, 
