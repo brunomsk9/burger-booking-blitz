@@ -127,11 +127,11 @@ const WhatsAppChat: React.FC = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full">
+      <div className="h-screen flex w-full overflow-hidden">
         <AppSidebar selectedMenu="whatsapp" onMenuSelect={(menu) => {
           if (menu !== 'whatsapp') navigate('/');
         }} />
-        <SidebarInset>
+        <SidebarInset className="flex flex-col h-full">
           {/* Header */}
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
             <SidebarTrigger className="-ml-1" />
@@ -164,7 +164,7 @@ const WhatsAppChat: React.FC = () => {
           </header>
 
           {/* Main Content */}
-          <div className="flex-1 flex overflow-hidden h-[calc(100vh-4rem)]">
+          <div className="flex-1 flex overflow-hidden">
             {/* Sidebar - Chat List */}
             <div className="w-80 border-r bg-card flex flex-col h-full">
               <div className="p-4 border-b space-y-3 bg-[hsl(var(--whatsapp-green-dark))]">
