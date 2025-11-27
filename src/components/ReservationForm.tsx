@@ -60,19 +60,31 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
   editingReservation,
   userFranchises,
 }) => {
-  const { franchises: allFranchises, loading: franchisesLoading } = useFranchises();
+  const { franchises: availableFranchises, loading: franchisesLoading } = useFranchises();
+  const { franchises: currentUserFranchises, loading: userFranchisesLoading } = useCurrentUserFranchises();
   
-  // Se userFranchises foi passado, usar apenas elas; caso contrário, usar todas
-  const franchises = userFranchises || allFranchises;
+  // Usar franquias do usuário logado ou as passadas como prop ou todas disponíveis
+  const franchises = userFranchises || currentUserFranchises || availableFranchises;
+  const loading = franchisesLoading || userFranchisesLoading;
 
   console.log('📝 ReservationForm renderizado:', {
     isOpen,
     userFranchises: userFranchises?.length || 0,
-    allFranchises: allFranchises?.length || 0,
+    currentUserFranchises: currentUserFranchises?.length || 0,
+    availableFranchises: availableFranchises?.length || 0,
     franchises: franchises?.length || 0,
-    franchisesLoading,
+    loading,
     selectedFranchise: formData.franchise_name
   });
+
+  // Pré-selecionar franquia se usuário tem apenas uma e não está editando
+  useEffect(() => {
+    if (!editingReservation && franchises.length === 1 && !formData.franchise_name) {
+      const franchiseName = franchises[0].displayName || franchises[0].name;
+      console.log('🎯 Pré-selecionando única franquia do usuário:', franchiseName);
+      setFormData(prev => ({ ...prev, franchise_name: franchiseName }));
+    }
+  }, [franchises, editingReservation, formData.franchise_name, setFormData]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -86,7 +98,7 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium mb-2">
-                Franquia {franchisesLoading && <Loader2 className="inline h-3 w-3 animate-spin ml-1" />}
+                Franquia {loading && <Loader2 className="inline h-3 w-3 animate-spin ml-1" />}
               </label>
               <Select 
                 value={formData.franchise_name} 
