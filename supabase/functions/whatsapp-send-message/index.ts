@@ -153,6 +153,7 @@ serve(async (req) => {
           console.log('📡 Enviando notificação para webhook n8n:', franchise.webhook_url);
           
           const webhookPayload = {
+            source: 'portalreservaja',
             franchiseId: franchiseId,
             chatId: formattedChatId,
             customerPhone: phone,
