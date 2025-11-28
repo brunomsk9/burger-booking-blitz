@@ -89,6 +89,12 @@ serve(async (req) => {
 
       console.log('📡 Enviando para Z-API:', zapiUrl);
       console.log('📦 Payload Z-API:', JSON.stringify(zapiPayload, null, 2));
+      console.log('🔑 Client-Token sendo usado:', franchise.zapi_client_token);
+      console.log('🔑 Credenciais Z-API:', {
+        instance_id: franchise.zapi_instance_id,
+        token: franchise.zapi_token,
+        client_token_length: franchise.zapi_client_token?.length
+      });
 
       const zapiResponse = await fetch(zapiUrl, {
         method: 'POST',
