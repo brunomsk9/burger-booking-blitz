@@ -42,6 +42,17 @@ serve(async (req) => {
       .eq('id', franchiseId)
       .single();
 
+    console.log('🔍 Credenciais da franquia:', {
+      franchise_id: franchiseId,
+      company_name: franchise?.company_name,
+      has_instance_id: !!franchise?.zapi_instance_id,
+      has_token: !!franchise?.zapi_token,
+      has_client_token: !!franchise?.zapi_client_token,
+      instance_id: franchise?.zapi_instance_id,
+      token_length: franchise?.zapi_token?.length,
+      client_token_length: franchise?.zapi_client_token?.length
+    });
+
     if (franchiseError || !franchise?.zapi_instance_id || !franchise?.zapi_token || !franchise?.zapi_client_token) {
       console.error('❌ Credenciais Z-API não configuradas para esta franquia');
       return new Response(
