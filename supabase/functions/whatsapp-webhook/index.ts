@@ -50,7 +50,15 @@ serve(async (req) => {
     // Extract data from n8n payload (que recebeu da Z-API)
     const franchiseId = payload.franchiseId;
     const phone = payload.phone;
-    const messageText = payload.text?.message;
+    
+    // Extrair messageText de várias formas possíveis
+    // 1. payload.messageText - quando vem direto da nossa API/n8n ao enviar mensagem
+    // 2. payload.text?.message - quando vem da Z-API (mensagens recebidas)
+    // 3. payload.message - alternativa
+    // 4. payload.text - se for string direto
+    const messageText = payload.messageText || payload.text?.message || payload.message || 
+                       (typeof payload.text === 'string' ? payload.text : null);
+    
     // n8n pode enviar como chatId ou chatLid, dependendo da configuração
     // chatLid vem direto da Z-API, então tem prioridade
     const chatId = payload.chatLid || payload.chatId || payload.chat_id;
