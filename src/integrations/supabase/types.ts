@@ -356,6 +356,44 @@ export type Database = {
           },
         ]
       }
+      whatsapp_quick_replies: {
+        Row: {
+          created_at: string
+          franchise_id: string
+          id: string
+          message: string
+          shortcut: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          franchise_id: string
+          id?: string
+          message: string
+          shortcut?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          franchise_id?: string
+          id?: string
+          message?: string
+          shortcut?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_quick_replies_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
