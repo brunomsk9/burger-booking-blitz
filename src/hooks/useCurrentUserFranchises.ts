@@ -15,6 +15,8 @@ export const useCurrentUserFranchises = () => {
   const { data: franchises = [], isLoading: loading } = useQuery({
     queryKey: ['current-user-franchises', isSuperAdmin()],
     queryFn: async () => {
+      console.log('🔍 useCurrentUserFranchises - isSuperAdmin:', isSuperAdmin());
+      
       // Superadmin vê todas as franquias, outros veem apenas as suas
       if (isSuperAdmin()) {
         const { data, error } = await supabase
@@ -23,8 +25,12 @@ export const useCurrentUserFranchises = () => {
           .eq('active', true)
           .order('name');
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Erro ao buscar franchises (superadmin):', error);
+          throw error;
+        }
 
+        console.log('✅ Franchises (superadmin):', data?.length);
         return (data || []).map(f => ({
           ...f,
           displayName: f.company_name || f.name
@@ -32,7 +38,12 @@ export const useCurrentUserFranchises = () => {
       } else {
         // Buscar franquias do usuário atual
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return [];
+        console.log('👤 Usuário atual:', user?.id, user?.email);
+        
+        if (!user) {
+          console.warn('⚠️ Nenhum usuário autenticado');
+          return [];
+        }
 
         const { data: userFranchises, error } = await supabase
           .from('user_franchises')
@@ -47,9 +58,15 @@ export const useCurrentUserFranchises = () => {
           `)
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('❌ Erro ao buscar user_franchises:', error);
+          throw error;
+        }
 
-        return (userFranchises || [])
+        console.log('📋 User franchises encontradas:', userFranchises?.length);
+        console.log('📋 Dados:', userFranchises);
+
+        const filtered = (userFranchises || [])
           .filter(uf => uf.franchises && (uf.franchises as any).active)
           .map(uf => {
             const franchise = uf.franchises as any;
@@ -60,6 +77,9 @@ export const useCurrentUserFranchises = () => {
               displayName: franchise.company_name || franchise.name
             };
           });
+        
+        console.log('✅ Franchises filtradas:', filtered.length, filtered);
+        return filtered;
       }
     },
     staleTime: 5 * 60 * 1000, // Cache por 5 minutos
