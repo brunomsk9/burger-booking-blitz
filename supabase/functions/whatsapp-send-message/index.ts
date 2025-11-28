@@ -102,13 +102,17 @@ serve(async (req) => {
         body: JSON.stringify(webhookPayload),
       });
 
+      console.log('📬 Status da resposta do webhook:', webhookResponse.status);
+      console.log('📬 Headers da resposta:', Object.fromEntries(webhookResponse.headers.entries()));
+
       if (!webhookResponse.ok) {
         const errorText = await webhookResponse.text();
         console.error('❌ Erro ao enviar para webhook:', {
           status: webhookResponse.status,
           statusText: webhookResponse.statusText,
           error: errorText,
-          payload: webhookPayload
+          payload: webhookPayload,
+          webhookUrl: franchise.webhook_url
         });
         
         // Update message status to failed
