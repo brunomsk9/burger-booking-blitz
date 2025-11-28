@@ -38,11 +38,11 @@ serve(async (req) => {
     // Get franchise Z-API credentials
     const { data: franchise, error: franchiseError } = await supabase
       .from('franchises')
-      .select('zapi_instance_id, zapi_token, company_name')
+      .select('zapi_instance_id, zapi_token, zapi_client_token, company_name')
       .eq('id', franchiseId)
       .single();
 
-    if (franchiseError || !franchise?.zapi_instance_id || !franchise?.zapi_token) {
+    if (franchiseError || !franchise?.zapi_instance_id || !franchise?.zapi_token || !franchise?.zapi_client_token) {
       console.error('❌ Credenciais Z-API não configuradas para esta franquia');
       return new Response(
         JSON.stringify({ error: 'Z-API credentials not configured for this franchise' }),
@@ -94,7 +94,7 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Client-Token': franchise.zapi_token,
+          'Client-Token': franchise.zapi_client_token,
         },
         body: JSON.stringify(zapiPayload),
       });

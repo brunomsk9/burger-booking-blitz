@@ -81,6 +81,7 @@ export type Database = {
           slug: string | null
           updated_at: string
           webhook_url: string | null
+          zapi_client_token: string | null
           zapi_instance_id: string | null
           zapi_token: string | null
         }
@@ -102,6 +103,7 @@ export type Database = {
           slug?: string | null
           updated_at?: string
           webhook_url?: string | null
+          zapi_client_token?: string | null
           zapi_instance_id?: string | null
           zapi_token?: string | null
         }
@@ -123,6 +125,7 @@ export type Database = {
           slug?: string | null
           updated_at?: string
           webhook_url?: string | null
+          zapi_client_token?: string | null
           zapi_instance_id?: string | null
           zapi_token?: string | null
         }
