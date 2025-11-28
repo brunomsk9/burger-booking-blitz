@@ -94,6 +94,7 @@ serve(async (req) => {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Client-Token': franchise.zapi_token,
         },
         body: JSON.stringify(zapiPayload),
       });
