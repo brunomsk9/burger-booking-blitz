@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search } from 'lucide-react';
+import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
@@ -18,6 +18,7 @@ import { AppSidebar } from '@/components/AppSidebar';
 import { TypingIndicator } from '@/components/whatsapp/TypingIndicator';
 import { QuickReplyManager } from '@/components/whatsapp/QuickReplyManager';
 import { QuickReplySelector } from '@/components/whatsapp/QuickReplySelector';
+import { MetricsDashboard } from '@/components/whatsapp/MetricsDashboard';
 import { supabase } from '@/integrations/supabase/client';
 import {
   SidebarProvider,
@@ -33,6 +34,7 @@ const WhatsAppChat: React.FC = () => {
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
   const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
+  const [showMetrics, setShowMetrics] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -247,7 +249,17 @@ const WhatsAppChat: React.FC = () => {
                   </SelectContent>
                 </Select>
                 {selectedFranchiseId && (
-                  <QuickReplyManager franchiseId={selectedFranchiseId} />
+                  <>
+                    <Button
+                      variant={showMetrics ? 'default' : 'outline'}
+                      size="icon"
+                      onClick={() => setShowMetrics(!showMetrics)}
+                      title={showMetrics ? 'Ver conversas' : 'Ver métricas'}
+                    >
+                      {showMetrics ? <MessageCircle className="h-4 w-4" /> : <BarChart3 className="h-4 w-4" />}
+                    </Button>
+                    {!showMetrics && <QuickReplyManager franchiseId={selectedFranchiseId} />}
+                  </>
                 )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>{userProfile?.name}</span>
@@ -261,8 +273,15 @@ const WhatsAppChat: React.FC = () => {
 
           {/* Main Content */}
           <div className="flex-1 flex overflow-hidden">
-            {/* Sidebar - Chat List */}
-            <div className="w-80 border-r bg-card flex flex-col h-full">
+            {showMetrics && selectedFranchiseId ? (
+              /* Dashboard de Métricas */
+              <div className="flex-1 overflow-auto">
+                <MetricsDashboard franchiseId={selectedFranchiseId} />
+              </div>
+            ) : (
+              <>
+                {/* Sidebar - Chat List */}
+                <div className="w-80 border-r bg-card flex flex-col h-full">
               <div className="p-4 border-b space-y-3 bg-[hsl(var(--whatsapp-green-dark))]">
                 <h2 className="font-semibold text-lg text-white">Conversas</h2>
                 
@@ -464,6 +483,8 @@ const WhatsAppChat: React.FC = () => {
                 </div>
               )}
             </div>
+              </>
+            )}
           </div>
         </SidebarInset>
       </div>
