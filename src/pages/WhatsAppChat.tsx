@@ -14,6 +14,8 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AppSidebar } from '@/components/AppSidebar';
+import { TypingIndicator } from '@/components/whatsapp/TypingIndicator';
+import { supabase } from '@/integrations/supabase/client';
 import {
   SidebarProvider,
   SidebarInset,
@@ -27,7 +29,9 @@ const WhatsAppChat: React.FC = () => {
   const [selectedFranchiseId, setSelectedFranchiseId] = useState<string | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
+  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { 
     messages, 
@@ -52,7 +56,70 @@ const WhatsAppChat: React.FC = () => {
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedChatId]);
+  }, [messages, selectedChatId, typingUsers]);
+
+  // Realtime presence for typing indicator
+  useEffect(() => {
+    if (!selectedChatId || !selectedFranchiseId) return;
+
+    const channel = supabase.channel(`typing:${selectedChatId}`);
+
+    channel
+      .on('presence', { event: 'sync' }, () => {
+        const state = channel.presenceState();
+        const typing: Record<string, string> = {};
+        
+        Object.values(state).forEach((presences: any) => {
+          presences.forEach((presence: any) => {
+            if (presence.typing && presence.chatId === selectedChatId) {
+              typing[presence.userId] = presence.userName;
+            }
+          });
+        });
+        
+        setTypingUsers(typing);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [selectedChatId, selectedFranchiseId]);
+
+  // Handle typing detection
+  const handleInputChange = async (value: string) => {
+    setMessageInput(value);
+
+    if (!selectedChatId || !selectedFranchiseId || !selectedChat) return;
+
+    const channel = supabase.channel(`typing:${selectedChatId}`);
+    
+    if (value.length > 0) {
+      // User is typing
+      await channel.track({
+        userId: userProfile?.id || 'agent',
+        userName: userProfile?.name || 'Agente',
+        chatId: selectedChatId,
+        typing: true,
+      });
+
+      // Clear existing timeout
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
+      // Set timeout to stop typing indicator after 3 seconds
+      typingTimeoutRef.current = setTimeout(async () => {
+        await channel.untrack();
+      }, 3000);
+    } else {
+      // User stopped typing
+      await channel.untrack();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    }
+  };
 
   const handleSendMessage = async () => {
     if (!messageInput.trim() || !selectedChatId) return;
@@ -61,6 +128,13 @@ const WhatsAppChat: React.FC = () => {
     if (!chat) return;
 
     try {
+      // Stop typing indicator
+      const channel = supabase.channel(`typing:${selectedChatId}`);
+      await channel.untrack();
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+
       await sendMessage(selectedChatId, chat.customer_phone, messageInput);
       setMessageInput('');
     } catch (error) {
@@ -319,6 +393,12 @@ const WhatsAppChat: React.FC = () => {
                           </div>
                         </div>
                       ))}
+                      
+                      {/* Typing Indicator */}
+                      {Object.keys(typingUsers).length > 0 && selectedChat && (
+                        <TypingIndicator customerName={Object.values(typingUsers)[0]} />
+                      )}
+                      
                       <div ref={messagesEndRef} />
                     </div>
                   </ScrollArea>
@@ -329,7 +409,7 @@ const WhatsAppChat: React.FC = () => {
                     <div className="flex gap-2">
                       <Input
                         value={messageInput}
-                        onChange={(e) => setMessageInput(e.target.value)}
+                        onChange={(e) => handleInputChange(e.target.value)}
                         onKeyDown={(e) => {
                           if (e.key === 'Enter' && !e.shiftKey) {
                             e.preventDefault();
