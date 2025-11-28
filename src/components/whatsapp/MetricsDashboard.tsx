@@ -70,7 +70,31 @@ export const MetricsDashboard: React.FC<MetricsDashboardProps> = ({ franchiseId 
       </div>
 
       {/* Cards de métricas principais */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Mensagens Recebidas */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Mensagens Recebidas</CardTitle>
+            <MessageCircle className="h-4 w-4 text-blue-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.receivedMessages}</div>
+            <p className="text-xs text-muted-foreground mt-1">No período selecionado</p>
+          </CardContent>
+        </Card>
+
+        {/* Mensagens Enviadas */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium">Mensagens Enviadas</CardTitle>
+            <MessageCircle className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{metrics.sentMessages}</div>
+            <p className="text-xs text-muted-foreground mt-1">No período selecionado</p>
+          </CardContent>
+        </Card>
+
         {/* Conversas Ativas */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">

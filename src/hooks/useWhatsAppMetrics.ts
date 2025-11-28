@@ -5,6 +5,8 @@ import { useToast } from '@/hooks/use-toast';
 export interface WhatsAppMetrics {
   activeChats: number;
   totalMessages: number;
+  receivedMessages: number;
+  sentMessages: number;
   avgResponseTime: number; // em minutos
   satisfactionScore: number; // média de 0-5
   satisfactionCount: number;
@@ -17,6 +19,8 @@ export const useWhatsAppMetrics = (franchiseId: string | null, dateRange: { from
   const [metrics, setMetrics] = useState<WhatsAppMetrics>({
     activeChats: 0,
     totalMessages: 0,
+    receivedMessages: 0,
+    sentMessages: 0,
     avgResponseTime: 0,
     satisfactionScore: 0,
     satisfactionCount: 0,
@@ -104,6 +108,10 @@ export const useWhatsAppMetrics = (franchiseId: string | null, dateRange: { from
         .map(([date, count]) => ({ date, count }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
+      // Contar mensagens recebidas e enviadas
+      const receivedMessages = messagesData?.filter(msg => msg.direction === 'incoming').length || 0;
+      const sentMessages = messagesData?.filter(msg => msg.direction === 'outgoing').length || 0;
+
       // 6. Satisfação dos clientes (da tabela reservations)
       const { data: satisfactionData, error: satisfactionError } = await supabase
         .from('reservations')
@@ -140,6 +148,8 @@ export const useWhatsAppMetrics = (franchiseId: string | null, dateRange: { from
       setMetrics({
         activeChats: activeChatsData?.length || 0,
         totalMessages: messagesData?.length || 0,
+        receivedMessages,
+        sentMessages,
         avgResponseTime: Math.round(avgResponseTime),
         satisfactionScore: Math.round(avgSatisfaction * 10) / 10,
         satisfactionCount: satisfactionScores.length,
