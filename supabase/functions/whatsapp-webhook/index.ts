@@ -96,7 +96,9 @@ serve(async (req) => {
     const senderName = payload.senderName || payload.chatName;
     
     // Detectar se a mensagem é do agente (fromMe=true na Z-API OU fromApi=true quando vem da nossa API)
-    const isAgentMessage = payload.fromMe === true || payload.fromApi === true;
+    // Valores podem vir como boolean ou string, então normalizamos
+    const isAgentMessage = payload.fromMe === true || payload.fromMe === "true" || 
+                          payload.fromApi === true || payload.fromApi === "true";
 
     console.log('📞 Dados extraídos:', { 
       franchiseId, 
