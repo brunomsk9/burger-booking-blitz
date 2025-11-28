@@ -7,11 +7,12 @@ export interface WhatsAppMetrics {
   totalMessages: number;
   receivedMessages: number;
   sentMessages: number;
+  sentFromPortal: number;
   avgResponseTime: number; // em minutos
   satisfactionScore: number; // média de 0-5
   satisfactionCount: number;
   responseRate: number; // percentual de chats com resposta
-  messagesPerDay: { date: string; count: number }[];
+  messagesPerDay: { date: string; received: number; sent: number }[];
   satisfactionDistribution: { rating: string; count: number }[];
 }
 
@@ -21,6 +22,7 @@ export const useWhatsAppMetrics = (franchiseId: string | null, dateRange: { from
     totalMessages: 0,
     receivedMessages: 0,
     sentMessages: 0,
+    sentFromPortal: 0,
     avgResponseTime: 0,
     satisfactionScore: 0,
     satisfactionCount: 0,
@@ -97,20 +99,41 @@ export const useWhatsAppMetrics = (franchiseId: string | null, dateRange: { from
         ? (chatsWithResponses / Object.keys(chatMessages).length) * 100 
         : 0;
 
-      // 5. Mensagens por dia
-      const messagesByDay: Record<string, number> = {};
+      // 5. Mensagens por dia (separadas por direção)
+      const messagesByDay: Record<string, { received: number; sent: number }> = {};
       messagesData?.forEach((msg) => {
         const date = new Date(msg.timestamp).toISOString().split('T')[0];
-        messagesByDay[date] = (messagesByDay[date] || 0) + 1;
+        if (!messagesByDay[date]) {
+          messagesByDay[date] = { received: 0, sent: 0 };
+        }
+        if (msg.direction === 'incoming') {
+          messagesByDay[date].received++;
+        } else {
+          messagesByDay[date].sent++;
+        }
       });
 
       const messagesPerDay = Object.entries(messagesByDay)
-        .map(([date, count]) => ({ date, count }))
+        .map(([date, counts]) => ({ date, received: counts.received, sent: counts.sent }))
         .sort((a, b) => a.date.localeCompare(b.date));
 
       // Contar mensagens recebidas e enviadas
       const receivedMessages = messagesData?.filter(msg => msg.direction === 'incoming').length || 0;
       const sentMessages = messagesData?.filter(msg => msg.direction === 'outgoing').length || 0;
+
+      // Buscar mensagens enviadas do portal do Reservaja
+      const { data: portalMessages, error: portalError } = await supabase
+        .from('whatsapp_messages')
+        .select('id')
+        .eq('franchise_id', franchiseId)
+        .eq('direction', 'outgoing')
+        .gte('timestamp', dateRange.from.toISOString())
+        .lte('timestamp', dateRange.to.toISOString());
+
+      if (portalError) throw portalError;
+
+      // Todas as mensagens outgoing do banco são do portal já que vêm da API
+      const sentFromPortal = portalMessages?.length || 0;
 
       // 6. Satisfação dos clientes (da tabela reservations)
       const { data: satisfactionData, error: satisfactionError } = await supabase
@@ -150,6 +173,7 @@ export const useWhatsAppMetrics = (franchiseId: string | null, dateRange: { from
         totalMessages: messagesData?.length || 0,
         receivedMessages,
         sentMessages,
+        sentFromPortal,
         avgResponseTime: Math.round(avgResponseTime),
         satisfactionScore: Math.round(avgSatisfaction * 10) / 10,
         satisfactionCount: satisfactionScores.length,
