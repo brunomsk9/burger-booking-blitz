@@ -55,11 +55,14 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   // Fetch chats metadata
   const fetchChats = async () => {
     if (!franchiseId) {
+      console.log('⚠️ useWhatsAppMessages - Nenhuma franquia selecionada');
       setChats([]);
       setChatGroups([]);
       setLoading(false);
       return;
     }
+
+    console.log('🔍 useWhatsAppMessages - Buscando chats para franquia:', franchiseId);
 
     try {
       const { data: chatsData, error: chatsError } = await supabase
@@ -68,8 +71,12 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         .eq('franchise_id', franchiseId)
         .order('last_message_time', { ascending: false });
 
-      if (chatsError) throw chatsError;
+      if (chatsError) {
+        console.error('❌ Erro ao buscar chats:', chatsError);
+        throw chatsError;
+      }
 
+      console.log('✅ Chats encontrados:', chatsData?.length);
       setChats((chatsData || []) as WhatsAppChat[]);
       await buildChatGroups(chatsData || []);
     } catch (error) {
@@ -90,6 +97,8 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       setMessages([]);
       return;
     }
+
+    console.log('🔍 useWhatsAppMessages - Buscando mensagens para franquia:', franchiseId);
 
     try {
       const { data, error } = await supabase
