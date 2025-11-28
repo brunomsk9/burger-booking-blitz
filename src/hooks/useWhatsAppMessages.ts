@@ -275,6 +275,45 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     }
   };
 
+  // Clear all conversations (delete messages and chats)
+  const clearAllConversations = async () => {
+    if (!franchiseId) return;
+
+    try {
+      // Delete all messages first
+      const { error: messagesError } = await supabase
+        .from('whatsapp_messages')
+        .delete()
+        .eq('franchise_id', franchiseId);
+
+      if (messagesError) throw messagesError;
+
+      // Delete all chats
+      const { error: chatsError } = await supabase
+        .from('whatsapp_chats')
+        .delete()
+        .eq('franchise_id', franchiseId);
+
+      if (chatsError) throw chatsError;
+
+      toast({
+        title: 'Conversas limpas',
+        description: 'Todas as conversas foram removidas com sucesso',
+      });
+
+      setMessages([]);
+      setChats([]);
+      setChatGroups([]);
+    } catch (error) {
+      console.error('Erro ao limpar conversas:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível limpar as conversas',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Filter chat groups based on selected filter and search query
   const filteredChatGroups = chatGroups.filter((chat) => {
     // Apply status filter
@@ -373,6 +412,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     toggleArchiveChat,
     markChatAsRead,
     markAllChatsAsRead,
+    clearAllConversations,
     refetch: () => {
       fetchChats();
       fetchMessages();

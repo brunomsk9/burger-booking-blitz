@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3, CheckCheck } from 'lucide-react';
+import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3, CheckCheck, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
@@ -20,6 +20,17 @@ import { QuickReplyManager } from '@/components/whatsapp/QuickReplyManager';
 import { QuickReplySelector } from '@/components/whatsapp/QuickReplySelector';
 import { MetricsDashboard } from '@/components/whatsapp/MetricsDashboard';
 import { supabase } from '@/integrations/supabase/client';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   SidebarProvider,
   SidebarInset,
@@ -49,7 +60,8 @@ const WhatsAppChat: React.FC = () => {
     sendMessage, 
     toggleArchiveChat,
     markChatAsRead,
-    markAllChatsAsRead 
+    markAllChatsAsRead,
+    clearAllConversations 
   } = useWhatsAppMessages(selectedFranchiseId);
 
   const { quickReplies } = useQuickReplies(selectedFranchiseId);
@@ -286,15 +298,43 @@ const WhatsAppChat: React.FC = () => {
               <div className="p-4 border-b space-y-3 bg-[hsl(var(--whatsapp-green-dark))]">
                 <div className="flex items-center justify-between">
                   <h2 className="font-semibold text-lg text-white">Conversas</h2>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={markAllChatsAsRead}
-                    className="text-white hover:bg-white/10"
-                    title="Marcar todas como lidas"
-                  >
-                    <CheckCheck className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={markAllChatsAsRead}
+                      className="text-white hover:bg-white/10"
+                      title="Marcar todas como lidas"
+                    >
+                      <CheckCheck className="h-4 w-4" />
+                    </Button>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-white hover:bg-white/10"
+                          title="Limpar todas conversas"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Limpar todas as conversas?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            Esta ação não pode ser desfeita. Todas as mensagens e conversas desta franquia serão permanentemente deletadas.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                          <AlertDialogAction onClick={clearAllConversations} className="bg-destructive hover:bg-destructive/90">
+                            Limpar tudo
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </div>
                 
                 {/* Search */}
