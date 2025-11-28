@@ -150,9 +150,7 @@ const WhatsAppChat: React.FC = () => {
     if (!chat) return;
 
     try {
-      // Stop typing indicator
-      const channel = supabase.channel(`typing:${selectedChatId}`);
-      await channel.untrack();
+      // Clear typing timeout if exists
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
