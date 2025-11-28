@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
 import { useWhatsAppMessages } from '@/hooks/useWhatsAppMessages';
+import { useQuickReplies } from '@/hooks/useQuickReplies';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,8 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AppSidebar } from '@/components/AppSidebar';
 import { TypingIndicator } from '@/components/whatsapp/TypingIndicator';
+import { QuickReplyManager } from '@/components/whatsapp/QuickReplyManager';
+import { QuickReplySelector } from '@/components/whatsapp/QuickReplySelector';
 import { supabase } from '@/integrations/supabase/client';
 import {
   SidebarProvider,
@@ -45,6 +48,8 @@ const WhatsAppChat: React.FC = () => {
     toggleArchiveChat,
     markChatAsRead 
   } = useWhatsAppMessages(selectedFranchiseId);
+
+  const { quickReplies } = useQuickReplies(selectedFranchiseId);
 
   // Auto-select first franchise
   useEffect(() => {
@@ -92,6 +97,16 @@ const WhatsAppChat: React.FC = () => {
 
     if (!selectedChatId || !selectedFranchiseId || !selectedChat) return;
 
+    // Check for quick reply shortcuts
+    const shortcutMatch = quickReplies.find(
+      (reply) => reply.shortcut && value === reply.shortcut
+    );
+
+    if (shortcutMatch) {
+      setMessageInput(shortcutMatch.message);
+      return;
+    }
+
     const channel = supabase.channel(`typing:${selectedChatId}`);
     
     if (value.length > 0) {
@@ -119,6 +134,10 @@ const WhatsAppChat: React.FC = () => {
         clearTimeout(typingTimeoutRef.current);
       }
     }
+  };
+
+  const handleQuickReplySelect = (message: string) => {
+    setMessageInput(message);
   };
 
   const handleSendMessage = async () => {
@@ -209,7 +228,7 @@ const WhatsAppChat: React.FC = () => {
           {/* Header */}
           <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4">
             <SidebarTrigger className="-ml-1" />
-            <div className="flex items-center justify-between flex-1">
+              <div className="flex items-center justify-between flex-1">
               <h1 className="text-xl font-bold flex items-center gap-2">
                 <MessageCircle className="h-5 w-5" />
                 WhatsApp Chat
@@ -227,6 +246,9 @@ const WhatsAppChat: React.FC = () => {
                     ))}
                   </SelectContent>
                 </Select>
+                {selectedFranchiseId && (
+                  <QuickReplyManager franchiseId={selectedFranchiseId} />
+                )}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <span>{userProfile?.name}</span>
                   <Button variant="ghost" size="sm" onClick={signOut}>
@@ -407,6 +429,10 @@ const WhatsAppChat: React.FC = () => {
                   {/* Input */}
                   <div className="bg-card p-4">
                     <div className="flex gap-2">
+                      <QuickReplySelector 
+                        quickReplies={quickReplies}
+                        onSelect={handleQuickReplySelect}
+                      />
                       <Input
                         value={messageInput}
                         onChange={(e) => handleInputChange(e.target.value)}
@@ -416,7 +442,7 @@ const WhatsAppChat: React.FC = () => {
                             handleSendMessage();
                           }
                         }}
-                        placeholder="Digite sua mensagem... (Enter para enviar)"
+                        placeholder="Digite sua mensagem ou use / para atalhos..."
                         className="flex-1 rounded-full"
                       />
                       <Button 
