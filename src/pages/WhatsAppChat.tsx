@@ -15,7 +15,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { AppSidebar } from '@/components/AppSidebar';
-import { TypingIndicator } from '@/components/whatsapp/TypingIndicator';
 import { QuickReplyManager } from '@/components/whatsapp/QuickReplyManager';
 import { QuickReplySelector } from '@/components/whatsapp/QuickReplySelector';
 import { MetricsDashboard } from '@/components/whatsapp/MetricsDashboard';
@@ -33,10 +32,8 @@ const WhatsAppChat: React.FC = () => {
   const [selectedFranchiseId, setSelectedFranchiseId] = useState<string | null>(null);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messageInput, setMessageInput] = useState('');
-  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({});
   const [showMetrics, setShowMetrics] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { 
     messages, 
@@ -64,38 +61,10 @@ const WhatsAppChat: React.FC = () => {
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, selectedChatId, typingUsers]);
-
-  // Realtime presence for typing indicator
-  useEffect(() => {
-    if (!selectedChatId || !selectedFranchiseId) return;
-
-    const channel = supabase.channel(`typing:${selectedChatId}`);
-
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const typing: Record<string, string> = {};
-        
-        Object.values(state).forEach((presences: any) => {
-          presences.forEach((presence: any) => {
-            if (presence.typing && presence.chatId === selectedChatId) {
-              typing[presence.userId] = presence.userName;
-            }
-          });
-        });
-        
-        setTypingUsers(typing);
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [selectedChatId, selectedFranchiseId]);
+  }, [messages, selectedChatId]);
 
   // Handle typing detection
-  const handleInputChange = async (value: string) => {
+  const handleInputChange = (value: string) => {
     setMessageInput(value);
 
     if (!selectedChatId || !selectedFranchiseId || !selectedChat) return;
@@ -108,34 +77,6 @@ const WhatsAppChat: React.FC = () => {
     if (shortcutMatch) {
       setMessageInput(shortcutMatch.message);
       return;
-    }
-
-    const channel = supabase.channel(`typing:${selectedChatId}`);
-    
-    if (value.length > 0) {
-      // User is typing
-      await channel.track({
-        userId: userProfile?.id || 'agent',
-        userName: userProfile?.name || 'Agente',
-        chatId: selectedChatId,
-        typing: true,
-      });
-
-      // Clear existing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-
-      // Set timeout to stop typing indicator after 3 seconds
-      typingTimeoutRef.current = setTimeout(async () => {
-        await channel.untrack();
-      }, 3000);
-    } else {
-      // User stopped typing
-      await channel.untrack();
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
     }
   };
 
@@ -150,11 +91,6 @@ const WhatsAppChat: React.FC = () => {
     if (!chat) return;
 
     try {
-      // Clear typing timeout if exists
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-
       await sendMessage(selectedChatId, chat.customer_phone, messageInput);
       setMessageInput('');
     } catch (error) {
@@ -444,11 +380,6 @@ const WhatsAppChat: React.FC = () => {
                           </div>
                         </div>
                       ))}
-                      
-                      {/* Typing Indicator */}
-                      {Object.keys(typingUsers).length > 0 && selectedChat && (
-                        <TypingIndicator customerName={Object.values(typingUsers)[0]} />
-                      )}
                       
                       <div ref={messagesEndRef} />
                     </div>
