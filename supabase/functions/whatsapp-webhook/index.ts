@@ -161,14 +161,13 @@ serve(async (req) => {
     console.log('🏢 Franquia encontrada:', franchise.company_name);
 
     // Insert message into database
+    // A trigger do banco vai atualizar automaticamente a tabela whatsapp_chats
     const { data, error } = await supabase
       .from('whatsapp_messages')
       .insert({
         franchise_id: franchiseId,
         chat_id: chatId,
-        // Para mensagens outgoing, usar o nome da franquia
-        // Para mensagens incoming, usar o nome do remetente
-        customer_name: isAgentMessage ? (franchise.company_name || 'Agente') : senderName,
+        customer_name: senderName, // Sempre usar o nome do remetente (trigger decidirá se atualiza o chat)
         customer_phone: phone,
         message_text: messageText,
         direction: isAgentMessage ? 'outgoing' : 'incoming',
@@ -185,29 +184,6 @@ serve(async (req) => {
     }
 
     console.log('✅ Mensagem salva com sucesso:', data);
-
-    // Atualizar ou criar o chat com o nome correto do cliente
-    // Só atualiza customer_name se for mensagem incoming (do cliente)
-    if (!isAgentMessage && senderName) {
-      const { error: chatError } = await supabase
-        .from('whatsapp_chats')
-        .upsert({
-          franchise_id: franchiseId,
-          chat_id: chatId,
-          customer_name: senderName,
-          customer_phone: phone,
-          last_message_time: timestamp,
-        }, {
-          onConflict: 'franchise_id,chat_id',
-          ignoreDuplicates: false
-        });
-
-      if (chatError) {
-        console.error('⚠️ Erro ao atualizar chat:', chatError);
-      }
-    }
-
-    console.log('✅ Mensagem e chat salvos com sucesso');
 
     const responsePayload = { success: true, message: data };
     console.log('📤 Enviando resposta para n8n:', JSON.stringify(responsePayload, null, 2));
