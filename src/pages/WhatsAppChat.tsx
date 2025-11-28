@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3 } from 'lucide-react';
+import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3, CheckCheck } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
@@ -48,7 +48,8 @@ const WhatsAppChat: React.FC = () => {
     setSearchQuery,
     sendMessage, 
     toggleArchiveChat,
-    markChatAsRead 
+    markChatAsRead,
+    markAllChatsAsRead 
   } = useWhatsAppMessages(selectedFranchiseId);
 
   const { quickReplies } = useQuickReplies(selectedFranchiseId);
@@ -283,7 +284,18 @@ const WhatsAppChat: React.FC = () => {
                 {/* Sidebar - Chat List */}
                 <div className="w-80 border-r bg-card flex flex-col h-full">
               <div className="p-4 border-b space-y-3 bg-[hsl(var(--whatsapp-green-dark))]">
-                <h2 className="font-semibold text-lg text-white">Conversas</h2>
+                <div className="flex items-center justify-between">
+                  <h2 className="font-semibold text-lg text-white">Conversas</h2>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={markAllChatsAsRead}
+                    className="text-white hover:bg-white/10"
+                    title="Marcar todas como lidas"
+                  >
+                    <CheckCheck className="h-4 w-4" />
+                  </Button>
+                </div>
                 
                 {/* Search */}
                 <div className="relative">
