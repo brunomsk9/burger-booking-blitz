@@ -81,6 +81,8 @@ export type Database = {
           slug: string | null
           updated_at: string
           webhook_url: string | null
+          zapi_instance_id: string | null
+          zapi_token: string | null
         }
         Insert: {
           accent_color?: string | null
@@ -100,6 +102,8 @@ export type Database = {
           slug?: string | null
           updated_at?: string
           webhook_url?: string | null
+          zapi_instance_id?: string | null
+          zapi_token?: string | null
         }
         Update: {
           accent_color?: string | null
@@ -119,6 +123,8 @@ export type Database = {
           slug?: string | null
           updated_at?: string
           webhook_url?: string | null
+          zapi_instance_id?: string | null
+          zapi_token?: string | null
         }
         Relationships: [
           {
