@@ -247,6 +247,34 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     }
   };
 
+  // Mark all chats as read
+  const markAllChatsAsRead = async () => {
+    if (!franchiseId) return;
+
+    try {
+      const { error } = await supabase
+        .from('whatsapp_chats')
+        .update({ unread_count: 0 })
+        .eq('franchise_id', franchiseId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Sucesso',
+        description: 'Todas as conversas foram marcadas como lidas',
+      });
+
+      await fetchChats();
+    } catch (error) {
+      console.error('Erro ao marcar todas conversas como lidas:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível marcar todas conversas como lidas',
+        variant: 'destructive',
+      });
+    }
+  };
+
   // Filter chat groups based on selected filter and search query
   const filteredChatGroups = chatGroups.filter((chat) => {
     // Apply status filter
@@ -344,6 +372,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     sendMessage,
     toggleArchiveChat,
     markChatAsRead,
+    markAllChatsAsRead,
     refetch: () => {
       fetchChats();
       fetchMessages();
