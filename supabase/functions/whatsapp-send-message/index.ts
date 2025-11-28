@@ -147,6 +147,44 @@ serve(async (req) => {
         .update({ status: 'sent' })
         .eq('id', savedMessage.id);
 
+      // Send notification to n8n webhook if configured
+      if (franchise.webhook_url) {
+        try {
+          console.log('📡 Enviando notificação para webhook n8n:', franchise.webhook_url);
+          
+          const webhookPayload = {
+            franchiseId: franchiseId,
+            chatId: formattedChatId,
+            customerPhone: phone,
+            messageText: messageText,
+            direction: 'outgoing',
+            timestamp: new Date().toISOString(),
+            messageId: responseData.messageId || responseData.id
+          };
+
+          console.log('📦 Payload webhook:', JSON.stringify(webhookPayload, null, 2));
+
+          const webhookResponse = await fetch(franchise.webhook_url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload),
+          });
+
+          console.log('📬 Status webhook n8n:', webhookResponse.status);
+
+          if (!webhookResponse.ok) {
+            console.error('⚠️ Erro ao enviar para webhook n8n:', await webhookResponse.text());
+          } else {
+            console.log('✅ Webhook n8n notificado com sucesso');
+          }
+        } catch (webhookError) {
+          console.error('⚠️ Erro ao chamar webhook n8n:', webhookError);
+          // Não falhar a request principal se o webhook falhar
+        }
+      }
+
       return new Response(
         JSON.stringify({ 
           success: true, 
