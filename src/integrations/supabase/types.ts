@@ -273,6 +273,7 @@ export type Database = {
           id: string
           last_agent_message_time: string | null
           last_message_time: string | null
+          tags: string[] | null
           unread_count: number | null
           updated_at: string | null
         }
@@ -286,6 +287,7 @@ export type Database = {
           id?: string
           last_agent_message_time?: string | null
           last_message_time?: string | null
+          tags?: string[] | null
           unread_count?: number | null
           updated_at?: string | null
         }
@@ -299,6 +301,7 @@ export type Database = {
           id?: string
           last_agent_message_time?: string | null
           last_message_time?: string | null
+          tags?: string[] | null
           unread_count?: number | null
           updated_at?: string | null
         }

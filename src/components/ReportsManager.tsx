@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,11 +35,11 @@ import {
   Building
 } from 'lucide-react';
 import { useReports, ReportFilters } from '@/hooks/useReports';
-import { useFranchises } from '@/hooks/useFranchises';
+import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
 
 const ReportsManager: React.FC = () => {
   const { reportData, loading, generateReport } = useReports();
-  const { franchises, loading: franchisesLoading } = useFranchises();
+  const { franchises, loading: franchisesLoading } = useCurrentUserFranchises();
   const [filters, setFilters] = useState<ReportFilters>({});
 
   const handleFilterChange = (key: keyof ReportFilters, value: string) => {
