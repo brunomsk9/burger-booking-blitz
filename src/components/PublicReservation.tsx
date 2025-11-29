@@ -224,6 +224,7 @@ const PublicReservation: React.FC<PublicReservationProps> = ({ preselectedFranch
                 formData={formData}
                 onFormDataChange={handleFormDataChange}
                 disableFranchiseSelect={!!preselectedFranchise}
+                usePublicView={true}
               />
 
               <TimeSlotSelector

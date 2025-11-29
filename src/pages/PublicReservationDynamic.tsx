@@ -1,11 +1,11 @@
 import { useParams, Navigate } from 'react-router-dom';
 import PublicReservation from '@/components/PublicReservation';
-import { useFranchises } from '@/hooks/useFranchises';
+import { useFranchisesPublic } from '@/hooks/useFranchisesPublic';
 import { Loader2 } from 'lucide-react';
 
 const PublicReservationDynamic = () => {
   const { franchiseName } = useParams<{ franchiseName: string }>();
-  const { franchises, loading } = useFranchises();
+  const { franchises, loading } = useFranchisesPublic();
 
   if (loading) {
     return (
