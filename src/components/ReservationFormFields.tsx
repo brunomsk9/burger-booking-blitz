@@ -5,6 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
 import { useFranchises } from '@/hooks/useFranchises';
+import { useFranchisesPublic } from '@/hooks/useFranchisesPublic';
 import { User, Phone, MapPin, Loader2 } from 'lucide-react';
 
 interface FormData {
@@ -23,15 +24,23 @@ interface ReservationFormFieldsProps {
   onFormDataChange: (updates: Partial<FormData>) => void;
   disableFranchiseSelect?: boolean;
   userFranchises?: Array<{ id: string; name: string; displayName: string }>;
+  usePublicView?: boolean;
 }
 
 const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
   formData,
   onFormDataChange,
   disableFranchiseSelect = false,
-  userFranchises
+  userFranchises,
+  usePublicView = false
 }) => {
-  const { franchises: allFranchises, loading: franchisesLoading, error } = useFranchises();
+  const { franchises: privateFranchises, loading: privateLoading, error: privateError } = useFranchises();
+  const { franchises: publicFranchises, loading: publicLoading, error: publicError } = useFranchisesPublic();
+  
+  // Escolher qual fonte usar baseado no contexto
+  const allFranchises = usePublicView ? publicFranchises : privateFranchises;
+  const franchisesLoading = usePublicView ? publicLoading : privateLoading;
+  const error = usePublicView ? publicError : privateError;
   
   // Se userFranchises foi passado, usar apenas elas; caso contrário, usar todas
   const franchises = userFranchises || allFranchises;

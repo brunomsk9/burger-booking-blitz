@@ -254,6 +254,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "user_franchises_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_franchises_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -313,6 +320,13 @@ export type Database = {
             referencedRelation: "franchises"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_chats_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       whatsapp_messages: {
@@ -366,6 +380,13 @@ export type Database = {
             referencedRelation: "franchises"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_messages_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
       whatsapp_quick_replies: {
@@ -404,11 +425,53 @@ export type Database = {
             referencedRelation: "franchises"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "whatsapp_quick_replies_franchise_id_fkey"
+            columns: ["franchise_id"]
+            isOneToOne: false
+            referencedRelation: "franchises_public"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
     Views: {
-      [_ in never]: never
+      franchises_public: {
+        Row: {
+          accent_color: string | null
+          active: boolean | null
+          company_name: string | null
+          id: string | null
+          logo_url: string | null
+          name: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          slug: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          active?: boolean | null
+          company_name?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          active?: boolean | null
+          company_name?: string | null
+          id?: string | null
+          logo_url?: string | null
+          name?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          slug?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_slug: { Args: { text_input: string }; Returns: string }

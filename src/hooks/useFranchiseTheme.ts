@@ -25,12 +25,11 @@ export const useFranchiseTheme = (franchiseSlugOrName: string | undefined) => {
       }
 
       try {
-        // Tentar buscar por slug primeiro, depois por nome
+        // Tentar buscar por slug primeiro, depois por nome usando a VIEW pública
         const { data, error } = await supabase
-          .from('franchises')
+          .from('franchises_public')
           .select('logo_url, primary_color, secondary_color, accent_color, company_name, name, slug')
           .or(`slug.eq.${franchiseSlugOrName},company_name.eq.${franchiseSlugOrName},name.eq.${franchiseSlugOrName}`)
-          .eq('active', true)
           .maybeSingle();
 
         if (error) {
