@@ -91,13 +91,15 @@ const ReservationFormFields: React.FC<ReservationFormFieldsProps> = ({
             <SelectContent>
               {!franchisesLoading && franchises && franchises.length > 0 ? (
                 franchises.map(franchise => {
-                  console.log('🏢 Rendering franchise option:', franchise.displayName);
+                  // Usar displayName se disponível (franchises privadas), caso contrário usar name (franchises públicas)
+                  const displayName = ('displayName' in franchise ? franchise.displayName : franchise.name) as string;
+                  console.log('🏢 Rendering franchise option:', displayName);
                   return (
                     <SelectItem 
                       key={franchise.id} 
-                      value={franchise.displayName || franchise.name}
+                      value={displayName}
                     >
-                      {franchise.displayName || franchise.name}
+                      {displayName}
                     </SelectItem>
                   );
                 })

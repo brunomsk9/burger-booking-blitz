@@ -438,37 +438,16 @@ export type Database = {
     Views: {
       franchises_public: {
         Row: {
-          accent_color: string | null
-          active: boolean | null
-          company_name: string | null
           id: string | null
-          logo_url: string | null
           name: string | null
-          primary_color: string | null
-          secondary_color: string | null
-          slug: string | null
         }
         Insert: {
-          accent_color?: string | null
-          active?: boolean | null
-          company_name?: string | null
           id?: string | null
-          logo_url?: string | null
           name?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          slug?: string | null
         }
         Update: {
-          accent_color?: string | null
-          active?: boolean | null
-          company_name?: string | null
           id?: string | null
-          logo_url?: string | null
           name?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          slug?: string | null
         }
         Relationships: []
       }
