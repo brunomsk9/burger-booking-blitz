@@ -4,19 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 export interface FranchisePublic {
   id: string;
   name: string;
+  slug: string | null;
 }
 
 export const useFranchisesPublic = () => {
   const { data: franchises = [], isLoading, error, refetch } = useQuery<FranchisePublic[]>({
-    queryKey: ['franchises-public', 'v2'], // Atualizar cache key para forçar refetch
+    queryKey: ['franchises-public', 'v3'], // Atualizar cache key
     queryFn: async (): Promise<FranchisePublic[]> => {
-      console.log('🔍 Fetching from franchises_public VIEW (v2 - only id and name)...');
+      console.log('🔍 Fetching from franchises_public VIEW (v3 - with slug)...');
       
       try {
-        // Consultar apenas id e name da VIEW
+        // Consultar id, name e slug da VIEW
         const { data, error } = await supabase
           .from('franchises_public')
-          .select('id, name')
+          .select('id, name, slug')
           .order('name');
 
         console.log('Raw response:', { data, error });

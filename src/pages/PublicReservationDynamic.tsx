@@ -15,12 +15,13 @@ const PublicReservationDynamic = () => {
     );
   }
 
-  // Decodificar o nome da franquia da URL e procurar no banco
-  const decodedName = decodeURIComponent(franchiseName || '');
+  // Decodificar o slug da URL e procurar no banco
+  const decodedSlug = decodeURIComponent(franchiseName || '');
   
-  // Buscar por name
+  // Buscar por slug primeiro (prioridade), depois por name como fallback
   const franchise = franchises.find(
-    f => f.name.toLowerCase() === decodedName.toLowerCase()
+    f => f.slug?.toLowerCase() === decodedSlug.toLowerCase() ||
+         f.name.toLowerCase() === decodedSlug.toLowerCase()
   );
 
   if (!franchise) {
