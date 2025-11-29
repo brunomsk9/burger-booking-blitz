@@ -25,12 +25,12 @@ export const useFranchiseTheme = (franchiseSlugOrName: string | undefined) => {
       }
 
       try {
-        // Buscar tema da tabela franchises diretamente (apenas campos públicos de tema)
+        // Buscar tema da tabela franchises usando slug ou name
         const { data, error } = await supabase
           .from('franchises')
-          .select('logo_url, primary_color, secondary_color, accent_color')
-          .eq('name', franchiseSlugOrName)
+          .select('logo_url, primary_color, secondary_color, accent_color, slug, name')
           .eq('active', true)
+          .or(`slug.eq.${franchiseSlugOrName},name.eq.${franchiseSlugOrName}`)
           .maybeSingle();
 
         if (error) {

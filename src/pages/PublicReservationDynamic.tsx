@@ -28,7 +28,13 @@ const PublicReservationDynamic = () => {
     return <Navigate to="/reserva" replace />;
   }
 
-  return <PublicReservation preselectedFranchise={franchise.name} />;
+  // Passar o name para o formulário e o slug para buscar o tema
+  return (
+    <PublicReservation 
+      preselectedFranchise={franchise.name}
+      franchiseSlug={franchise.slug || franchise.name}
+    />
+  );
 };
 
 export default PublicReservationDynamic;
