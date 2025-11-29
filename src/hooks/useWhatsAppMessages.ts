@@ -23,6 +23,7 @@ export interface WhatsAppChat {
   customer_name: string | null;
   customer_phone: string;
   archived: boolean;
+  tags: string[];
   last_message_time: string | null;
   last_agent_message_time: string | null;
   unread_count: number;
@@ -38,10 +39,22 @@ export interface ChatGroup {
   last_message_time: string;
   unread_count: number;
   archived: boolean;
+  tags: string[];
   needs_response: boolean;
 }
 
 export type ChatFilter = 'all' | 'unread' | 'awaiting_response' | 'archived';
+
+export const PREDEFINED_TAGS = [
+  { value: 'urgente', label: 'Urgente', color: 'bg-red-500' },
+  { value: 'resolvido', label: 'Resolvido', color: 'bg-green-500' },
+  { value: 'aguardando_cliente', label: 'Aguardando Cliente', color: 'bg-yellow-500' },
+  { value: 'aguardando_interno', label: 'Aguardando Interno', color: 'bg-blue-500' },
+  { value: 'importante', label: 'Importante', color: 'bg-orange-500' },
+  { value: 'follow_up', label: 'Follow-up', color: 'bg-purple-500' },
+  { value: 'cancelado', label: 'Cancelado', color: 'bg-gray-500' },
+  { value: 'vip', label: 'VIP', color: 'bg-pink-500' },
+] as const;
 
 export const useWhatsAppMessages = (franchiseId: string | null) => {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
@@ -50,6 +63,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<ChatFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
 
   // Fetch chats metadata
@@ -152,6 +166,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         last_message_time: lastMessage?.timestamp || chat.last_message_time || new Date().toISOString(),
         unread_count: chat.unread_count,
         archived: chat.archived,
+        tags: chat.tags || [],
         needs_response: !!needsResponse,
       });
     }
@@ -166,12 +181,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       return;
     }
 
-    console.log('📤 Tentando enviar mensagem:', {
-      franchiseId,
-      chatId,
-      customerPhone,
-      messageText: messageText.substring(0, 50) + '...'
-    });
+    console.log('📤 Enviando mensagem:', { franchiseId, chatId, customerPhone });
 
     try {
       const { data, error } = await supabase.functions.invoke('whatsapp-send-message', {
@@ -183,38 +193,38 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         },
       });
 
-      console.log('✅ Resposta da função:', { data, error });
-
       if (error) {
-        console.error('❌ Erro retornado pela função:', error);
+        console.error('❌ Erro ao enviar mensagem:', error);
         throw error;
       }
+
+      console.log('✅ Mensagem enviada:', data);
+
+      await fetchMessages();
+      await fetchChats();
 
       toast({
         title: 'Mensagem enviada',
         description: 'Sua mensagem foi enviada com sucesso',
       });
-
-      return data;
-    } catch (error) {
-      console.error('❌ Erro ao enviar mensagem:', error);
+    } catch (error: any) {
+      console.error('Erro ao enviar mensagem:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível enviar a mensagem',
+        description: error.message || 'Não foi possível enviar a mensagem',
         variant: 'destructive',
       });
-      throw error;
     }
   };
 
-  // Archive/unarchive chat
+  // Toggle archive status
   const toggleArchiveChat = async (chatId: string) => {
     if (!franchiseId) return;
 
-    try {
-      const chat = chats.find((c) => c.chat_id === chatId);
-      if (!chat) return;
+    const chat = chats.find((c) => c.chat_id === chatId);
+    if (!chat) return;
 
+    try {
       const { error } = await supabase
         .from('whatsapp_chats')
         .update({ archived: !chat.archived })
@@ -223,17 +233,17 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       if (error) throw error;
 
-      toast({
-        title: chat.archived ? 'Conversa desarquivada' : 'Conversa arquivada',
-        description: `A conversa foi ${chat.archived ? 'desarquivada' : 'arquivada'} com sucesso`,
-      });
-
       await fetchChats();
+
+      toast({
+        title: chat.archived ? 'Chat desarquivado' : 'Chat arquivado',
+        description: `O chat foi ${chat.archived ? 'desarquivado' : 'arquivado'} com sucesso`,
+      });
     } catch (error) {
-      console.error('Erro ao arquivar conversa:', error);
+      console.error('Erro ao arquivar chat:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível arquivar a conversa',
+        description: 'Não foi possível alterar o status do chat',
         variant: 'destructive',
       });
     }
@@ -251,8 +261,21 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         .eq('chat_id', chatId);
 
       if (error) throw error;
+
+      // Update local state
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.chat_id === chatId ? { ...chat, unread_count: 0 } : chat
+        )
+      );
+
+      setChatGroups(prevGroups =>
+        prevGroups.map(group =>
+          group.chat_id === chatId ? { ...group, unread_count: 0 } : group
+        )
+      );
     } catch (error) {
-      console.error('Erro ao marcar conversa como lida:', error);
+      console.error('Erro ao marcar como lido:', error);
     }
   };
 
@@ -268,28 +291,27 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       if (error) throw error;
 
-      toast({
-        title: 'Sucesso',
-        description: 'Todas as conversas foram marcadas como lidas',
-      });
-
       await fetchChats();
+
+      toast({
+        title: 'Todas as conversas marcadas como lidas',
+        description: 'Todos os chats foram marcados como lidos',
+      });
     } catch (error) {
-      console.error('Erro ao marcar todas conversas como lidas:', error);
+      console.error('Erro ao marcar todas como lidas:', error);
       toast({
         title: 'Erro',
-        description: 'Não foi possível marcar todas conversas como lidas',
+        description: 'Não foi possível marcar todas as conversas como lidas',
         variant: 'destructive',
       });
     }
   };
 
-  // Clear all conversations (delete messages and chats)
+  // Clear all conversations
   const clearAllConversations = async () => {
     if (!franchiseId) return;
 
     try {
-      // Delete all messages first
       const { error: messagesError } = await supabase
         .from('whatsapp_messages')
         .delete()
@@ -297,7 +319,6 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       if (messagesError) throw messagesError;
 
-      // Delete all chats
       const { error: chatsError } = await supabase
         .from('whatsapp_chats')
         .delete()
@@ -323,7 +344,47 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     }
   };
 
-  // Filter chat groups based on selected filter and search query
+  // Update chat tags
+  const updateChatTags = async (chatId: string, tags: string[]) => {
+    if (!franchiseId) return;
+
+    try {
+      const { error } = await supabase
+        .from('whatsapp_chats')
+        .update({ tags })
+        .eq('franchise_id', franchiseId)
+        .eq('chat_id', chatId);
+
+      if (error) throw error;
+
+      // Update local state
+      setChats(prevChats => 
+        prevChats.map(chat => 
+          chat.chat_id === chatId ? { ...chat, tags } : chat
+        )
+      );
+
+      setChatGroups(prevGroups =>
+        prevGroups.map(group =>
+          group.chat_id === chatId ? { ...group, tags } : group
+        )
+      );
+
+      toast({
+        title: 'Tags atualizadas',
+        description: 'As tags foram atualizadas com sucesso',
+      });
+    } catch (error) {
+      console.error('Erro ao atualizar tags:', error);
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar as tags',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Filter chat groups based on selected filter, search query, and tags
   const filteredChatGroups = chatGroups.filter((chat) => {
     // Apply status filter
     let statusMatch = false;
@@ -350,6 +411,12 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       return statusMatch && (nameMatch || phoneMatch);
     }
 
+    // Apply tags filter
+    if (selectedTags.length > 0) {
+      const hasMatchingTag = selectedTags.some(tag => chat.tags.includes(tag));
+      return statusMatch && hasMatchingTag;
+    }
+
     return statusMatch;
   });
 
@@ -365,18 +432,18 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       .on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'whatsapp_messages',
           filter: `franchise_id=eq.${franchiseId}`,
         },
         (payload) => {
-          console.log('📨 Nova mensagem recebida:', payload);
-          const newMessage = payload.new as WhatsAppMessage;
-          
-          setMessages((prev) => [...prev, newMessage]);
+          console.log('💬 Mensagem atualizada:', payload);
+          fetchMessages();
 
-          if (newMessage.direction === 'incoming') {
+          // If it's a new incoming message, show toast
+          const newMessage = payload.new as WhatsAppMessage;
+          if (payload.eventType === 'INSERT' && newMessage.direction === 'incoming') {
             toast({
               title: '📱 Nova mensagem',
               description: `${newMessage.customer_name || newMessage.customer_phone}: ${newMessage.message_text.substring(0, 50)}...`,
@@ -417,11 +484,14 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     setFilter,
     searchQuery,
     setSearchQuery,
+    selectedTags,
+    setSelectedTags,
     sendMessage,
     toggleArchiveChat,
     markChatAsRead,
     markAllChatsAsRead,
     clearAllConversations,
+    updateChatTags,
     refetch: () => {
       fetchChats();
       fetchMessages();

@@ -2,14 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentUserFranchises } from '@/hooks/useCurrentUserFranchises';
-import { useWhatsAppMessages } from '@/hooks/useWhatsAppMessages';
+import { useWhatsAppMessages, PREDEFINED_TAGS } from '@/hooks/useWhatsAppMessages';
 import { useQuickReplies } from '@/hooks/useQuickReplies';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3, CheckCheck } from 'lucide-react';
+import { Loader2, Send, MessageCircle, Building2, ArrowLeft, LogOut, Home, Archive, Clock, Mail, Search, BarChart3, CheckCheck, Tag, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { format } from 'date-fns';
@@ -24,6 +24,11 @@ import {
   SidebarInset,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const WhatsAppChat: React.FC = () => {
   const navigate = useNavigate();
@@ -43,6 +48,8 @@ const WhatsAppChat: React.FC = () => {
     setFilter,
     searchQuery,
     setSearchQuery,
+    selectedTags,
+    setSelectedTags,
     sendMessage, 
     toggleArchiveChat,
     markChatAsRead,
@@ -259,6 +266,49 @@ const WhatsAppChat: React.FC = () => {
                     </TabsTrigger>
                   </TabsList>
                 </Tabs>
+
+                {/* Tags Filter */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="w-full bg-white/90 justify-start">
+                      <Tag className="h-4 w-4 mr-2" />
+                      {selectedTags.length > 0 ? `${selectedTags.length} tags` : 'Filtrar por tag'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80">
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Filtrar por Tags</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {PREDEFINED_TAGS.map((tag) => (
+                          <Badge
+                            key={tag.value}
+                            variant={selectedTags.includes(tag.value) ? 'default' : 'outline'}
+                            className="cursor-pointer"
+                            onClick={() => {
+                              if (selectedTags.includes(tag.value)) {
+                                setSelectedTags(selectedTags.filter(t => t !== tag.value));
+                              } else {
+                                setSelectedTags([...selectedTags, tag.value]);
+                              }
+                            }}
+                          >
+                            {tag.label}
+                          </Badge>
+                        ))}
+                      </div>
+                      {selectedTags.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedTags([])}
+                          className="w-full"
+                        >
+                          Limpar filtros
+                        </Button>
+                      )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
               <ScrollArea className="flex-1">
                 {loading ? (
