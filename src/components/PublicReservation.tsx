@@ -8,7 +8,7 @@ import { Calendar, Loader2, Utensils } from 'lucide-react';
 import { useAvailabilityCheck } from '@/hooks/useAvailabilityCheck';
 import { useFranchiseTheme } from '@/hooks/useFranchiseTheme';
 import TimeSlotSelector from './TimeSlotSelector';
-import ReservationFormFields from './ReservationFormFields';
+import PublicReservationFormFields from './PublicReservationFormFields';
 import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 interface PublicReservationProps {
@@ -220,11 +220,10 @@ const PublicReservation: React.FC<PublicReservationProps> = ({ preselectedFranch
           </CardHeader>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <ReservationFormFields 
+              <PublicReservationFormFields 
                 formData={formData}
                 onFormDataChange={handleFormDataChange}
                 disableFranchiseSelect={!!preselectedFranchise}
-                usePublicView={true}
               />
 
               <TimeSlotSelector
