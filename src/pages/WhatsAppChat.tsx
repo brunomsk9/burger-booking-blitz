@@ -53,7 +53,8 @@ const WhatsAppChat: React.FC = () => {
     sendMessage, 
     toggleArchiveChat,
     markChatAsRead,
-    markAllChatsAsRead 
+    markAllChatsAsRead,
+    updateChatTags
   } = useWhatsAppMessages(selectedFranchiseId);
 
   const { quickReplies } = useQuickReplies(selectedFranchiseId);
@@ -383,17 +384,79 @@ const WhatsAppChat: React.FC = () => {
                         <div>
                           <h3 className="font-semibold text-white">{selectedChat.customer_name}</h3>
                           <p className="text-sm text-white/80">{selectedChat.customer_phone}</p>
+                          {selectedChat.tags && selectedChat.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {selectedChat.tags.map((tagValue) => {
+                                const tag = PREDEFINED_TAGS.find(t => t.value === tagValue);
+                                return tag ? (
+                                  <Badge key={tagValue} className={`${tag.color} text-white text-xs`}>
+                                    {tag.label}
+                                  </Badge>
+                                ) : null;
+                              })}
+                            </div>
+                          )}
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleArchiveChat(selectedChatId)}
-                        className="text-white hover:bg-white/10"
-                      >
-                        <Archive className="h-4 w-4 mr-2" />
-                        {selectedChat.archived ? 'Desarquivar' : 'Arquivar'}
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-white hover:bg-white/10"
+                            >
+                              <Tag className="h-4 w-4 mr-2" />
+                              Tags
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-80">
+                            <div className="space-y-3">
+                              <h4 className="font-medium">Gerenciar Tags</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {PREDEFINED_TAGS.map((tag) => {
+                                  const isSelected = selectedChat.tags?.includes(tag.value);
+                                  return (
+                                    <Badge
+                                      key={tag.value}
+                                      variant={isSelected ? 'default' : 'outline'}
+                                      className={`cursor-pointer ${isSelected ? `${tag.color} text-white` : ''}`}
+                                      onClick={() => {
+                                        const currentTags = selectedChat.tags || [];
+                                        const newTags = isSelected
+                                          ? currentTags.filter(t => t !== tag.value)
+                                          : [...currentTags, tag.value];
+                                        updateChatTags(selectedChatId, newTags);
+                                      }}
+                                    >
+                                      {tag.label}
+                                    </Badge>
+                                  );
+                                })}
+                              </div>
+                              {selectedChat.tags && selectedChat.tags.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => updateChatTags(selectedChatId, [])}
+                                  className="w-full"
+                                >
+                                  Remover todas as tags
+                                </Button>
+                              )}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleArchiveChat(selectedChatId)}
+                          className="text-white hover:bg-white/10"
+                        >
+                          <Archive className="h-4 w-4 mr-2" />
+                          {selectedChat.archived ? 'Desarquivar' : 'Arquivar'}
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
