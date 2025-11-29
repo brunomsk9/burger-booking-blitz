@@ -19,22 +19,41 @@ export const useFranchisesPublic = () => {
   const { data: franchises = [], isLoading, error, refetch } = useQuery({
     queryKey: ['franchises-public'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('franchises_public')
-        .select('*')
-        .order('company_name');
+      console.log('🔍 Fetching from franchises_public VIEW...');
+      
+      try {
+        // Tentar consultar a VIEW diretamente
+        const { data, error } = await supabase
+          .from('franchises_public' as any)
+          .select('*')
+          .order('company_name' as any);
 
-      if (error) {
-        console.error('Error fetching public franchises:', error);
-        throw error;
+        console.log('Raw response:', { data, error });
+
+        if (error) {
+          console.error('❌ Error fetching public franchises:', error);
+          throw error;
+        }
+
+        if (!data || data.length === 0) {
+          console.warn('⚠️ No franchises returned from VIEW');
+          return [];
+        }
+
+        console.log('✅ Fetched public franchises:', data);
+
+        return (data || []).map((franchise: any) => ({
+          ...franchise,
+          displayName: getFranchiseDisplayName(franchise)
+        }));
+      } catch (err) {
+        console.error('❌ Unexpected error:', err);
+        throw err;
       }
-
-      return (data || []).map(franchise => ({
-        ...franchise,
-        displayName: getFranchiseDisplayName(franchise)
-      }));
     },
   });
+
+  console.log('useFranchisesPublic result:', { franchises, isLoading, error });
 
   return {
     franchises,
