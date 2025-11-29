@@ -13,12 +13,17 @@ import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 
 interface PublicReservationProps {
   preselectedFranchise?: string;
+  franchiseSlug?: string;
 }
 
-const PublicReservation: React.FC<PublicReservationProps> = ({ preselectedFranchise }) => {
+const PublicReservation: React.FC<PublicReservationProps> = ({ 
+  preselectedFranchise,
+  franchiseSlug 
+}) => {
   const [loading, setLoading] = useState(false);
   const { availableSlots, checkingAvailability, checkAvailability, clearAvailableSlots } = useAvailabilityCheck();
-  const { theme, loading: themeLoading } = useFranchiseTheme(preselectedFranchise);
+  // Usar o slug se disponível, caso contrário usar o preselectedFranchise
+  const { theme, loading: themeLoading } = useFranchiseTheme(franchiseSlug || preselectedFranchise);
   
   const [formData, setFormData] = useState({
     franchise_name: preselectedFranchise || '',
