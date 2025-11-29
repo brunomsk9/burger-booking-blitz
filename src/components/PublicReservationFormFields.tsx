@@ -77,13 +77,13 @@ const PublicReservationFormFields: React.FC<PublicReservationFormFieldsProps> = 
             <SelectContent>
               {!franchisesLoading && franchises && franchises.length > 0 ? (
                 franchises.map(franchise => {
-                  console.log('🏢 Rendering franchise option:', franchise.displayName);
+                  console.log('🏢 Rendering franchise option:', franchise.name);
                   return (
                     <SelectItem 
                       key={franchise.id} 
-                      value={franchise.displayName || franchise.name}
+                      value={franchise.name}
                     >
-                      {franchise.displayName || franchise.name}
+                      {franchise.name}
                     </SelectItem>
                   );
                 })

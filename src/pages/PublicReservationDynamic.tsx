@@ -15,21 +15,19 @@ const PublicReservationDynamic = () => {
     );
   }
 
-  // Decodificar o slug/nome da franquia da URL e procurar no banco
-  const decodedSlugOrName = decodeURIComponent(franchiseName || '');
+  // Decodificar o nome da franquia da URL e procurar no banco
+  const decodedName = decodeURIComponent(franchiseName || '');
   
-  // Buscar por slug primeiro (prioridade), depois por displayName ou name
+  // Buscar por name
   const franchise = franchises.find(
-    f => f.slug?.toLowerCase() === decodedSlugOrName.toLowerCase() ||
-         f.displayName?.toLowerCase() === decodedSlugOrName.toLowerCase() ||
-         f.name.toLowerCase() === decodedSlugOrName.toLowerCase()
+    f => f.name.toLowerCase() === decodedName.toLowerCase()
   );
 
   if (!franchise) {
     return <Navigate to="/reserva" replace />;
   }
 
-  return <PublicReservation preselectedFranchise={franchise.displayName || franchise.name} />;
+  return <PublicReservation preselectedFranchise={franchise.name} />;
 };
 
 export default PublicReservationDynamic;

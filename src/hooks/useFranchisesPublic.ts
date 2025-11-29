@@ -1,24 +1,15 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { getFranchiseDisplayName } from '@/utils/franchiseUtils';
 
 export interface FranchisePublic {
   id: string;
   name: string;
-  company_name: string | null;
-  slug: string | null;
-  logo_url: string | null;
-  primary_color: string | null;
-  secondary_color: string | null;
-  accent_color: string | null;
-  active: boolean;
-  displayName: string;
 }
 
 export const useFranchisesPublic = () => {
-  const { data: franchises = [], isLoading, error, refetch } = useQuery({
+  const { data: franchises = [], isLoading, error, refetch } = useQuery<FranchisePublic[]>({
     queryKey: ['franchises-public'],
-    queryFn: async () => {
+    queryFn: async (): Promise<FranchisePublic[]> => {
       console.log('🔍 Fetching from franchises_public VIEW...');
       
       try {
@@ -26,7 +17,7 @@ export const useFranchisesPublic = () => {
         const { data, error } = await supabase
           .from('franchises_public' as any)
           .select('*')
-          .order('company_name' as any);
+          .order('name' as any);
 
         console.log('Raw response:', { data, error });
 
@@ -42,10 +33,7 @@ export const useFranchisesPublic = () => {
 
         console.log('✅ Fetched public franchises:', data);
 
-        return (data || []).map((franchise: any) => ({
-          ...franchise,
-          displayName: getFranchiseDisplayName(franchise)
-        }));
+        return data as unknown as FranchisePublic[];
       } catch (err) {
         console.error('❌ Unexpected error:', err);
         throw err;
