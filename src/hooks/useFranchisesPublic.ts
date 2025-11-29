@@ -8,16 +8,16 @@ export interface FranchisePublic {
 
 export const useFranchisesPublic = () => {
   const { data: franchises = [], isLoading, error, refetch } = useQuery<FranchisePublic[]>({
-    queryKey: ['franchises-public'],
+    queryKey: ['franchises-public', 'v2'], // Atualizar cache key para forçar refetch
     queryFn: async (): Promise<FranchisePublic[]> => {
-      console.log('🔍 Fetching from franchises_public VIEW...');
+      console.log('🔍 Fetching from franchises_public VIEW (v2 - only id and name)...');
       
       try {
-        // Tentar consultar a VIEW diretamente
+        // Consultar apenas id e name da VIEW
         const { data, error } = await supabase
-          .from('franchises_public' as any)
-          .select('*')
-          .order('name' as any);
+          .from('franchises_public')
+          .select('id, name')
+          .order('name');
 
         console.log('Raw response:', { data, error });
 
@@ -33,7 +33,7 @@ export const useFranchisesPublic = () => {
 
         console.log('✅ Fetched public franchises:', data);
 
-        return data as unknown as FranchisePublic[];
+        return data as FranchisePublic[];
       } catch (err) {
         console.error('❌ Unexpected error:', err);
         throw err;
