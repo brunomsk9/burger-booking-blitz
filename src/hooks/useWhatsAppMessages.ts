@@ -1,6 +1,46 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+
+// Cache utilities
+const CACHE_KEY_PREFIX = 'whatsapp_cache_';
+const CACHE_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
+
+interface CacheData<T> {
+  data: T;
+  timestamp: number;
+}
+
+const getFromCache = <T>(key: string): T | null => {
+  try {
+    const cached = localStorage.getItem(key);
+    if (!cached) return null;
+    
+    const parsed: CacheData<T> = JSON.parse(cached);
+    const isExpired = Date.now() - parsed.timestamp > CACHE_EXPIRY_MS;
+    
+    if (isExpired) {
+      localStorage.removeItem(key);
+      return null;
+    }
+    
+    return parsed.data;
+  } catch {
+    return null;
+  }
+};
+
+const saveToCache = <T>(key: string, data: T): void => {
+  try {
+    const cacheData: CacheData<T> = {
+      data,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(key, JSON.stringify(cacheData));
+  } catch (e) {
+    console.warn('Failed to save to cache:', e);
+  }
+};
 
 export interface WhatsAppMessage {
   id: string;
@@ -65,6 +105,22 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
+  const hasCacheLoaded = useRef(false);
+
+  // Load from cache on mount
+  useEffect(() => {
+    if (!franchiseId || hasCacheLoaded.current) return;
+    
+    const cacheKey = `${CACHE_KEY_PREFIX}chatgroups_${franchiseId}`;
+    const cachedGroups = getFromCache<ChatGroup[]>(cacheKey);
+    
+    if (cachedGroups && cachedGroups.length > 0) {
+      console.log('📦 Carregando do cache:', cachedGroups.length, 'conversas');
+      setChatGroups(cachedGroups);
+      setLoading(false);
+      hasCacheLoaded.current = true;
+    }
+  }, [franchiseId]);
 
   // Optimized: Fetch chats and last messages in parallel
   const fetchChatsOptimized = useCallback(async () => {
@@ -145,6 +201,11 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       });
 
       setChatGroups(groups);
+      
+      // Save to cache
+      const cacheKey = `${CACHE_KEY_PREFIX}chatgroups_${franchiseId}`;
+      saveToCache(cacheKey, groups);
+      console.log('💾 Cache atualizado com', groups.length, 'conversas');
     } catch (error) {
       console.error('Erro ao carregar conversas:', error);
       toast({
@@ -332,6 +393,10 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         .eq('franchise_id', franchiseId);
 
       if (chatsError) throw chatsError;
+
+      // Clear cache
+      const cacheKey = `${CACHE_KEY_PREFIX}chatgroups_${franchiseId}`;
+      localStorage.removeItem(cacheKey);
 
       toast({
         title: 'Conversas limpas',
