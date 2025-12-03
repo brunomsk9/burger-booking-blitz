@@ -42,6 +42,7 @@ const WhatsAppChat: React.FC = () => {
 
   const { 
     messages, 
+    messagesLoading,
     chatGroups, 
     loading, 
     filter,
@@ -55,7 +56,7 @@ const WhatsAppChat: React.FC = () => {
     markChatAsRead,
     markAllChatsAsRead,
     updateChatTags
-  } = useWhatsAppMessages(selectedFranchiseId);
+  } = useWhatsAppMessages(selectedFranchiseId, selectedChatId);
 
   const { quickReplies } = useQuickReplies(selectedFranchiseId);
 
@@ -111,10 +112,7 @@ const WhatsAppChat: React.FC = () => {
     await markChatAsRead(chatId);
   };
 
-  const filteredMessages = selectedChatId
-    ? messages.filter((m) => m.chat_id === selectedChatId)
-    : [];
-
+  // Messages are now fetched directly for the selected chat
   const selectedChat = chatGroups.find((c) => c.chat_id === selectedChatId);
 
   if (franchisesLoading) {
@@ -464,7 +462,11 @@ const WhatsAppChat: React.FC = () => {
                   <div className="flex-1 overflow-hidden">
                     <ScrollArea className="h-full p-4 bg-[hsl(var(--whatsapp-bg))]">
                     <div className="space-y-2">
-                      {filteredMessages.map((message) => (
+                      {messagesLoading ? (
+                        <div className="flex justify-center items-center h-32">
+                          <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                        </div>
+                      ) : messages.map((message) => (
                         <div
                           key={message.id}
                           className={`flex ${message.direction === 'outgoing' ? 'justify-end' : 'justify-start'}`}
