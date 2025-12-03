@@ -279,6 +279,7 @@ export type Database = {
           franchise_id: string
           id: string
           last_agent_message_time: string | null
+          last_message_text: string | null
           last_message_time: string | null
           tags: string[] | null
           unread_count: number | null
@@ -293,6 +294,7 @@ export type Database = {
           franchise_id: string
           id?: string
           last_agent_message_time?: string | null
+          last_message_text?: string | null
           last_message_time?: string | null
           tags?: string[] | null
           unread_count?: number | null
@@ -307,6 +309,7 @@ export type Database = {
           franchise_id?: string
           id?: string
           last_agent_message_time?: string | null
+          last_message_text?: string | null
           last_message_time?: string | null
           tags?: string[] | null
           unread_count?: number | null

@@ -122,7 +122,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     }
   }, [franchiseId]);
 
-  // Optimized: Two queries approach - chats + batch last messages
+  // Optimized: Single query - using last_message_text column
   const fetchChatsOptimized = useCallback(async () => {
     if (!franchiseId) {
       console.log('⚠️ useWhatsAppMessages - Nenhuma franquia selecionada');
@@ -135,39 +135,22 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     console.log('🔍 useWhatsAppMessages - Buscando chats para franquia:', franchiseId);
 
     try {
-      // Parallel queries: chats + recent messages (for preview)
-      const [chatsResult, messagesResult] = await Promise.all([
-        supabase
-          .from('whatsapp_chats')
-          .select('*')
-          .eq('franchise_id', franchiseId)
-          .order('last_message_time', { ascending: false }),
-        supabase
-          .from('whatsapp_messages')
-          .select('chat_id, message_text, timestamp')
-          .eq('franchise_id', franchiseId)
-          .order('timestamp', { ascending: false })
-          .limit(200) // Get last 200 messages to cover all chats
-      ]);
+      const { data: chatsData, error: chatsError } = await supabase
+        .from('whatsapp_chats')
+        .select('*')
+        .eq('franchise_id', franchiseId)
+        .order('last_message_time', { ascending: false });
 
-      if (chatsResult.error) {
-        console.error('❌ Erro ao buscar chats:', chatsResult.error);
-        throw chatsResult.error;
+      if (chatsError) {
+        console.error('❌ Erro ao buscar chats:', chatsError);
+        throw chatsError;
       }
 
-      const typedChats = (chatsResult.data || []) as WhatsAppChat[];
+      const typedChats = (chatsData || []) as WhatsAppChat[];
       console.log('✅ Chats encontrados:', typedChats.length);
       setChats(typedChats);
 
-      // Build a map of chat_id -> last message (first occurrence is the latest)
-      const lastMessageMap = new Map<string, string>();
-      for (const msg of (messagesResult.data || [])) {
-        if (!lastMessageMap.has(msg.chat_id)) {
-          lastMessageMap.set(msg.chat_id, msg.message_text);
-        }
-      }
-
-      // Build chat groups with message previews
+      // Build chat groups using last_message_text from whatsapp_chats
       const groups: ChatGroup[] = typedChats.map((chat) => {
         const needsResponse = chat.last_message_time && (!chat.last_agent_message_time || 
           new Date(chat.last_message_time) > new Date(chat.last_agent_message_time));
@@ -176,7 +159,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
           chat_id: chat.chat_id,
           customer_name: chat.customer_name || chat.customer_phone,
           customer_phone: chat.customer_phone,
-          last_message: lastMessageMap.get(chat.chat_id) || '',
+          last_message: (chat as any).last_message_text || '',
           last_message_time: chat.last_message_time || new Date().toISOString(),
           unread_count: chat.unread_count || 0,
           archived: chat.archived || false,
