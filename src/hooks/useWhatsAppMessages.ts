@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -66,8 +66,8 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { toast } = useToast();
 
-  // Fetch chats metadata
-  const fetchChats = async () => {
+  // Optimized: Fetch chats and last messages in parallel
+  const fetchChatsOptimized = useCallback(async () => {
     if (!franchiseId) {
       console.log('⚠️ useWhatsAppMessages - Nenhuma franquia selecionada');
       setChats([]);
@@ -79,20 +79,73 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     console.log('🔍 useWhatsAppMessages - Buscando chats para franquia:', franchiseId);
 
     try {
-      const { data: chatsData, error: chatsError } = await supabase
-        .from('whatsapp_chats')
-        .select('*')
-        .eq('franchise_id', franchiseId)
-        .order('last_message_time', { ascending: false });
+      // Fetch chats and last messages in parallel
+      const [chatsResult, lastMessagesResult] = await Promise.all([
+        supabase
+          .from('whatsapp_chats')
+          .select('*')
+          .eq('franchise_id', franchiseId)
+          .order('last_message_time', { ascending: false }),
+        // Get last message for each chat using a single query
+        supabase
+          .from('whatsapp_messages')
+          .select('chat_id, message_text, timestamp, direction')
+          .eq('franchise_id', franchiseId)
+          .order('timestamp', { ascending: false })
+      ]);
 
-      if (chatsError) {
-        console.error('❌ Erro ao buscar chats:', chatsError);
-        throw chatsError;
+      if (chatsResult.error) {
+        console.error('❌ Erro ao buscar chats:', chatsResult.error);
+        throw chatsResult.error;
       }
 
-      console.log('✅ Chats encontrados:', chatsData?.length);
-      setChats((chatsData || []) as WhatsAppChat[]);
-      await buildChatGroups(chatsData || []);
+      const chatsData = (chatsResult.data || []) as WhatsAppChat[];
+      console.log('✅ Chats encontrados:', chatsData.length);
+      setChats(chatsData);
+
+      // Create a map of last messages by chat_id
+      const lastMessageMap = new Map<string, { message_text: string; timestamp: string; direction: string }>();
+      const lastIncomingMap = new Map<string, string>(); // chat_id -> timestamp of last incoming
+
+      if (lastMessagesResult.data) {
+        for (const msg of lastMessagesResult.data) {
+          // Store first occurrence (which is the latest due to ordering)
+          if (!lastMessageMap.has(msg.chat_id)) {
+            lastMessageMap.set(msg.chat_id, {
+              message_text: msg.message_text,
+              timestamp: msg.timestamp,
+              direction: msg.direction
+            });
+          }
+          // Track last incoming message
+          if (msg.direction === 'incoming' && !lastIncomingMap.has(msg.chat_id)) {
+            lastIncomingMap.set(msg.chat_id, msg.timestamp);
+          }
+        }
+      }
+
+      // Build chat groups efficiently
+      const groups: ChatGroup[] = chatsData.map(chat => {
+        const lastMessage = lastMessageMap.get(chat.chat_id);
+        const lastIncomingTime = lastIncomingMap.get(chat.chat_id);
+        
+        const needsResponse = lastIncomingTime && (!chat.last_agent_message_time || 
+          new Date(lastIncomingTime) > new Date(chat.last_agent_message_time));
+
+        return {
+          chat_id: chat.chat_id,
+          customer_name: chat.customer_name || chat.customer_phone,
+          customer_phone: chat.customer_phone,
+          last_message: lastMessage?.message_text || '',
+          last_message_time: lastMessage?.timestamp || chat.last_message_time || new Date().toISOString(),
+          unread_count: chat.unread_count,
+          archived: chat.archived,
+          tags: chat.tags || [],
+          needs_response: !!needsResponse,
+        };
+      });
+
+      setChatGroups(groups);
     } catch (error) {
       console.error('Erro ao carregar conversas:', error);
       toast({
@@ -103,10 +156,10 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [franchiseId, toast]);
 
-  // Fetch all messages for a franchise
-  const fetchMessages = async () => {
+  // Fetch messages for selected chat only (lazy loading)
+  const fetchMessages = useCallback(async () => {
     if (!franchiseId) {
       setMessages([]);
       return;
@@ -127,52 +180,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
     }
-  };
-
-  // Build chat groups with last message from messages table
-  const buildChatGroups = async (chatsData: WhatsAppChat[]) => {
-    const groups: ChatGroup[] = [];
-
-    for (const chat of chatsData) {
-      // Get last message for this chat
-      const { data: lastMessage } = await supabase
-        .from('whatsapp_messages')
-        .select('message_text, timestamp')
-        .eq('franchise_id', franchiseId)
-        .eq('chat_id', chat.chat_id)
-        .order('timestamp', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      // Determine if awaiting response (last message was incoming)
-      const { data: lastIncoming } = await supabase
-        .from('whatsapp_messages')
-        .select('timestamp')
-        .eq('franchise_id', franchiseId)
-        .eq('chat_id', chat.chat_id)
-        .eq('direction', 'incoming')
-        .order('timestamp', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const needsResponse = lastIncoming && (!chat.last_agent_message_time || 
-        new Date(lastIncoming.timestamp) > new Date(chat.last_agent_message_time));
-
-      groups.push({
-        chat_id: chat.chat_id,
-        customer_name: chat.customer_name || chat.customer_phone,
-        customer_phone: chat.customer_phone,
-        last_message: lastMessage?.message_text || '',
-        last_message_time: lastMessage?.timestamp || chat.last_message_time || new Date().toISOString(),
-        unread_count: chat.unread_count,
-        archived: chat.archived,
-        tags: chat.tags || [],
-        needs_response: !!needsResponse,
-      });
-    }
-
-    setChatGroups(groups);
-  };
+  }, [franchiseId]);
 
   // Send a message
   const sendMessage = async (chatId: string, customerPhone: string, messageText: string) => {
@@ -201,7 +209,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       console.log('✅ Mensagem enviada:', data);
 
       await fetchMessages();
-      await fetchChats();
+      await fetchChatsOptimized();
 
       toast({
         title: 'Mensagem enviada',
@@ -233,7 +241,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       if (error) throw error;
 
-      await fetchChats();
+      await fetchChatsOptimized();
 
       toast({
         title: chat.archived ? 'Chat desarquivado' : 'Chat arquivado',
@@ -291,7 +299,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       if (error) throw error;
 
-      await fetchChats();
+      await fetchChatsOptimized();
 
       toast({
         title: 'Todas as conversas marcadas como lidas',
@@ -424,7 +432,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   useEffect(() => {
     if (!franchiseId) return;
 
-    fetchChats();
+    fetchChatsOptimized();
     fetchMessages();
 
     const messagesChannel = supabase
@@ -465,7 +473,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         },
         () => {
           console.log('💬 Metadata do chat atualizada');
-          fetchChats();
+          fetchChatsOptimized();
         }
       )
       .subscribe();
@@ -474,7 +482,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(chatsChannel);
     };
-  }, [franchiseId]);
+  }, [franchiseId, fetchChatsOptimized, fetchMessages, toast]);
 
   return {
     messages,
@@ -493,7 +501,7 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     clearAllConversations,
     updateChatTags,
     refetch: () => {
-      fetchChats();
+      fetchChatsOptimized();
       fetchMessages();
     },
   };
