@@ -96,11 +96,12 @@ export const PREDEFINED_TAGS = [
   { value: 'vip', label: 'VIP', color: 'bg-pink-500' },
 ] as const;
 
-export const useWhatsAppMessages = (franchiseId: string | null) => {
+export const useWhatsAppMessages = (franchiseId: string | null, selectedChatId?: string | null) => {
   const [messages, setMessages] = useState<WhatsAppMessage[]>([]);
   const [chats, setChats] = useState<WhatsAppChat[]>([]);
   const [chatGroups, setChatGroups] = useState<ChatGroup[]>([]);
   const [loading, setLoading] = useState(true);
+  const [messagesLoading, setMessagesLoading] = useState(false);
   const [filter, setFilter] = useState<ChatFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -187,19 +188,21 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
   }, [franchiseId, toast]);
 
   // Fetch messages for selected chat only (lazy loading)
-  const fetchMessages = useCallback(async () => {
-    if (!franchiseId) {
+  const fetchMessagesForChat = useCallback(async (chatId: string) => {
+    if (!franchiseId || !chatId) {
       setMessages([]);
       return;
     }
 
-    console.log('🔍 useWhatsAppMessages - Buscando mensagens para franquia:', franchiseId);
+    console.log('🔍 useWhatsAppMessages - Buscando mensagens para chat:', chatId);
+    setMessagesLoading(true);
 
     try {
       const { data, error } = await supabase
         .from('whatsapp_messages')
         .select('*')
         .eq('franchise_id', franchiseId)
+        .eq('chat_id', chatId)
         .order('timestamp', { ascending: true });
 
       if (error) throw error;
@@ -207,8 +210,19 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       setMessages((data || []) as WhatsAppMessage[]);
     } catch (error) {
       console.error('Erro ao carregar mensagens:', error);
+    } finally {
+      setMessagesLoading(false);
     }
   }, [franchiseId]);
+
+  // Fetch messages when selectedChatId changes
+  useEffect(() => {
+    if (selectedChatId) {
+      fetchMessagesForChat(selectedChatId);
+    } else {
+      setMessages([]);
+    }
+  }, [selectedChatId, fetchMessagesForChat]);
 
   // Send a message
   const sendMessage = async (chatId: string, customerPhone: string, messageText: string) => {
@@ -236,7 +250,9 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
 
       console.log('✅ Mensagem enviada:', data);
 
-      await fetchMessages();
+      if (selectedChatId) {
+        await fetchMessagesForChat(selectedChatId);
+      }
       await fetchChatsOptimized();
 
       toast({
@@ -465,7 +481,6 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     if (!franchiseId) return;
 
     fetchChatsOptimized();
-    fetchMessages();
 
     const messagesChannel = supabase
       .channel('whatsapp-messages-updates')
@@ -479,10 +494,14 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
         },
         (payload) => {
           console.log('💬 Mensagem atualizada:', payload);
-          fetchMessages();
+          const newMessage = payload.new as WhatsAppMessage;
+          
+          // Only refetch messages if this chat is selected
+          if (selectedChatId && newMessage.chat_id === selectedChatId) {
+            fetchMessagesForChat(selectedChatId);
+          }
 
           // If it's a new incoming message, show toast
-          const newMessage = payload.new as WhatsAppMessage;
           if (payload.eventType === 'INSERT' && newMessage.direction === 'incoming') {
             toast({
               title: '📱 Nova mensagem',
@@ -514,10 +533,11 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       supabase.removeChannel(messagesChannel);
       supabase.removeChannel(chatsChannel);
     };
-  }, [franchiseId, fetchChatsOptimized, fetchMessages, toast]);
+  }, [franchiseId, selectedChatId, fetchChatsOptimized, fetchMessagesForChat, toast]);
 
   return {
     messages,
+    messagesLoading,
     chatGroups: filteredChatGroups,
     loading,
     filter,
@@ -534,7 +554,9 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     updateChatTags,
     refetch: () => {
       fetchChatsOptimized();
-      fetchMessages();
+      if (selectedChatId) {
+        fetchMessagesForChat(selectedChatId);
+      }
     },
   };
 };
