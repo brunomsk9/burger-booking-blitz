@@ -79,20 +79,12 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
     console.log('🔍 useWhatsAppMessages - Buscando chats para franquia:', franchiseId);
 
     try {
-      // Fetch chats and last messages in parallel
-      const [chatsResult, lastMessagesResult] = await Promise.all([
-        supabase
-          .from('whatsapp_chats')
-          .select('*')
-          .eq('franchise_id', franchiseId)
-          .order('last_message_time', { ascending: false }),
-        // Get last message for each chat using a single query
-        supabase
-          .from('whatsapp_messages')
-          .select('chat_id, message_text, timestamp, direction')
-          .eq('franchise_id', franchiseId)
-          .order('timestamp', { ascending: false })
-      ]);
+      // Fetch only chats first - last messages will be fetched per chat with limits
+      const chatsResult = await supabase
+        .from('whatsapp_chats')
+        .select('*')
+        .eq('franchise_id', franchiseId)
+        .order('last_message_time', { ascending: false });
 
       if (chatsResult.error) {
         console.error('❌ Erro ao buscar chats:', chatsResult.error);
@@ -103,31 +95,38 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
       console.log('✅ Chats encontrados:', chatsData.length);
       setChats(chatsData);
 
-      // Create a map of last messages by chat_id
-      const lastMessageMap = new Map<string, { message_text: string; timestamp: string; direction: string }>();
-      const lastIncomingMap = new Map<string, string>(); // chat_id -> timestamp of last incoming
+      // Fetch last message for each chat in parallel (limited queries)
+      const lastMessagePromises = chatsData.map(chat => 
+        supabase
+          .from('whatsapp_messages')
+          .select('message_text, timestamp')
+          .eq('franchise_id', franchiseId)
+          .eq('chat_id', chat.chat_id)
+          .order('timestamp', { ascending: false })
+          .limit(1)
+      );
 
-      if (lastMessagesResult.data) {
-        for (const msg of lastMessagesResult.data) {
-          // Store first occurrence (which is the latest due to ordering)
-          if (!lastMessageMap.has(msg.chat_id)) {
-            lastMessageMap.set(msg.chat_id, {
-              message_text: msg.message_text,
-              timestamp: msg.timestamp,
-              direction: msg.direction
-            });
-          }
-          // Track last incoming message
-          if (msg.direction === 'incoming' && !lastIncomingMap.has(msg.chat_id)) {
-            lastIncomingMap.set(msg.chat_id, msg.timestamp);
-          }
-        }
-      }
+      const lastIncomingPromises = chatsData.map(chat =>
+        supabase
+          .from('whatsapp_messages')
+          .select('timestamp')
+          .eq('franchise_id', franchiseId)
+          .eq('chat_id', chat.chat_id)
+          .eq('direction', 'incoming')
+          .order('timestamp', { ascending: false })
+          .limit(1)
+      );
+
+      const [lastMessageResults, lastIncomingResults] = await Promise.all([
+        Promise.all(lastMessagePromises),
+        Promise.all(lastIncomingPromises)
+      ]);
 
       // Build chat groups efficiently
-      const groups: ChatGroup[] = chatsData.map(chat => {
-        const lastMessage = lastMessageMap.get(chat.chat_id);
-        const lastIncomingTime = lastIncomingMap.get(chat.chat_id);
+      const groups: ChatGroup[] = chatsData.map((chat, index) => {
+        const lastMessageData = lastMessageResults[index]?.data?.[0];
+        const lastIncomingData = lastIncomingResults[index]?.data?.[0];
+        const lastIncomingTime = lastIncomingData?.timestamp;
         
         const needsResponse = lastIncomingTime && (!chat.last_agent_message_time || 
           new Date(lastIncomingTime) > new Date(chat.last_agent_message_time));
@@ -136,8 +135,8 @@ export const useWhatsAppMessages = (franchiseId: string | null) => {
           chat_id: chat.chat_id,
           customer_name: chat.customer_name || chat.customer_phone,
           customer_phone: chat.customer_phone,
-          last_message: lastMessage?.message_text || '',
-          last_message_time: lastMessage?.timestamp || chat.last_message_time || new Date().toISOString(),
+          last_message: lastMessageData?.message_text || '',
+          last_message_time: lastMessageData?.timestamp || chat.last_message_time || new Date().toISOString(),
           unread_count: chat.unread_count,
           archived: chat.archived,
           tags: chat.tags || [],
