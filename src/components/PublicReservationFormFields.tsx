@@ -138,7 +138,6 @@ const PublicReservationFormFields: React.FC<PublicReservationFormFieldsProps> = 
             id="people"
             type="number"
             min="1"
-            max="20"
             value={formData.people}
             onChange={(e) => onFormDataChange({ people: parseInt(e.target.value) })}
             required
