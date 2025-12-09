@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
 import { format } from 'date-fns';
+import { toZonedTime } from 'date-fns-tz';
 
 interface RecentReservation {
   id: string;
@@ -65,7 +66,7 @@ const RecentReservations: React.FC<RecentReservationsProps> = ({ reservations, l
                   <h4 className="font-semibold text-gray-900">{reservation.customer_name}</h4>
                   <p className="text-sm text-gray-600">{reservation.franchise_name}</p>
                   <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                    <span>{reservation.date_time.slice(8,10)}/{reservation.date_time.slice(5,7)}/{reservation.date_time.slice(0,4)} às {reservation.date_time.slice(11,16)}</span>
+                    <span>{format(toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo'), 'dd/MM/yyyy')} às {format(toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo'), 'HH:mm')}</span>
                     <span>{reservation.people} pessoas</span>
                   </div>
                 </div>
