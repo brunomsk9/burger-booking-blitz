@@ -157,7 +157,6 @@ const ReservationForm: React.FC<ReservationFormProps> = ({
               <Input
                 type="number"
                 min="1"
-                max="20"
                 value={formData.people}
                 onChange={(e) => setFormData({...formData, people: parseInt(e.target.value)})}
                 placeholder="Número de pessoas"
