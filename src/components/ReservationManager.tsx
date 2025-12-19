@@ -145,8 +145,11 @@ const ReservationManager: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Converter data do formulário para timezone de Brasília
-    const brasiliaDate = fromZonedTime(formData.date_time, 'America/Sao_Paulo');
+    // Converter data do formulário (horário de Brasília) para UTC
+    // O formData.date_time é uma string como "2025-12-18T20:00" representando hora de Brasília
+    // fromZonedTime precisa de um Date, então primeiro criamos o Date a partir da string
+    const localDate = new Date(formData.date_time);
+    const brasiliaDate = fromZonedTime(localDate, 'America/Sao_Paulo');
     
     const reservationData = {
       franchise_name: formData.franchise_name,
