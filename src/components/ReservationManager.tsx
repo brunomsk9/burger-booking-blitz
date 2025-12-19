@@ -14,8 +14,8 @@ import { Reservation } from '@/types/reservation';
 import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
 import ReservationCard from './ReservationCard';
-import { fromZonedTime } from 'date-fns-tz';
-import { format, parseISO, startOfDay, endOfDay, addDays } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
+import { startOfDay, endOfDay, addDays, format, parseISO } from 'date-fns';
 
 const ReservationManager: React.FC = () => {
   const { reservations, loading, createReservation, updateReservation, deleteReservation, refetch } = useReservations();
@@ -173,13 +173,13 @@ const ReservationManager: React.FC = () => {
 
   const handleEdit = (reservation: Reservation) => {
     setEditingReservation(reservation);
-    // O date_time no banco já está no formato correto (hora local salva como UTC)
-    const dateTime = parseISO(reservation.date_time);
+    // Usar formatInTimeZone para extrair a data/hora UTC corretamente
+    const dateForInput = formatInTimeZone(new Date(reservation.date_time), 'UTC', "yyyy-MM-dd'T'HH:mm");
     setFormData({
       franchise_name: reservation.franchise_name,
       customer_name: reservation.customer_name,
       phone: reservation.phone,
-      date_time: format(dateTime, "yyyy-MM-dd'T'HH:mm"),
+      date_time: dateForInput,
       people: reservation.people,
       birthday: reservation.birthday,
       birthday_person_name: reservation.birthday_person_name || '',
