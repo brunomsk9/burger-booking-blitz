@@ -5,8 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Phone, Edit, Trash2, MessageCircle, Check, X } from 'lucide-react';
 import { Reservation } from '@/types/reservation';
-import { format } from 'date-fns';
-import { toZonedTime } from 'date-fns-tz';
+import { format, parseISO } from 'date-fns';
 
 interface ReservationCardProps {
   reservation: Reservation;
@@ -76,7 +75,7 @@ const ReservationCard: React.FC<ReservationCardProps> = ({
               </div>
               <div className="flex items-center gap-1">
                 <Calendar size={14} />
-                <strong>Data/Hora:</strong> {format(toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo'), 'dd/MM/yyyy')} às {format(toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo'), 'HH:mm')}
+                <strong>Data/Hora:</strong> {format(parseISO(reservation.date_time), 'dd/MM/yyyy')} às {format(parseISO(reservation.date_time), 'HH:mm')}
               </div>
               <div>
                 <strong>Pessoas:</strong> {reservation.people}
