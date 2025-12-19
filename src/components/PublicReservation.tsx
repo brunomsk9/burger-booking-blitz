@@ -9,7 +9,7 @@ import { useAvailabilityCheck } from '@/hooks/useAvailabilityCheck';
 import { useFranchiseTheme } from '@/hooks/useFranchiseTheme';
 import TimeSlotSelector from './TimeSlotSelector';
 import PublicReservationFormFields from './PublicReservationFormFields';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+
 
 interface PublicReservationProps {
   preselectedFranchise?: string;
@@ -96,15 +96,14 @@ const PublicReservation: React.FC<PublicReservationProps> = ({
     setLoading(true);
 
     try {
-      // Criar data no timezone de Brasília e converter para UTC
-      const localDateTime = new Date(`${formData.date}T${formData.time}:00`);
-      const brasiliaDate = fromZonedTime(localDateTime, 'America/Sao_Paulo');
+      // Salvar a data/hora como está (hora local do formulário)
+      const dateTimeISO = new Date(`${formData.date}T${formData.time}:00`).toISOString();
       
       const reservationData = {
         franchise_name: formData.franchise_name,
         customer_name: formData.customer_name,
         phone: formData.phone,
-        date_time: brasiliaDate.toISOString(),
+        date_time: dateTimeISO,
         people: formData.people,
         birthday: formData.birthday,
         birthday_person_name: formData.birthday_person_name,

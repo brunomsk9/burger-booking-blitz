@@ -14,7 +14,7 @@ import { Reservation } from '@/types/reservation';
 import TestConnection from './TestConnection';
 import ReservationForm from './ReservationForm';
 import ReservationCard from './ReservationCard';
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { fromZonedTime } from 'date-fns-tz';
 import { format, parseISO, startOfDay, endOfDay, addDays } from 'date-fns';
 
 const ReservationManager: React.FC = () => {
@@ -145,17 +145,15 @@ const ReservationManager: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Converter data do formulário (horário de Brasília) para UTC
-    // O formData.date_time é uma string como "2025-12-18T20:00" representando hora de Brasília
-    // fromZonedTime precisa de um Date, então primeiro criamos o Date a partir da string
-    const localDate = new Date(formData.date_time);
-    const brasiliaDate = fromZonedTime(localDate, 'America/Sao_Paulo');
+    // Salvar a data/hora como está (hora local do formulário)
+    // O formato é "2025-12-18T20:00" que representa a hora local desejada
+    const dateTimeISO = new Date(formData.date_time).toISOString();
     
     const reservationData = {
       franchise_name: formData.franchise_name,
       customer_name: formData.customer_name,
       phone: formData.phone,
-      date_time: brasiliaDate.toISOString(),
+      date_time: dateTimeISO,
       people: formData.people,
       birthday: formData.birthday,
       birthday_person_name: formData.birthday_person_name,
@@ -175,12 +173,13 @@ const ReservationManager: React.FC = () => {
 
   const handleEdit = (reservation: Reservation) => {
     setEditingReservation(reservation);
-    const brasiliaDate = toZonedTime(new Date(reservation.date_time), 'America/Sao_Paulo');
+    // O date_time no banco já está no formato correto (hora local salva como UTC)
+    const dateTime = parseISO(reservation.date_time);
     setFormData({
       franchise_name: reservation.franchise_name,
       customer_name: reservation.customer_name,
       phone: reservation.phone,
-      date_time: format(brasiliaDate, "yyyy-MM-dd'T'HH:mm"),
+      date_time: format(dateTime, "yyyy-MM-dd'T'HH:mm"),
       people: reservation.people,
       birthday: reservation.birthday,
       birthday_person_name: reservation.birthday_person_name || '',
