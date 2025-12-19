@@ -96,8 +96,8 @@ const PublicReservation: React.FC<PublicReservationProps> = ({
     setLoading(true);
 
     try {
-      // Criar data no timezone de Brasília
-      const localDateTime = `${formData.date}T${formData.time}:00`;
+      // Criar data no timezone de Brasília e converter para UTC
+      const localDateTime = new Date(`${formData.date}T${formData.time}:00`);
       const brasiliaDate = fromZonedTime(localDateTime, 'America/Sao_Paulo');
       
       const reservationData = {
