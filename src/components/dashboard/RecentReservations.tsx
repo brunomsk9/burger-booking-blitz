@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Calendar } from 'lucide-react';
-import { format, parseISO } from 'date-fns';
+import { formatInTimeZone } from 'date-fns-tz';
 
 interface RecentReservation {
   id: string;
@@ -65,7 +65,7 @@ const RecentReservations: React.FC<RecentReservationsProps> = ({ reservations, l
                   <h4 className="font-semibold text-gray-900">{reservation.customer_name}</h4>
                   <p className="text-sm text-gray-600">{reservation.franchise_name}</p>
                   <div className="flex items-center gap-4 mt-1 text-sm text-gray-500">
-                    <span>{format(parseISO(reservation.date_time), 'dd/MM/yyyy')} às {format(parseISO(reservation.date_time), 'HH:mm')}</span>
+                    <span>{formatInTimeZone(new Date(reservation.date_time), 'UTC', 'dd/MM/yyyy')} às {formatInTimeZone(new Date(reservation.date_time), 'UTC', 'HH:mm')}</span>
                     <span>{reservation.people} pessoas</span>
                   </div>
                 </div>
